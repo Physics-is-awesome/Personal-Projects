@@ -7,8 +7,9 @@ import importlib.util
 import sys
 import pygame
 import os
+import argparse
 
-# Load Ast.py dynamically
+# Load Ast.py
 spec = importlib.util.spec_from_file_location("Ast", "/home/ajc/Personal-Projects/Random stuff/Ast.py")
 ast = importlib.util.module_from_spec(spec)
 sys.modules["Ast"] = ast
@@ -28,7 +29,7 @@ class ActorCritic(nn.Module):
         self.critic = nn.Linear(hidden_size, 1)
     
     def forward(self, x):
-        x = torch.FloatTensor(x)
+        x = torch.FloatTensor(x).to(self.device)
         shared = self.shared(x)
         action_logits = self.actor(shared)
         value = self.critic(shared)
@@ -134,7 +135,7 @@ class PPOAgent:
 
     def collect_rollouts(self, ast_module, episodes=10, max_steps=3600, headless=True):
         rollouts = []
-        for _ in range(episodes):
+        for ep in range(episodes):
             ast_module.game_state = "playing"
             ast_module.current_mode = "relativistic"
             ast_module.reset_game()
@@ -142,6 +143,7 @@ class PPOAgent:
             steps = 0
             prev_lives = ast_module.lives
             prev_score = 0
+            prev_ufo = None
             while ast_module.game_state == "playing" and steps < max_steps:
                 state = self.get_game_state(ast_module)
                 state_tensor = torch.FloatTensor(state).to(self.device)
@@ -161,6 +163,9 @@ class PPOAgent:
                     ast_module.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
+                
+                ast_module.last_outputs = probs.cpu().numpy().round(2)  # For visualization
+                ast_module.last_reward = 0  # Initialize
                 
                 # Run one game step
                 ast_module.apply_gravity()
@@ -228,8 +233,12 @@ class PPOAgent:
                 if any(np.hypot(ast_module.ship["x"] - bh["x"], ast_module.ship["y"] - bh["y"]) < bh["radius"] + ast_module.ship["radius"] for bh in ast_module.black_holes):
                     reward -= 5000
                 reward += (ast_module.score - prev_score)
+                if ast_module.ufo is None and prev_ufo is not None:
+                    reward += 500  # Bonus for UFO kills
                 prev_lives = ast_module.lives
                 prev_score = ast_module.score
+                prev_ufo = ast_module.ufo
+                ast_module.last_reward = reward  # For visualization
                 
                 states.append(state)
                 actions.append(action.cpu().numpy())
@@ -243,9 +252,13 @@ class PPOAgent:
                     ast_module.screen.fill(ast_module.BLACK)
                     ast_module.draw_objects()
                     pygame.display.flip()
-                    ast_module.clock.tick(60)
+                    ast_module.clock.tick(30)  # Slower for visibility
+                
+                # Check early termination
+                if ast_module.lives <= 0 and ast_module.current_mode != "time_attack":
+                    ast_module.game_state = "game_over"
             
-            # Bootstrap value for last state
+            # Bootstrap value
             if steps < max_steps and ast_module.game_state == "playing":
                 with torch.no_grad():
                     _, value = self.model(torch.FloatTensor(self.get_game_state(ast_module)).to(self.device))
@@ -254,7 +267,7 @@ class PPOAgent:
                 values.append(0)
             
             rollouts.append((states, actions, log_probs, rewards, values, dones))
-            print(f"Episode: Score={ast_module.score}, Steps={steps}, Reward={sum(rewards)}")
+            print(f"Episode {ep+1}: Score={ast_module.score}, Steps={steps}, Reward={sum(rewards):.2f}")
         
         return rollouts
 
@@ -318,6 +331,7 @@ class PPOAgent:
 
     def save_model(self, path="/home/ajc/Personal-Projects/Random stuff/best_ppo_model.pth"):
         torch.save(self.model.state_dict(), path)
+        print(f"Saved model to {path}")
 
     def load_model(self, path="/home/ajc/Personal-Projects/Random stuff/best_ppo_model.pth"):
         if os.path.exists(path):
@@ -326,16 +340,27 @@ class PPOAgent:
 
 # Main
 if __name__ == "__main__":
-    agent = PPOAgent()
-    agent.load_model()  # Optional: load previous model
-    iterations = 1000
-    for i in range(iterations):
-        print(f"Iteration {i+1}/{iterations}")
-        rollouts = agent.collect_rollouts(ast, headless=True)
-        agent.update(rollouts)
-        agent.save_model()
+    parser = argparse.ArgumentParser(description="PPO for Ast.py")
+    parser.add_argument("--test", action="store_true", help="Run test mode with trained model")
+    args = parser.parse_args()
     
-    # Test with best model
-    print("Testing with best model...")
-    agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+    agent = PPOAgent()
+    agent.load_model()
+    
+    if args.test:
+        print("Testing trained agent...")
+        agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+    else:
+        iterations = 1000
+        for i in range(iterations):
+            print(f"Iteration {i+1}/{iterations}")
+            headless = i % 10 != 0  # Visualize every 10th iteration
+            rollouts = agent.collect_rollouts(ast, episodes=10, headless=headless)
+            agent.update(rollouts)
+            total_rewards = [sum(rollout[3]) for rollout in rollouts]
+            print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
+            agent.save_model()
+        print("Testing with best model...")
+        agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+    
     pygame.quit()
