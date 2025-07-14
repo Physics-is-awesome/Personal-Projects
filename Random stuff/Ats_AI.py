@@ -196,7 +196,7 @@ class PPOAgent:
                 ast_module.shot_reset_timer = max(0, ast_module.shot_reset_timer - 1)
                 if ast_module.shot_reset_timer <= 0:
                     ast_module.shot_count = 0
-                # ast_module.update_bullets()  # Commented out due to missing method
+                ast_module.update_bullets()  # Restored, assuming implemented in Ast.py
                 ast_module.update_asteroids()
                 ast_module.update_ufo()
                 ast_module.ufo_spawn_timer -= 1
@@ -253,7 +253,7 @@ class PPOAgent:
                 dones.append(ast_module.game_state != "playing")
                 
                 steps += 1
-                if not headless:
+                if not headless and hasattr(ast_module, 'screen') and ast_module.screen is not None:
                     ast_module.screen.fill(ast_module.BLACK)
                     ast_module.draw_objects()
                     pygame.display.flip()
@@ -348,6 +348,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     try:
+        # Ensure pygame is initialized
+        pygame.init()
         agent = PPOAgent()
         agent.load_model()
         
