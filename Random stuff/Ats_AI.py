@@ -10,7 +10,7 @@ import os
 import argparse
 
 # Load Ast.py
-spec = importlib.util.spec_from_file_location("Ast", "/home/ajc/Personal-Projects/Random stuff/Ast.py")
+spec = importlib.util.spec_from_file_location("Ast_AI_Env", "/home/ajc/Personal-Projects/Random stuff/Ast_AI_Env.py")
 ast = importlib.util.module_from_spec(spec)
 sys.modules["Ast"] = ast
 spec.loader.exec_module(ast)
