@@ -9,8 +9,8 @@ import pygame
 import os
 import argparse
 
-# Load Ast.py
-spec = importlib.util.spec_from_file_location("Ast_AI_env", "/home/ajc/Personal-Projects/Random stuff/Ast.py")
+# Load Ast_AI_env.py
+spec = importlib.util.spec_from_file_location("Ast", "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py")
 ast = importlib.util.module_from_spec(spec)
 sys.modules["Ast"] = ast
 spec.loader.exec_module(ast)
@@ -19,6 +19,7 @@ spec.loader.exec_module(ast)
 class ActorCritic(nn.Module):
     def __init__(self, input_size=20, hidden_size=64, output_size=4):
         super(ActorCritic, self).__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Define device
         self.shared = nn.Sequential(
             nn.Linear(input_size, hidden_size),
             nn.ReLU(),
@@ -27,6 +28,7 @@ class ActorCritic(nn.Module):
         )
         self.actor = nn.Linear(hidden_size, output_size)
         self.critic = nn.Linear(hidden_size, 1)
+        self.to(self.device)
     
     def forward(self, x):
         x = torch.FloatTensor(x).to(self.device)
@@ -340,27 +342,30 @@ class PPOAgent:
 
 # Main
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="PPO for Ast.py")
+    parser = argparse.ArgumentParser(description="PPO for Ast_AI_env.py")
     parser.add_argument("--test", action="store_true", help="Run test mode with trained model")
     args = parser.parse_args()
     
-    agent = PPOAgent()
-    agent.load_model()
-    
-    if args.test:
-        print("Testing trained agent...")
-        agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
-    else:
-        iterations = 1000
-        for i in range(iterations):
-            print(f"Iteration {i+1}/{iterations}")
-            headless = i % 10 != 0  # Visualize every 10th iteration
-            rollouts = agent.collect_rollouts(ast, episodes=10, headless=headless)
-            agent.update(rollouts)
-            total_rewards = [sum(rollout[3]) for rollout in rollouts]
-            print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
-            agent.save_model()
-        print("Testing with best model...")
-        agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
-    
-    pygame.quit()
+    try:
+        agent = PPOAgent()
+        agent.load_model()
+        
+        if args.test:
+            print("Testing trained agent...")
+            agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+        else:
+            iterations = 1000
+            for i in range(iterations):
+                print(f"Iteration {i+1}/{iterations}")
+                headless = i % 10 != 0  # Visualize every 10th iteration
+                rollouts = agent.collect_rollouts(ast, episodes=10, headless=headless)
+                agent.update(rollouts)
+                total_rewards = [sum(rollout[3]) for rollout in rollouts]
+                print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
+                agent.save_model()
+            print("Testing with best model...")
+            agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+    except Exception as e:
+        print(f"Error occurred: {e}")
+    finally:
+        pygame.quit()
