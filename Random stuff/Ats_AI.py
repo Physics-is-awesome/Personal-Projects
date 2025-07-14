@@ -10,7 +10,7 @@ import os
 import argparse
 
 # Load Ast.py
-spec = importlib.util.spec_from_file_location("Ast_AI_env", "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py")
+spec = importlib.util.spec_from_file_location("Ast", "/home/ajc/Personal-Projects/Random stuff/Ast.py")
 ast = importlib.util.module_from_spec(spec)
 sys.modules["Ast"] = ast
 spec.loader.exec_module(ast)
@@ -138,6 +138,9 @@ class PPOAgent:
 
     def collect_rollouts(self, ast_module, episodes=10, max_steps=3600, headless=True):
         rollouts = []
+        # Initialize display if missing
+        if not hasattr(ast_module, 'screen') or ast_module.screen is None:
+            ast_module.screen = pygame.display.set_mode((ast_module.WIDTH, ast_module.HEIGHT))
         for ep in range(episodes):
             ast_module.game_state = "playing"
             ast_module.current_mode = "relativistic"
@@ -148,8 +151,9 @@ class PPOAgent:
             prev_score = 0
             prev_ufo = None
             while ast_module.game_state == "playing" and steps < max_steps:
-                # Clear user input to ensure AI control
+                # Suppress user input
                 pygame.event.clear()
+                pygame.event.pump()  # Prevent event queue from blocking
                 
                 state = self.get_game_state(ast_module)
                 state_tensor = torch.FloatTensor(state).to(self.device)
@@ -169,41 +173,45 @@ class PPOAgent:
                     ast_module.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
-                print(f"AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}")  # Enhanced debug
+                print(f"Step {steps}: AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}, Bullets={len(ast_module.bullets)}")  # Enhanced debug
                 
                 ast_module.last_outputs = probs.cpu().numpy().round(2)
                 ast_module.last_reward = 0
                 
-                # Call update methods safely
-                if hasattr(ast_module, 'apply_gravity'):
-                    ast_module.apply_gravity()
-                if hasattr(ast_module, 'apply_relativistic_effects') and ast_module.apply_relativistic_effects(ast_module.ship):
-                    if pygame.K_LEFT in ast_module.keys:
-                        ast_module.ship["angle"] += ast_module.ROTATION_SPEED
-                    if pygame.K_RIGHT in ast_module.keys:
-                        ast_module.ship["angle"] -= ast_module.ROTATION_SPEED
-                    ast_module.ship["thrusting"] = pygame.K_UP in ast_module.keys
-                    if ast_module.ship["thrusting"]:
-                        ast_module.ship["dx"] += np.cos(np.radians(ast_module.ship["angle"])) * ast_module.SHIP_SPEED
-                        ast_module.ship["dy"] -= np.sin(np.radians(ast_module.ship["angle"])) * ast_module.SHIP_SPEED
-                ast_module.ship["x"] += ast_module.ship["dx"]
-                ast_module.ship["y"] += ast_module.ship["dy"]
-                ast_module.ship["dx"] *= ast_module.FRICTION
-                ast_module.ship["dy"] *= ast_module.FRICTION
-                if not ast_module.GAME_MODES[ast_module.current_mode].get("arena", False):
-                    ast_module.ship["x"] %= ast_module.WIDTH
-                    ast_module.ship["y"] %= ast_module.HEIGHT
+                # Call update to handle all game logic
+                if hasattr(ast_module, 'update'):
+                    ast_module.update()
+                else:
+                    # Fallback: manual updates
+                    if hasattr(ast_module, 'apply_gravity'):
+                        ast_module.apply_gravity()
+                    if hasattr(ast_module, 'apply_relativistic_effects') and ast_module.apply_relativistic_effects(ast_module.ship):
+                        if pygame.K_LEFT in ast_module.keys:
+                            ast_module.ship["angle"] += ast_module.ROTATION_SPEED
+                        if pygame.K_RIGHT in ast_module.keys:
+                            ast_module.ship["angle"] -= ast_module.ROTATION_SPEED
+                        ast_module.ship["thrusting"] = pygame.K_UP in ast_module.keys
+                        if ast_module.ship["thrusting"]:
+                            ast_module.ship["dx"] += np.cos(np.radians(ast_module.ship["angle"])) * ast_module.SHIP_SPEED
+                            ast_module.ship["dy"] -= np.sin(np.radians(ast_module.ship["angle"])) * ast_module.SHIP_SPEED
+                    ast_module.ship["x"] += ast_module.ship["dx"]
+                    ast_module.ship["y"] += ast_module.ship["dy"]
+                    ast_module.ship["dx"] *= ast_module.FRICTION
+                    ast_module.ship["dy"] *= ast_module.FRICTION
+                    if not ast_module.GAME_MODES[ast_module.current_mode].get("arena", False):
+                        ast_module.ship["x"] %= ast_module.WIDTH
+                        ast_module.ship["y"] %= ast_module.HEIGHT
+                    if hasattr(ast_module, 'update_bullets'):
+                        ast_module.update_bullets()
+                    if hasattr(ast_module, 'update_asteroids'):
+                        ast_module.update_asteroids()
+                    if hasattr(ast_module, 'update_ufo'):
+                        ast_module.update_ufo()
                 
                 ast_module.shoot_cooldown = max(0, ast_module.shoot_cooldown - 1)
                 ast_module.shot_reset_timer = max(0, ast_module.shot_reset_timer - 1)
                 if ast_module.shot_reset_timer <= 0:
                     ast_module.shot_count = 0
-                if hasattr(ast_module, 'update_bullets'):
-                    ast_module.update_bullets()
-                if hasattr(ast_module, 'update_asteroids'):
-                    ast_module.update_asteroids()
-                if hasattr(ast_module, 'update_ufo'):
-                    ast_module.update_ufo()
                 ast_module.ufo_spawn_timer -= 1
                 if ast_module.ufo_spawn_timer <= 0 and ast_module.ufo is None:
                     if hasattr(ast_module, 'spawn_ufo'):
@@ -360,7 +368,7 @@ if __name__ == "__main__":
     
     try:
         pygame.init()
-        # Instantiate Ast.py as a class if it's structured that way
+        # Instantiate Ast.py as a class
         if isinstance(ast, type):
             ast_module = ast()
         else:
