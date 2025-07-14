@@ -148,7 +148,7 @@ class PPOAgent:
             prev_score = 0
             prev_ufo = None
             while ast_module.game_state == "playing" and steps < max_steps:
-                # Clear real user input to prevent manual control
+                # Clear user input to ensure AI control
                 pygame.event.clear()
                 
                 state = self.get_game_state(ast_module)
@@ -169,13 +169,15 @@ class PPOAgent:
                     ast_module.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
-                print(f"AI actions: {ast_module.keys}")  # Debug AI actions
+                print(f"AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}")  # Enhanced debug
                 
                 ast_module.last_outputs = probs.cpu().numpy().round(2)
                 ast_module.last_reward = 0
                 
-                ast_module.apply_gravity()
-                if ast_module.apply_relativistic_effects(ast_module.ship):
+                # Call update methods safely
+                if hasattr(ast_module, 'apply_gravity'):
+                    ast_module.apply_gravity()
+                if hasattr(ast_module, 'apply_relativistic_effects') and ast_module.apply_relativistic_effects(ast_module.ship):
                     if pygame.K_LEFT in ast_module.keys:
                         ast_module.ship["angle"] += ast_module.ROTATION_SPEED
                     if pygame.K_RIGHT in ast_module.keys:
@@ -196,16 +198,20 @@ class PPOAgent:
                 ast_module.shot_reset_timer = max(0, ast_module.shot_reset_timer - 1)
                 if ast_module.shot_reset_timer <= 0:
                     ast_module.shot_count = 0
-                ast_module.update_bullets()  # Restored, assuming implemented in Ast.py
-                ast_module.update_asteroids()
-                ast_module.update_ufo()
+                if hasattr(ast_module, 'update_bullets'):
+                    ast_module.update_bullets()
+                if hasattr(ast_module, 'update_asteroids'):
+                    ast_module.update_asteroids()
+                if hasattr(ast_module, 'update_ufo'):
+                    ast_module.update_ufo()
                 ast_module.ufo_spawn_timer -= 1
                 if ast_module.ufo_spawn_timer <= 0 and ast_module.ufo is None:
-                    ast_module.spawn_ufo()
-                    ast_module.ufo_spawn_timer = np.random.randint(
-                        ast_module.GAME_MODES[ast_module.current_mode]["ufo_spawn_min"],
-                        ast_module.GAME_MODES[ast_module.current_mode]["ufo_spawn_max"]
-                    )
+                    if hasattr(ast_module, 'spawn_ufo'):
+                        ast_module.spawn_ufo()
+                        ast_module.ufo_spawn_timer = np.random.randint(
+                            ast_module.GAME_MODES[ast_module.current_mode]["ufo_spawn_min"],
+                            ast_module.GAME_MODES[ast_module.current_mode]["ufo_spawn_max"]
+                        )
                 for cloud in ast_module.dark_matter_clouds:
                     cloud["x"] += cloud["dx"]
                     cloud["y"] += cloud["dy"]
@@ -220,9 +226,11 @@ class PPOAgent:
                     ast_module.level += 1
                     asteroid_count = ast_module.GAME_MODES[ast_module.current_mode]["asteroids_per_wave"](ast_module.level)
                     for _ in range(asteroid_count):
-                        ast_module.spawn_asteroid(ast_module.ASTEROID_SIZES[0])
+                        if hasattr(ast_module, 'spawn_asteroid'):
+                            ast_module.spawn_asteroid(ast_module.ASTEROID_SIZES[0])
                     if ast_module.GAME_MODES[ast_module.current_mode].get("relativistic", False):
-                        ast_module.spawn_black_holes()
+                        if hasattr(ast_module, 'spawn_black_holes'):
+                            ast_module.spawn_black_holes()
                 for particle in ast_module.particles[:]:
                     particle["x"] += particle["dx"]
                     particle["y"] += particle["dy"]
@@ -254,8 +262,10 @@ class PPOAgent:
                 
                 steps += 1
                 if not headless and hasattr(ast_module, 'screen') and ast_module.screen is not None:
+                    print(f"Rendering: Screen initialized={hasattr(ast_module, 'screen') and ast_module.screen is not None}")
                     ast_module.screen.fill(ast_module.BLACK)
-                    ast_module.draw_objects()
+                    if hasattr(ast_module, 'draw_objects'):
+                        ast_module.draw_objects()
                     pygame.display.flip()
                     ast_module.clock.tick(30)
                 
@@ -345,29 +355,56 @@ class PPOAgent:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="PPO for Ast_AI_env.py")
     parser.add_argument("--test", action="store_true", help="Run test mode with trained model")
+    parser.add_argument("--manual", action="store_true", help="Run in manual play mode")
     args = parser.parse_args()
     
     try:
-        # Ensure pygame is initialized
         pygame.init()
-        agent = PPOAgent()
-        agent.load_model()
-        
-        if args.test:
-            print("Testing trained agent...")
-            agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+        # Instantiate Ast.py as a class if it's structured that way
+        if isinstance(ast, type):
+            ast_module = ast()
         else:
-            iterations = 1000
-            for i in range(iterations):
-                print(f"Iteration {i+1}/{iterations}")
-                headless = i % 10 != 0
-                rollouts = agent.collect_rollouts(ast, episodes=10, headless=headless)
-                agent.update(rollouts)
-                total_rewards = [sum(rollout[3]) for rollout in rollouts]
-                print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
-                agent.save_model()
-            print("Testing with best model...")
-            agent.collect_rollouts(ast, episodes=1, headless=False, max_steps=7200)
+            ast_module = ast
+        
+        if args.manual:
+            print("Running in manual mode...")
+            ast_module.game_state = "playing"
+            ast_module.current_mode = "relativistic"
+            ast_module.reset_game()
+            while ast_module.game_state == "playing":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        ast_module.game_state = "game_over"
+                    elif event.type == pygame.KEYDOWN:
+                        ast_module.keys.add(event.key)
+                    elif event.type == pygame.KEYUP:
+                        ast_module.keys.discard(event.key)
+                ast_module.update()
+                if hasattr(ast_module, 'screen') and ast_module.screen is not None:
+                    ast_module.screen.fill(ast_module.BLACK)
+                    if hasattr(ast_module, 'draw_objects'):
+                        ast_module.draw_objects()
+                    pygame.display.flip()
+                    ast_module.clock.tick(30)
+        else:
+            agent = PPOAgent()
+            agent.load_model()
+            
+            if args.test:
+                print("Testing trained agent...")
+                agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
+            else:
+                iterations = 1000
+                for i in range(iterations):
+                    print(f"Iteration {i+1}/{iterations}")
+                    headless = i % 10 != 0
+                    rollouts = agent.collect_rollouts(ast_module, episodes=10, headless=headless)
+                    agent.update(rollouts)
+                    total_rewards = [sum(rollout[3]) for rollout in rollouts]
+                    print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
+                    agent.save_model()
+                print("Testing with best model...")
+                agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
     except Exception as e:
         print(f"Error occurred: {e}")
     finally:
