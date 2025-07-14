@@ -275,9 +275,7 @@ class PPOAgent:
         returns = []
         gae = 0
         for i in reversed(range(len(rewards))):
-            delta = rewards[i] + self.gamma * values[i + 1] * (1 - d
-```python
-ones[i]) - values[i]
+            delta = rewards[i] + self.gamma * values[i + 1] * (1 - dones[i]) - values[i]
             gae = delta + self.gamma * self.gae_lambda * (1 - dones[i]) * gae
             advantages.insert(0, gae)
             returns.insert(0, gae + values[i])
