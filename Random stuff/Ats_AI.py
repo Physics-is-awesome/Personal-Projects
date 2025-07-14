@@ -17,9 +17,9 @@ spec.loader.exec_module(ast)
 
 # Neural Network for Actor-Critic
 class ActorCritic(nn.Module):
-    def __init__(self, input_size=20, hidden_size=64, output_size=4):
+    def __init__(self, input_size=21, hidden_size=64, output_size=4):  # Updated input_size to 21
         super(ActorCritic, self).__init__()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Define device
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.shared = nn.Sequential(
             nn.Linear(input_size, hidden_size),
             nn.ReLU(),
@@ -39,7 +39,7 @@ class ActorCritic(nn.Module):
 
 # PPO Agent
 class PPOAgent:
-    def __init__(self, input_size=20, hidden_size=64, output_size=4, lr=3e-4, clip_eps=0.2, gae_lambda=0.95, gamma=0.99):
+    def __init__(self, input_size=21, hidden_size=64, output_size=4, lr=3e-4, clip_eps=0.2, gae_lambda=0.95, gamma=0.99):  # Updated input_size to 21
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = ActorCritic(input_size, hidden_size, output_size).to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
@@ -133,6 +133,7 @@ class PPOAgent:
         else:
             state.extend([0] * 4)
         state.extend([len(bullets) / 10, len(enemy_bullets) / 10])
+        assert len(state) == 21, f"Expected 21 features, got {len(state)}"  # Added assertion
         return state
 
     def collect_rollouts(self, ast_module, episodes=10, max_steps=3600, headless=True):
@@ -166,10 +167,9 @@ class PPOAgent:
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
                 
-                ast_module.last_outputs = probs.cpu().numpy().round(2)  # For visualization
-                ast_module.last_reward = 0  # Initialize
+                ast_module.last_outputs = probs.cpu().numpy().round(2)
+                ast_module.last_reward = 0
                 
-                # Run one game step
                 ast_module.apply_gravity()
                 if ast_module.apply_relativistic_effects(ast_module.ship):
                     if pygame.K_LEFT in ast_module.keys:
@@ -226,8 +226,7 @@ class PPOAgent:
                     if particle["life"] <= 0:
                         ast_module.particles.remove(particle)
                 
-                # Reward calculation
-                reward = 1  # Survival
+                reward = 1
                 if ast_module.ship["thrusting"]:
                     reward -= 10
                 if ast_module.lives < prev_lives:
@@ -236,11 +235,11 @@ class PPOAgent:
                     reward -= 5000
                 reward += (ast_module.score - prev_score)
                 if ast_module.ufo is None and prev_ufo is not None:
-                    reward += 500  # Bonus for UFO kills
+                    reward += 500
                 prev_lives = ast_module.lives
                 prev_score = ast_module.score
                 prev_ufo = ast_module.ufo
-                ast_module.last_reward = reward  # For visualization
+                ast_module.last_reward = reward
                 
                 states.append(state)
                 actions.append(action.cpu().numpy())
@@ -254,13 +253,11 @@ class PPOAgent:
                     ast_module.screen.fill(ast_module.BLACK)
                     ast_module.draw_objects()
                     pygame.display.flip()
-                    ast_module.clock.tick(30)  # Slower for visibility
+                    ast_module.clock.tick(30)
                 
-                # Check early termination
                 if ast_module.lives <= 0 and ast_module.current_mode != "time_attack":
                     ast_module.game_state = "game_over"
             
-            # Bootstrap value
             if steps < max_steps and ast_module.game_state == "playing":
                 with torch.no_grad():
                     _, value = self.model(torch.FloatTensor(self.get_game_state(ast_module)).to(self.device))
@@ -278,7 +275,9 @@ class PPOAgent:
         returns = []
         gae = 0
         for i in reversed(range(len(rewards))):
-            delta = rewards[i] + self.gamma * values[i + 1] * (1 - dones[i]) - values[i]
+            delta = rewards[i] + self.gamma * values[i + 1] * (1 - d
+```python
+ones[i]) - values[i]
             gae = delta + self.gamma * self.gae_lambda * (1 - dones[i]) * gae
             advantages.insert(0, gae)
             returns.insert(0, gae + values[i])
@@ -331,11 +330,11 @@ class PPOAgent:
                 loss.backward()
                 self.optimizer.step()
 
-    def save_model(self, path="/home/ajc/Personal-Projects/Random stuff/best_ppo_model.pth"):
+    def save_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):  # Updated path
         torch.save(self.model.state_dict(), path)
         print(f"Saved model to {path}")
 
-    def load_model(self, path="/home/ajc/Personal-Projects/Random stuff/best_ppo_model.pth"):
+    def load_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):  # Updated path
         if os.path.exists(path):
             self.model.load_state_dict(torch.load(path))
             print(f"Loaded model from {path}")
@@ -357,7 +356,7 @@ if __name__ == "__main__":
             iterations = 1000
             for i in range(iterations):
                 print(f"Iteration {i+1}/{iterations}")
-                headless = i % 10 != 0  # Visualize every 10th iteration
+                headless = i % 10 != 0
                 rollouts = agent.collect_rollouts(ast, episodes=10, headless=headless)
                 agent.update(rollouts)
                 total_rewards = [sum(rollout[3]) for rollout in rollouts]
