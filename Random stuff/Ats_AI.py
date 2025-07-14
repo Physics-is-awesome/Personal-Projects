@@ -17,7 +17,7 @@ spec.loader.exec_module(ast)
 
 # Neural Network for Actor-Critic
 class ActorCritic(nn.Module):
-    def __init__(self, input_size=21, hidden_size=64, output_size=4):  # Updated input_size to 21
+    def __init__(self, input_size=21, hidden_size=64, output_size=4):
         super(ActorCritic, self).__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.shared = nn.Sequential(
@@ -39,7 +39,7 @@ class ActorCritic(nn.Module):
 
 # PPO Agent
 class PPOAgent:
-    def __init__(self, input_size=21, hidden_size=64, output_size=4, lr=3e-4, clip_eps=0.2, gae_lambda=0.95, gamma=0.99):  # Updated input_size to 21
+    def __init__(self, input_size=21, hidden_size=64, output_size=4, lr=3e-4, clip_eps=0.2, gae_lambda=0.95, gamma=0.99):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = ActorCritic(input_size, hidden_size, output_size).to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
@@ -133,7 +133,7 @@ class PPOAgent:
         else:
             state.extend([0] * 4)
         state.extend([len(bullets) / 10, len(enemy_bullets) / 10])
-        assert len(state) == 21, f"Expected 21 features, got {len(state)}"  # Added assertion
+        assert len(state) == 21, f"Expected 21 features, got {len(state)}"
         return state
 
     def collect_rollouts(self, ast_module, episodes=10, max_steps=3600, headless=True):
@@ -148,6 +148,9 @@ class PPOAgent:
             prev_score = 0
             prev_ufo = None
             while ast_module.game_state == "playing" and steps < max_steps:
+                # Clear real user input to prevent manual control
+                pygame.event.clear()
+                
                 state = self.get_game_state(ast_module)
                 state_tensor = torch.FloatTensor(state).to(self.device)
                 with torch.no_grad():
@@ -166,6 +169,7 @@ class PPOAgent:
                     ast_module.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
+                print(f"AI actions: {ast_module.keys}")  # Debug AI actions
                 
                 ast_module.last_outputs = probs.cpu().numpy().round(2)
                 ast_module.last_reward = 0
@@ -192,7 +196,7 @@ class PPOAgent:
                 ast_module.shot_reset_timer = max(0, ast_module.shot_reset_timer - 1)
                 if ast_module.shot_reset_timer <= 0:
                     ast_module.shot_count = 0
-                ast_module.update_bullets()
+                # ast_module.update_bullets()  # Commented out due to missing method
                 ast_module.update_asteroids()
                 ast_module.update_ufo()
                 ast_module.ufo_spawn_timer -= 1
@@ -328,11 +332,11 @@ class PPOAgent:
                 loss.backward()
                 self.optimizer.step()
 
-    def save_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):  # Updated path
+    def save_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):
         torch.save(self.model.state_dict(), path)
         print(f"Saved model to {path}")
 
-    def load_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):  # Updated path
+    def load_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):
         if os.path.exists(path):
             self.model.load_state_dict(torch.load(path))
             print(f"Loaded model from {path}")
