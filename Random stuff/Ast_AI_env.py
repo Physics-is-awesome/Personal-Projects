@@ -86,8 +86,9 @@ class Game:
 
     def update(self):
         print(f"Processing keys: {self.keys}")  # Debug
-        self.apply_gravity()
-        if self.apply_relativistic_effects(self.ship):
+        if hasattr(self, 'apply_gravity'):
+            self.apply_gravity()
+        if hasattr(self, 'apply_relativistic_effects') and self.apply_relativistic_effects(self.ship):
             if pygame.K_LEFT in self.keys:
                 self.ship["angle"] += self.ROTATION_SPEED
             if pygame.K_RIGHT in self.keys:
