@@ -943,7 +943,7 @@ class PPOAgent:
                     break
                 
                 reward = 1
-                if ast_des = True:
+                if ast_des == True:
                     reward += 800
 
                 if game.lives < prev_lives:
