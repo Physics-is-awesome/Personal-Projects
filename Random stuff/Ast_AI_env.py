@@ -383,6 +383,15 @@ class Game:
     def update(self):
         print(f"Processing keys: {self.keys}")  # Debug AI actions
         self.apply_gravity()
+            self.asteroid_destroyed = False
+
+            for asteroid in self.asteroids[:]:
+
+            for bullet in self.bullets[:]:
+                if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
+                self.bullets.remove(bullet)
+                self.asteroid_destroyed = True
+
         if self.apply_relativistic_effects(self.ship):
             if pygame.K_LEFT in self.keys:
                 self.ship["angle"] += self.ROTATION_SPEED
@@ -448,7 +457,6 @@ class Game:
                 for bullet in self.bullets[:]:
                     if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
                         self.bullets.remove(bullet)
-                        ast_des = True
                         self.score += 100 * (self.ASTEROID_SIZES.index(asteroid["radius"]) + 1) * self.GAME_MODES[self.current_mode]["score_multiplier"]
                         if self.explosion_sound:
                             self.explosion_sound.play()
@@ -943,7 +951,7 @@ class PPOAgent:
                     break
                 
                 reward = 1
-                if ast_des == True:
+                if game.asteroid_destroyed:
                     reward += 800
 
                 if game.lives < prev_lives:
