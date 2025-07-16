@@ -942,6 +942,8 @@ class PPOAgent:
                     break
                 
                 reward = 1
+                if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
+                    reward += 800
 
                 if game.lives < prev_lives:
                     reward -= 1000
