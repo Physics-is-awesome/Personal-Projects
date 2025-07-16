@@ -389,8 +389,8 @@ class Game:
 
             for bullet in self.bullets[:]:
                 if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
-                self.bullets.remove(bullet)
-                self.asteroid_destroyed = True
+                    self.bullets.remove(bullet)
+                    self.asteroid_destroyed = True
 
         if self.apply_relativistic_effects(self.ship):
             if pygame.K_LEFT in self.keys:
