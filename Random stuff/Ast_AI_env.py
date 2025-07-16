@@ -448,6 +448,7 @@ class Game:
                 for bullet in self.bullets[:]:
                     if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
                         self.bullets.remove(bullet)
+                        ast_des = True
                         self.score += 100 * (self.ASTEROID_SIZES.index(asteroid["radius"]) + 1) * self.GAME_MODES[self.current_mode]["score_multiplier"]
                         if self.explosion_sound:
                             self.explosion_sound.play()
@@ -942,7 +943,7 @@ class PPOAgent:
                     break
                 
                 reward = 1
-                if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
+                if ast_des = True:
                     reward += 800
 
                 if game.lives < prev_lives:
