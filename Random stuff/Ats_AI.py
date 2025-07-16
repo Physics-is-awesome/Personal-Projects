@@ -9,8 +9,13 @@ import pygame
 import os
 import argparse
 
-# Load Ast.py
-spec = importlib.util.spec_from_file_location("Ast_AI_env", "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py")
+# Load Ast.py (or Ast_AI_env.py)
+ast_file_path = "/home/ajc/Personal-Projects/Random stuff/Ast.py"
+if not os.path.exists(ast_file_path):
+    ast_file_path = "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py"
+if not os.path.exists(ast_file_path):
+    raise FileNotFoundError(f"Neither Ast.py nor Ast_AI_env.py found in /home/ajc/Personal-Projects/Random stuff/")
+spec = importlib.util.spec_from_file_location("Ast", ast_file_path)
 ast = importlib.util.module_from_spec(spec)
 sys.modules["Ast"] = ast
 spec.loader.exec_module(ast)
@@ -49,6 +54,12 @@ class PPOAgent:
         self.input_size = input_size
     
     def get_game_state(self, ast_module):
+        # Fallbacks for missing attributes
+        WIDTH = getattr(ast_module, 'WIDTH', 800)
+        HEIGHT = getattr(ast_module, 'HEIGHT', 600)
+        SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
+        ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
+        
         ship = ast_module.ship
         asteroids = ast_module.asteroids
         ufo = ast_module.ufo
@@ -57,10 +68,10 @@ class PPOAgent:
         enemy_bullets = ast_module.enemy_bullets
         
         state = [
-            ship["x"] / ast_module.WIDTH,
-            ship["y"] / ast_module.HEIGHT,
-            ship["dx"] / ast_module.SPEED_OF_LIGHT,
-            ship["dy"] / ast_module.SPEED_OF_LIGHT,
+            ship["x"] / WIDTH,
+            ship["y"] / HEIGHT,
+            ship["dx"] / SPEED_OF_LIGHT,
+            ship["dy"] / SPEED_OF_LIGHT,
             ship["angle"] / 360
         ]
         if asteroids:
@@ -68,42 +79,42 @@ class PPOAgent:
             nearest = asteroids[np.argmin(distances)]
             dx = nearest["x"] - ship["x"]
             dy = nearest["y"] - ship["y"]
-            if dx > ast_module.WIDTH / 2:
-                dx -= ast_module.WIDTH
-            elif dx < -ast_module.WIDTH / 2:
-                dx += ast_module.WIDTH
-            if dy > ast_module.HEIGHT / 2:
-                dy -= ast_module.HEIGHT
-            elif dy < -ast_module.HEIGHT / 2:
-                dy += ast_module.HEIGHT
+            if dx > WIDTH / 2:
+                dx -= WIDTH
+            elif dx < -WIDTH / 2:
+                dx += WIDTH
+            if dy > HEIGHT / 2:
+                dy -= HEIGHT
+            elif dy < -HEIGHT / 2:
+                dy += HEIGHT
             dist = np.hypot(dx, dy)
             angle = np.arctan2(dy, dx) / (2 * np.pi)
             state.extend([
-                dist / ast_module.WIDTH,
-                nearest["dx"] / ast_module.SPEED_OF_LIGHT,
-                nearest["dy"] / ast_module.SPEED_OF_LIGHT,
+                dist / WIDTH,
+                nearest["dx"] / SPEED_OF_LIGHT,
+                nearest["dy"] / SPEED_OF_LIGHT,
                 angle,
-                ast_module.ASTEROID_SIZES.index(nearest["radius"]) / 2
+                ASTEROID_SIZES.index(nearest["radius"]) / 2
             ])
         else:
             state.extend([0] * 5)
         if ufo:
             dx = ufo["x"] - ship["x"]
             dy = ufo["y"] - ship["y"]
-            if dx > ast_module.WIDTH / 2:
-                dx -= ast_module.WIDTH
-            elif dx < -ast_module.WIDTH / 2:
-                dx += ast_module.WIDTH
-            if dy > ast_module.HEIGHT / 2:
-                dy -= ast_module.HEIGHT
-            elif dy < -ast_module.HEIGHT / 2:
-                dy += ast_module.HEIGHT
+            if dx > WIDTH / 2:
+                dx -= WIDTH
+            elif dx < -WIDTH / 2:
+                dx += WIDTH
+            if dy > HEIGHT / 2:
+                dy -= HEIGHT
+            elif dy < -HEIGHT / 2:
+                dy += HEIGHT
             dist = np.hypot(dx, dy)
             angle = np.arctan2(dy, dx) / (2 * np.pi)
             state.extend([
-                dist / ast_module.WIDTH,
-                ufo["dx"] / ast_module.SPEED_OF_LIGHT,
-                ufo["dy"] / ast_module.SPEED_OF_LIGHT,
+                dist / WIDTH,
+                ufo["dx"] / SPEED_OF_LIGHT,
+                ufo["dy"] / SPEED_OF_LIGHT,
                 angle,
                 0 if ufo["type"] == "small" else 1
             ])
@@ -114,20 +125,20 @@ class PPOAgent:
             nearest = black_holes[np.argmin(distances)]
             dx = nearest["x"] - ship["x"]
             dy = nearest["y"] - ship["y"]
-            if dx > ast_module.WIDTH / 2:
-                dx -= ast_module.WIDTH
-            elif dx < -ast_module.WIDTH / 2:
-                dx += ast_module.WIDTH
-            if dy > ast_module.HEIGHT / 2:
-                dy -= ast_module.HEIGHT
-            elif dy < -ast_module.HEIGHT / 2:
-                dy += ast_module.HEIGHT
+            if dx > WIDTH / 2:
+                dx -= WIDTH
+            elif dx < -WIDTH / 2:
+                dx += WIDTH
+            if dy > HEIGHT / 2:
+                dy -= HEIGHT
+            elif dy < -HEIGHT / 2:
+                dy += HEIGHT
             dist = np.hypot(dx, dy)
             angle = np.arctan2(dy, dx) / (2 * np.pi)
             state.extend([
-                dist / ast_module.WIDTH,
-                nearest["dx"] / ast_module.SPEED_OF_LIGHT,
-                nearest["dy"] / ast_module.SPEED_OF_LIGHT,
+                dist / WIDTH,
+                nearest["dx"] / SPEED_OF_LIGHT,
+                nearest["dy"] / SPEED_OF_LIGHT,
                 angle
             ])
         else:
@@ -140,11 +151,48 @@ class PPOAgent:
         rollouts = []
         # Initialize display if missing
         if not hasattr(ast_module, 'screen') or ast_module.screen is None:
-            ast_module.screen = pygame.display.set_mode((ast_module.WIDTH, ast_module.HEIGHT))
+            ast_module.screen = pygame.display.set_mode((getattr(ast_module, 'WIDTH', 800), getattr(ast_module, 'HEIGHT', 600)))
+        # Debug module structure
+        print(f"Loaded module from: {ast_file_path}")
+        print(f"Available ast_module attributes: {[attr for attr in dir(ast_module) if not attr.startswith('_')]}")
         for ep in range(episodes):
             ast_module.game_state = "playing"
             ast_module.current_mode = "relativistic"
-            ast_module.reset_game()
+            if hasattr(ast_module, 'reset_game'):
+                ast_module.reset_game()
+            else:
+                print("Warning: reset_game not found, using fallback reset")
+                ast_module.ship = {"x": 400, "y": 300, "dx": 0, "dy": 0, "angle": 0, "radius": 10, "thrusting": False}
+                ast_module.bullets = []
+                ast_module.enemy_bullets = []
+                ast_module.asteroids = []
+                ast_module.ufo = None
+                ast_module.black_holes = []
+                ast_module.particles = []
+                ast_module.lives = 3
+                ast_module.score = 0
+                ast_module.level = 1
+                ast_module.game_state = "playing"
+                ast_module.ufo_spawn_timer = 100
+                ast_module.keys = set()
+                ast_module.WIDTH = getattr(ast_module, 'WIDTH', 800)
+                ast_module.HEIGHT = getattr(ast_module, 'HEIGHT', 600)
+                ast_module.SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
+                ast_module.SHIP_SPEED = getattr(ast_module, 'SHIP_SPEED', 0.5)
+                ast_module.ROTATION_SPEED = getattr(ast_module, 'ROTATION_SPEED', 5)
+                ast_module.FRICTION = getattr(ast_module, 'FRICTION', 0.99)
+                ast_module.ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
+                ast_module.GAME_MODES = getattr(ast_module, 'GAME_MODES', {
+                    "relativistic": {
+                        "ufo_spawn_min": 50,
+                        "ufo_spawn_max": 200,
+                        "asteroids_per_wave": lambda level: 4 + level,
+                        "relativistic": True
+                    }
+                })
+                ast_module.shoot_cooldown = 0
+                ast_module.shot_reset_timer = 60
+                ast_module.shot_count = 0
             states, actions, log_probs, rewards, values, dones = [], [], [], [], [], []
             steps = 0
             prev_lives = ast_module.lives
@@ -153,7 +201,7 @@ class PPOAgent:
             while ast_module.game_state == "playing" and steps < max_steps:
                 # Suppress user input
                 pygame.event.clear()
-                pygame.event.pump()  # Prevent event queue from blocking
+                pygame.event.pump()
                 
                 state = self.get_game_state(ast_module)
                 state_tensor = torch.FloatTensor(state).to(self.device)
@@ -173,12 +221,11 @@ class PPOAgent:
                     ast_module.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
-                print(f"Step {steps}: AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}, Bullets={len(ast_module.bullets)}")  # Enhanced debug
+                print(f"Step {steps}: AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}, Bullets={len(ast_module.bullets)}")
                 
                 ast_module.last_outputs = probs.cpu().numpy().round(2)
                 ast_module.last_reward = 0
                 
-                # Call update to handle all game logic
                 if hasattr(ast_module, 'update'):
                     ast_module.update()
                 else:
@@ -361,7 +408,7 @@ class PPOAgent:
 
 # Main
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="PPO for Ast_AI_env.py")
+    parser = argparse.ArgumentParser(description="PPO for Asteroids AI")
     parser.add_argument("--test", action="store_true", help="Run test mode with trained model")
     parser.add_argument("--manual", action="store_true", help="Run in manual play mode")
     args = parser.parse_args()
@@ -378,7 +425,41 @@ if __name__ == "__main__":
             print("Running in manual mode...")
             ast_module.game_state = "playing"
             ast_module.current_mode = "relativistic"
-            ast_module.reset_game()
+            if hasattr(ast_module, 'reset_game'):
+                ast_module.reset_game()
+            else:
+                print("Warning: reset_game not found, using fallback reset")
+                ast_module.ship = {"x": 400, "y": 300, "dx": 0, "dy": 0, "angle": 0, "radius": 10, "thrusting": False}
+                ast_module.bullets = []
+                ast_module.enemy_bullets = []
+                ast_module.asteroids = []
+                ast_module.ufo = None
+                ast_module.black_holes = []
+                ast_module.particles = []
+                ast_module.lives = 3
+                ast_module.score = 0
+                ast_module.level = 1
+                ast_module.game_state = "playing"
+                ast_module.ufo_spawn_timer = 100
+                ast_module.keys = set()
+                ast_module.WIDTH = getattr(ast_module, 'WIDTH', 800)
+                ast_module.HEIGHT = getattr(ast_module, 'HEIGHT', 600)
+                ast_module.SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
+                ast_module.SHIP_SPEED = getattr(ast_module, 'SHIP_SPEED', 0.5)
+                ast_module.ROTATION_SPEED = getattr(ast_module, 'ROTATION_SPEED', 5)
+                ast_module.FRICTION = getattr(ast_module, 'FRICTION', 0.99)
+                ast_module.ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
+                ast_module.GAME_MODES = getattr(ast_module, 'GAME_MODES', {
+                    "relativistic": {
+                        "ufo_spawn_min": 50,
+                        "ufo_spawn_max": 200,
+                        "asteroids_per_wave": lambda level: 4 + level,
+                        "relativistic": True
+                    }
+                })
+                ast_module.shoot_cooldown = 0
+                ast_module.shot_reset_timer = 60
+                ast_module.shot_count = 0
             while ast_module.game_state == "playing":
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -387,7 +468,8 @@ if __name__ == "__main__":
                         ast_module.keys.add(event.key)
                     elif event.type == pygame.KEYUP:
                         ast_module.keys.discard(event.key)
-                ast_module.update()
+                if hasattr(ast_module, 'update'):
+                    ast_module.update()
                 if hasattr(ast_module, 'screen') and ast_module.screen is not None:
                     ast_module.screen.fill(ast_module.BLACK)
                     if hasattr(ast_module, 'draw_objects'):
