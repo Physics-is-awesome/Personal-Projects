@@ -10,11 +10,7 @@ import os
 import argparse
 
 # Load Ast.py (or Ast_AI_env.py)
-ast_file_path = "/home/ajc/Personal-Projects/Random stuff/Ast.py"
-if not os.path.exists(ast_file_path):
-    ast_file_path = "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py"
-if not os.path.exists(ast_file_path):
-    raise FileNotFoundError(f"Neither Ast.py nor Ast_AI_env.py found in /home/ajc/Personal-Projects/Random stuff/")
+ast_file_path = "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py"
 spec = importlib.util.spec_from_file_location("Ast", ast_file_path)
 ast = importlib.util.module_from_spec(spec)
 sys.modules["Ast"] = ast
@@ -60,6 +56,12 @@ class PPOAgent:
         SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
         ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
         
+        # Check required attributes
+        required_attrs = ['ship', 'asteroids', 'ufo', 'black_holes', 'bullets', 'enemy_bullets']
+        for attr in required_attrs:
+            if not hasattr(ast_module, attr):
+                raise AttributeError(f"ast_module missing required attribute: {attr}")
+        
         ship = ast_module.ship
         asteroids = ast_module.asteroids
         ufo = ast_module.ufo
@@ -94,7 +96,7 @@ class PPOAgent:
                 nearest["dx"] / SPEED_OF_LIGHT,
                 nearest["dy"] / SPEED_OF_LIGHT,
                 angle,
-                ASTEROID_SIZES.index(nearest["radius"]) / 2
+                ASTEROID_SIZES.index(nearest["radius"]) / 2 if nearest["radius"] in ASTEROID_SIZES else 0
             ])
         else:
             state.extend([0] * 5)
@@ -152,13 +154,17 @@ class PPOAgent:
         # Initialize display if missing
         if not hasattr(ast_module, 'screen') or ast_module.screen is None:
             ast_module.screen = pygame.display.set_mode((getattr(ast_module, 'WIDTH', 800), getattr(ast_module, 'HEIGHT', 600)))
+        if not hasattr(ast_module, 'clock') or ast_module.clock is None:
+            ast_module.clock = pygame.time.Clock()
         # Debug module structure
         print(f"Loaded module from: {ast_file_path}")
         print(f"Available ast_module attributes: {[attr for attr in dir(ast_module) if not attr.startswith('_')]}")
+        print(f"Starting collect_rollouts: episodes={episodes}, max_steps={max_steps}, headless={headless}")
         for ep in range(episodes):
             ast_module.game_state = "playing"
             ast_module.current_mode = "relativistic"
             if hasattr(ast_module, 'reset_game'):
+                print("Calling ast_module.reset_game()")
                 ast_module.reset_game()
             else:
                 print("Warning: reset_game not found, using fallback reset")
@@ -193,6 +199,7 @@ class PPOAgent:
                 ast_module.shoot_cooldown = 0
                 ast_module.shot_reset_timer = 60
                 ast_module.shot_count = 0
+                ast_module.dark_matter_clouds = getattr(ast_module, 'dark_matter_clouds', [])
             states, actions, log_probs, rewards, values, dones = [], [], [], [], [], []
             steps = 0
             prev_lives = ast_module.lives
@@ -203,7 +210,12 @@ class PPOAgent:
                 pygame.event.clear()
                 pygame.event.pump()
                 
-                state = self.get_game_state(ast_module)
+                try:
+                    state = self.get_game_state(ast_module)
+                except AttributeError as e:
+                    print(f"Error in get_game_state: {e}")
+                    break
+                
                 state_tensor = torch.FloatTensor(state).to(self.device)
                 with torch.no_grad():
                     action_logits, value = self.model(state_tensor)
@@ -221,13 +233,17 @@ class PPOAgent:
                     ast_module.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
                     ast_module.keys.add(pygame.K_SPACE)
-                print(f"Step {steps}: AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}, Bullets={len(ast_module.bullets)}")
+                print(f"Step {steps}: AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}, Bullets={len(ast_module.bullets)}, Score={ast_module.score}")
                 
                 ast_module.last_outputs = probs.cpu().numpy().round(2)
                 ast_module.last_reward = 0
                 
                 if hasattr(ast_module, 'update'):
-                    ast_module.update()
+                    try:
+                        ast_module.update()
+                    except AttributeError as e:
+                        print(f"Error in ast_module.update: {e}")
+                        break
                 else:
                     # Fallback: manual updates
                     if hasattr(ast_module, 'apply_gravity'):
@@ -396,6 +412,7 @@ class PPOAgent:
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
+        print("Completed PPO update")
 
     def save_model(self, path="/home/ajc/Personal-Projects/Random stuff/new_ppo_model.pth"):
         torch.save(self.model.state_dict(), path)
@@ -418,8 +435,10 @@ if __name__ == "__main__":
         # Instantiate Ast.py as a class
         if isinstance(ast, type):
             ast_module = ast()
+            print("Instantiated ast_module as class")
         else:
             ast_module = ast
+            print("Using ast_module directly")
         
         if args.manual:
             print("Running in manual mode...")
@@ -460,6 +479,7 @@ if __name__ == "__main__":
                 ast_module.shoot_cooldown = 0
                 ast_module.shot_reset_timer = 60
                 ast_module.shot_count = 0
+                ast_module.dark_matter_clouds = getattr(ast_module, 'dark_matter_clouds', [])
             while ast_module.game_state == "playing":
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -482,13 +502,14 @@ if __name__ == "__main__":
             
             if args.test:
                 print("Testing trained agent...")
-                agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
+                rollouts = agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
+                print("Completed test run")
             else:
-                iterations = 1000
+                iterations = 10  # Reduced for debugging
                 for i in range(iterations):
                     print(f"Iteration {i+1}/{iterations}")
-                    headless = i % 10 != 0
-                    rollouts = agent.collect_rollouts(ast_module, episodes=10, headless=headless)
+                    headless = i % 2 != 0  # Visualize every other iteration
+                    rollouts = agent.collect_rollouts(ast_module, episodes=5, headless=headless, max_steps=3600)
                     agent.update(rollouts)
                     total_rewards = [sum(rollout[3]) for rollout in rollouts]
                     print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
@@ -497,5 +518,7 @@ if __name__ == "__main__":
                 agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
     except Exception as e:
         print(f"Error occurred: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         pygame.quit()
