@@ -3,18 +3,206 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions.bernoulli import Bernoulli
-import importlib.util
-import sys
 import pygame
 import os
 import argparse
 
-# Load Ast.py (or Ast_AI_env.py)
-ast_file_path = "/home/ajc/Personal-Projects/Random stuff/Ast_AI_env.py"
-spec = importlib.util.spec_from_file_location("Ast", ast_file_path)
-ast = importlib.util.module_from_spec(spec)
-sys.modules["Ast"] = ast
-spec.loader.exec_module(ast)
+# Game class (previously in Ast.py)
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.WIDTH = 800
+        self.HEIGHT = 600
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.clock = pygame.time.Clock()
+        self.BLACK = (0, 0, 0)
+        self.keys = set()
+        self.ship = {"x": 400, "y": 300, "dx": 0, "dy": 0, "angle": 0, "radius": 10, "thrusting": False}
+        self.bullets = []
+        self.enemy_bullets = []
+        self.asteroids = []
+        self.ufo = None
+        self.black_holes = []
+        self.dark_matter_clouds = []
+        self.particles = []
+        self.lives = 3
+        self.score = 0
+        self.level = 1
+        self.game_state = "playing"
+        self.current_mode = "relativistic"
+        self.SPEED_OF_LIGHT = 10
+        self.SHIP_SPEED = 0.5
+        self.ROTATION_SPEED = 5
+        self.FRICTION = 0.99
+        self.shoot_cooldown = 0
+        self.shot_reset_timer = 60
+        self.shot_count = 0
+        self.ufo_spawn_timer = 100
+        self.ASTEROID_SIZES = [30, 20, 10]
+        self.GAME_MODES = {
+            "relativistic": {
+                "ufo_spawn_min": 50,
+                "ufo_spawn_max": 200,
+                "asteroids_per_wave": lambda level: 4 + level,
+                "relativistic": True
+            }
+        }
+        self.last_outputs = None
+        self.last_reward = 0
+
+    def reset_game(self):
+        self.ship = {"x": 400, "y": 300, "dx": 0, "dy": 0, "angle": 0, "radius": 10, "thrusting": False}
+        self.bullets = []
+        self.enemy_bullets = []
+        self.asteroids = []
+        self.ufo = None
+        self.black_holes = []
+        self.particles = []
+        self.lives = 3
+        self.score = 0
+        self.level = 1
+        self.game_state = "playing"
+        self.ufo_spawn_timer = 100
+        self.keys = set()
+
+    def update_bullets(self):
+        for bullet in self.bullets[:]:
+            bullet["x"] += bullet["dx"]
+            bullet["y"] += bullet["dy"]
+            bullet["life"] -= 1
+            if bullet["life"] <= 0:
+                self.bullets.remove(bullet)
+        for bullet in self.enemy_bullets[:]:
+            bullet["x"] += bullet["dx"]
+            bullet["y"] += bullet["dy"]
+            bullet["life"] -= 1
+            if bullet["life"] <= 0:
+                self.enemy_bullets.remove(bullet)
+
+    def shoot_bullet(self):
+        self.bullets.append({
+            "x": self.ship["x"],
+            "y": self.ship["y"],
+            "dx": np.cos(np.radians(self.ship["angle"])) * 10,
+            "dy": -np.sin(np.radians(self.ship["angle"])) * 10,
+            "life": 30
+        })
+        self.shoot_cooldown = 10
+        self.shot_count += 1
+        self.shot_reset_timer = 60
+
+    def update(self):
+        print(f"Processing keys: {self.keys}")  # Debug AI actions
+        if hasattr(self, 'apply_gravity'):
+            self.apply_gravity()
+        if hasattr(self, 'apply_relativistic_effects') and self.apply_relativistic_effects(self.ship):
+            if pygame.K_LEFT in self.keys:
+                self.ship["angle"] += self.ROTATION_SPEED
+            if pygame.K_RIGHT in self.keys:
+                self.ship["angle"] -= self.ROTATION_SPEED
+            self.ship["thrusting"] = pygame.K_UP in self.keys
+            if self.ship["thrusting"]:
+                self.ship["dx"] += np.cos(np.radians(self.ship["angle"])) * self.SHIP_SPEED
+                self.ship["dy"] -= np.sin(np.radians(self.ship["angle"])) * self.SHIP_SPEED
+            if pygame.K_SPACE in self.keys and self.shoot_cooldown <= 0:
+                self.shoot_bullet()
+        self.ship["x"] += self.ship["dx"]
+        self.ship["y"] += self.ship["dy"]
+        self.ship["dx"] *= self.FRICTION
+        self.ship["dy"] *= self.FRICTION
+        self.ship["x"] %= self.WIDTH
+        self.ship["y"] %= self.HEIGHT
+        self.update_bullets()
+        self.update_asteroids()
+        self.update_ufo()
+        self.ufo_spawn_timer -= 1
+        if self.ufo_spawn_timer <= 0 and self.ufo is None:
+            self.spawn_ufo()
+            self.ufo_spawn_timer = np.random.randint(
+                self.GAME_MODES[self.current_mode]["ufo_spawn_min"],
+                self.GAME_MODES[self.current_mode]["ufo_spawn_max"]
+            )
+        for cloud in self.dark_matter_clouds:
+            cloud["x"] += cloud["dx"]
+            cloud["y"] += cloud["dy"]
+            cloud["x"] %= self.WIDTH
+            cloud["y"] %= self.HEIGHT
+        for bh in self.black_holes:
+            bh["x"] += bh["dx"]
+            bh["y"] += bh["dy"]
+            bh["x"] %= self.WIDTH
+            bh["y"] %= self.HEIGHT
+        if len(self.asteroids) == 0:
+            self.level += 1
+            asteroid_count = self.GAME_MODES[self.current_mode]["asteroids_per_wave"](self.level)
+            for _ in range(asteroid_count):
+                self.spawn_asteroid(self.ASTEROID_SIZES[0])
+            if self.GAME_MODES[self.current_mode].get("relativistic", False):
+                self.spawn_black_holes()
+        for particle in self.particles[:]:
+            particle["x"] += particle["dx"]
+            particle["y"] += particle["dy"]
+            particle["life"] -= 1
+            if particle["life"] <= 0:
+                self.particles.remove(particle)
+
+    def apply_gravity(self):
+        pass  # Implement if needed
+
+    def apply_relativistic_effects(self, obj):
+        return True  # Implement if needed
+
+    def update_asteroids(self):
+        for asteroid in self.asteroids[:]:
+            asteroid["x"] += asteroid["dx"]
+            asteroid["y"] += asteroid["dy"]
+            asteroid["x"] %= self.WIDTH
+            asteroid["y"] %= self.HEIGHT
+
+    def update_ufo(self):
+        if self.ufo:
+            self.ufo["x"] += self.ufo["dx"]
+            self.ufo["y"] += self.ufo["dy"]
+            self.ufo["x"] %= self.WIDTH
+            self.ufo["y"] %= self.HEIGHT
+
+    def spawn_ufo(self):
+        self.ufo = {"x": np.random.randint(0, self.WIDTH), "y": np.random.randint(0, self.HEIGHT),
+                    "dx": np.random.uniform(-2, 2), "dy": np.random.uniform(-2, 2), "type": "small"}
+
+    def spawn_asteroid(self, size):
+        self.asteroids.append({
+            "x": np.random.randint(0, self.WIDTH),
+            "y": np.random.randint(0, self.HEIGHT),
+            "dx": np.random.uniform(-1, 1),
+            "dy": np.random.uniform(-1, 1),
+            "radius": size
+        })
+
+    def spawn_black_holes(self):
+        self.black_holes.append({
+            "x": np.random.randint(0, self.WIDTH),
+            "y": np.random.randint(0, self.HEIGHT),
+            "dx": 0,
+            "dy": 0,
+            "radius": 50
+        })
+
+    def draw_objects(self):
+        self.screen.fill(self.BLACK)
+        pygame.draw.circle(self.screen, (255, 255, 255), (int(self.ship["x"]), int(self.ship["y"])), self.ship["radius"])
+        for bullet in self.bullets:
+            pygame.draw.circle(self.screen, (0, 255, 0), (int(bullet["x"]), int(bullet["y"])), 2)
+        for bullet in self.enemy_bullets:
+            pygame.draw.circle(self.screen, (255, 0, 0), (int(bullet["x"]), int(bullet["y"])), 2)
+        for asteroid in self.asteroids:
+            pygame.draw.circle(self.screen, (128, 128, 128), (int(asteroid["x"]), int(asteroid["y"])), asteroid["radius"])
+        if self.ufo:
+            pygame.draw.circle(self.screen, (0, 0, 255), (int(self.ufo["x"]), int(self.ufo["y"])), 15)
+        for bh in self.black_holes:
+            pygame.draw.circle(self.screen, (0, 0, 0), (int(bh["x"]), int(bh["y"])), bh["radius"])
+        for particle in self.particles:
+            pygame.draw.circle(self.screen, (255, 255, 0), (int(particle["x"]), int(particle["y"])), 1)
 
 # Neural Network for Actor-Critic
 class ActorCritic(nn.Module):
@@ -49,170 +237,108 @@ class PPOAgent:
         self.gamma = gamma
         self.input_size = input_size
     
-    def get_game_state(self, ast_module):
-        # Fallbacks for missing attributes
-        WIDTH = getattr(ast_module, 'WIDTH', 800)
-        HEIGHT = getattr(ast_module, 'HEIGHT', 600)
-        SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
-        ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
-        
-        # Check required attributes
-        required_attrs = ['ship', 'asteroids', 'ufo', 'black_holes', 'bullets', 'enemy_bullets']
-        for attr in required_attrs:
-            if not hasattr(ast_module, attr):
-                raise AttributeError(f"ast_module missing required attribute: {attr}")
-        
-        ship = ast_module.ship
-        asteroids = ast_module.asteroids
-        ufo = ast_module.ufo
-        black_holes = ast_module.black_holes
-        bullets = ast_module.bullets
-        enemy_bullets = ast_module.enemy_bullets
-        
+    def get_game_state(self, game):
         state = [
-            ship["x"] / WIDTH,
-            ship["y"] / HEIGHT,
-            ship["dx"] / SPEED_OF_LIGHT,
-            ship["dy"] / SPEED_OF_LIGHT,
-            ship["angle"] / 360
+            game.ship["x"] / game.WIDTH,
+            game.ship["y"] / game.HEIGHT,
+            game.ship["dx"] / game.SPEED_OF_LIGHT,
+            game.ship["dy"] / game.SPEED_OF_LIGHT,
+            game.ship["angle"] / 360
         ]
-        if asteroids:
-            distances = [np.hypot(a["x"] - ship["x"], a["y"] - ship["y"]) for a in asteroids]
-            nearest = asteroids[np.argmin(distances)]
-            dx = nearest["x"] - ship["x"]
-            dy = nearest["y"] - ship["y"]
-            if dx > WIDTH / 2:
-                dx -= WIDTH
-            elif dx < -WIDTH / 2:
-                dx += WIDTH
-            if dy > HEIGHT / 2:
-                dy -= HEIGHT
-            elif dy < -HEIGHT / 2:
-                dy += HEIGHT
+        if game.asteroids:
+            distances = [np.hypot(a["x"] - game.ship["x"], a["y"] - game.ship["y"]) for a in game.asteroids]
+            nearest = game.asteroids[np.argmin(distances)]
+            dx = nearest["x"] - game.ship["x"]
+            dy = nearest["y"] - game.ship["y"]
+            if dx > game.WIDTH / 2:
+                dx -= game.WIDTH
+            elif dx < -game.WIDTH / 2:
+                dx += game.WIDTH
+            if dy > game.HEIGHT / 2:
+                dy -= game.HEIGHT
+            elif dy < -game.HEIGHT / 2:
+                dy += game.HEIGHT
             dist = np.hypot(dx, dy)
             angle = np.arctan2(dy, dx) / (2 * np.pi)
             state.extend([
-                dist / WIDTH,
-                nearest["dx"] / SPEED_OF_LIGHT,
-                nearest["dy"] / SPEED_OF_LIGHT,
+                dist / game.WIDTH,
+                nearest["dx"] / game.SPEED_OF_LIGHT,
+                nearest["dy"] / game.SPEED_OF_LIGHT,
                 angle,
-                ASTEROID_SIZES.index(nearest["radius"]) / 2 if nearest["radius"] in ASTEROID_SIZES else 0
+                game.ASTEROID_SIZES.index(nearest["radius"]) / 2 if nearest["radius"] in game.ASTEROID_SIZES else 0
             ])
         else:
             state.extend([0] * 5)
-        if ufo:
-            dx = ufo["x"] - ship["x"]
-            dy = ufo["y"] - ship["y"]
-            if dx > WIDTH / 2:
-                dx -= WIDTH
-            elif dx < -WIDTH / 2:
-                dx += WIDTH
-            if dy > HEIGHT / 2:
-                dy -= HEIGHT
-            elif dy < -HEIGHT / 2:
-                dy += HEIGHT
+        if game.ufo:
+            dx = game.ufo["x"] - game.ship["x"]
+            dy = game.ufo["y"] - game.ship["y"]
+            if dx > game.WIDTH / 2:
+                dx -= game.WIDTH
+            elif dx < -game.WIDTH / 2:
+                dx += game.WIDTH
+            if dy > game.HEIGHT / 2:
+                dy -= game.HEIGHT
+            elif dy < -game.HEIGHT / 2:
+                dy += game.HEIGHT
             dist = np.hypot(dx, dy)
             angle = np.arctan2(dy, dx) / (2 * np.pi)
             state.extend([
-                dist / WIDTH,
-                ufo["dx"] / SPEED_OF_LIGHT,
-                ufo["dy"] / SPEED_OF_LIGHT,
+                dist / game.WIDTH,
+                game.ufo["dx"] / game.SPEED_OF_LIGHT,
+                game.ufo["dy"] / game.SPEED_OF_LIGHT,
                 angle,
-                0 if ufo["type"] == "small" else 1
+                0 if game.ufo["type"] == "small" else 1
             ])
         else:
             state.extend([0] * 5)
-        if black_holes:
-            distances = [np.hypot(bh["x"] - ship["x"], bh["y"] - ship["y"]) for bh in black_holes]
-            nearest = black_holes[np.argmin(distances)]
-            dx = nearest["x"] - ship["x"]
-            dy = nearest["y"] - ship["y"]
-            if dx > WIDTH / 2:
-                dx -= WIDTH
-            elif dx < -WIDTH / 2:
-                dx += WIDTH
-            if dy > HEIGHT / 2:
-                dy -= HEIGHT
-            elif dy < -HEIGHT / 2:
-                dy += HEIGHT
+        if game.black_holes:
+            distances = [np.hypot(bh["x"] - game.ship["x"], bh["y"] - game.ship["y"]) for bh in game.black_holes]
+            nearest = game.black_holes[np.argmin(distances)]
+            dx = nearest["x"] - game.ship["x"]
+            dy = nearest["y"] - game.ship["y"]
+            if dx > game.WIDTH / 2:
+                dx -= game.WIDTH
+            elif dx < -game.WIDTH / 2:
+                dx += game.WIDTH
+            if dy > game.HEIGHT / 2:
+                dy -= game.HEIGHT
+            elif dy < -game.HEIGHT / 2:
+                dy += game.HEIGHT
             dist = np.hypot(dx, dy)
             angle = np.arctan2(dy, dx) / (2 * np.pi)
             state.extend([
-                dist / WIDTH,
-                nearest["dx"] / SPEED_OF_LIGHT,
-                nearest["dy"] / SPEED_OF_LIGHT,
+                dist / game.WIDTH,
+                nearest["dx"] / game.SPEED_OF_LIGHT,
+                nearest["dy"] / game.SPEED_OF_LIGHT,
                 angle
             ])
         else:
             state.extend([0] * 4)
-        state.extend([len(bullets) / 10, len(enemy_bullets) / 10])
+        state.extend([len(game.bullets) / 10, len(game.enemy_bullets) / 10])
         assert len(state) == 21, f"Expected 21 features, got {len(state)}"
         return state
 
-    def collect_rollouts(self, ast_module, episodes=10, max_steps=3600, headless=True):
+    def collect_rollouts(self, game, episodes=10, max_steps=3600, headless=True):
         rollouts = []
-        # Initialize display if missing
-        if not hasattr(ast_module, 'screen') or ast_module.screen is None:
-            ast_module.screen = pygame.display.set_mode((getattr(ast_module, 'WIDTH', 800), getattr(ast_module, 'HEIGHT', 600)))
-        if not hasattr(ast_module, 'clock') or ast_module.clock is None:
-            ast_module.clock = pygame.time.Clock()
-        # Debug module structure
-        print(f"Loaded module from: {ast_file_path}")
-        print(f"Available ast_module attributes: {[attr for attr in dir(ast_module) if not attr.startswith('_')]}")
         print(f"Starting collect_rollouts: episodes={episodes}, max_steps={max_steps}, headless={headless}")
         for ep in range(episodes):
-            ast_module.game_state = "playing"
-            ast_module.current_mode = "relativistic"
-            if hasattr(ast_module, 'reset_game'):
-                print("Calling ast_module.reset_game()")
-                ast_module.reset_game()
-            else:
-                print("Warning: reset_game not found, using fallback reset")
-                ast_module.ship = {"x": 400, "y": 300, "dx": 0, "dy": 0, "angle": 0, "radius": 10, "thrusting": False}
-                ast_module.bullets = []
-                ast_module.enemy_bullets = []
-                ast_module.asteroids = []
-                ast_module.ufo = None
-                ast_module.black_holes = []
-                ast_module.particles = []
-                ast_module.lives = 3
-                ast_module.score = 0
-                ast_module.level = 1
-                ast_module.game_state = "playing"
-                ast_module.ufo_spawn_timer = 100
-                ast_module.keys = set()
-                ast_module.WIDTH = getattr(ast_module, 'WIDTH', 800)
-                ast_module.HEIGHT = getattr(ast_module, 'HEIGHT', 600)
-                ast_module.SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
-                ast_module.SHIP_SPEED = getattr(ast_module, 'SHIP_SPEED', 0.5)
-                ast_module.ROTATION_SPEED = getattr(ast_module, 'ROTATION_SPEED', 5)
-                ast_module.FRICTION = getattr(ast_module, 'FRICTION', 0.99)
-                ast_module.ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
-                ast_module.GAME_MODES = getattr(ast_module, 'GAME_MODES', {
-                    "relativistic": {
-                        "ufo_spawn_min": 50,
-                        "ufo_spawn_max": 200,
-                        "asteroids_per_wave": lambda level: 4 + level,
-                        "relativistic": True
-                    }
-                })
-                ast_module.shoot_cooldown = 0
-                ast_module.shot_reset_timer = 60
-                ast_module.shot_count = 0
-                ast_module.dark_matter_clouds = getattr(ast_module, 'dark_matter_clouds', [])
+            game.game_state = "playing"
+            game.current_mode = "relativistic"
+            print(f"Episode {ep+1}: Resetting game")
+            game.reset_game()
             states, actions, log_probs, rewards, values, dones = [], [], [], [], [], []
             steps = 0
-            prev_lives = ast_module.lives
+            prev_lives = game.lives
             prev_score = 0
             prev_ufo = None
-            while ast_module.game_state == "playing" and steps < max_steps:
+            while game.game_state == "playing" and steps < max_steps:
                 # Suppress user input
                 pygame.event.clear()
                 pygame.event.pump()
                 
                 try:
-                    state = self.get_game_state(ast_module)
-                except AttributeError as e:
+                    state = self.get_game_state(game)
+                except Exception as e:
                     print(f"Error in get_game_state: {e}")
                     break
                 
@@ -224,134 +350,103 @@ class PPOAgent:
                 action = dist.sample()
                 log_prob = dist.log_prob(action).sum()
                 
-                ast_module.keys = set()
+                game.keys = set()
                 if action[0] > 0.5:
-                    ast_module.keys.add(pygame.K_LEFT)
+                    game.keys.add(pygame.K_LEFT)
                 if action[1] > 0.5:
-                    ast_module.keys.add(pygame.K_RIGHT)
+                    game.keys.add(pygame.K_RIGHT)
                 if action[2] > 0.5:
-                    ast_module.keys.add(pygame.K_UP)
-                if action[3] > 0.5 and ast_module.shoot_cooldown <= 0:
-                    ast_module.keys.add(pygame.K_SPACE)
-                print(f"Step {steps}: AI actions: {ast_module.keys}, Ship: x={ast_module.ship['x']:.2f}, y={ast_module.ship['y']:.2f}, angle={ast_module.ship['angle']:.2f}, Bullets={len(ast_module.bullets)}, Score={ast_module.score}")
+                    game.keys.add(pygame.K_UP)
+                if action[3] > 0.5 and game.shoot_cooldown <= 0:
+                    game.keys.add(pygame.K_SPACE)
+                print(f"Step {steps}: AI actions: {game.keys}, Ship: x={game.ship['x']:.2f}, y={game.ship['y']:.2f}, angle={game.ship['angle']:.2f}, Bullets={len(game.bullets)}, Score={game.score}")
                 
-                ast_module.last_outputs = probs.cpu().numpy().round(2)
-                ast_module.last_reward = 0
+                game.last_outputs = probs.cpu().numpy().round(2)
+                game.last_reward = 0
                 
-                if hasattr(ast_module, 'update'):
-                    try:
-                        ast_module.update()
-                    except AttributeError as e:
-                        print(f"Error in ast_module.update: {e}")
-                        break
-                else:
-                    # Fallback: manual updates
-                    if hasattr(ast_module, 'apply_gravity'):
-                        ast_module.apply_gravity()
-                    if hasattr(ast_module, 'apply_relativistic_effects') and ast_module.apply_relativistic_effects(ast_module.ship):
-                        if pygame.K_LEFT in ast_module.keys:
-                            ast_module.ship["angle"] += ast_module.ROTATION_SPEED
-                        if pygame.K_RIGHT in ast_module.keys:
-                            ast_module.ship["angle"] -= ast_module.ROTATION_SPEED
-                        ast_module.ship["thrusting"] = pygame.K_UP in ast_module.keys
-                        if ast_module.ship["thrusting"]:
-                            ast_module.ship["dx"] += np.cos(np.radians(ast_module.ship["angle"])) * ast_module.SHIP_SPEED
-                            ast_module.ship["dy"] -= np.sin(np.radians(ast_module.ship["angle"])) * ast_module.SHIP_SPEED
-                    ast_module.ship["x"] += ast_module.ship["dx"]
-                    ast_module.ship["y"] += ast_module.ship["dy"]
-                    ast_module.ship["dx"] *= ast_module.FRICTION
-                    ast_module.ship["dy"] *= ast_module.FRICTION
-                    if not ast_module.GAME_MODES[ast_module.current_mode].get("arena", False):
-                        ast_module.ship["x"] %= ast_module.WIDTH
-                        ast_module.ship["y"] %= ast_module.HEIGHT
-                    if hasattr(ast_module, 'update_bullets'):
-                        ast_module.update_bullets()
-                    if hasattr(ast_module, 'update_asteroids'):
-                        ast_module.update_asteroids()
-                    if hasattr(ast_module, 'update_ufo'):
-                        ast_module.update_ufo()
+                try:
+                    game.update()
+                except Exception as e:
+                    print(f"Error in game.update: {e}")
+                    break
                 
-                ast_module.shoot_cooldown = max(0, ast_module.shoot_cooldown - 1)
-                ast_module.shot_reset_timer = max(0, ast_module.shot_reset_timer - 1)
-                if ast_module.shot_reset_timer <= 0:
-                    ast_module.shot_count = 0
-                ast_module.ufo_spawn_timer -= 1
-                if ast_module.ufo_spawn_timer <= 0 and ast_module.ufo is None:
-                    if hasattr(ast_module, 'spawn_ufo'):
-                        ast_module.spawn_ufo()
-                        ast_module.ufo_spawn_timer = np.random.randint(
-                            ast_module.GAME_MODES[ast_module.current_mode]["ufo_spawn_min"],
-                            ast_module.GAME_MODES[ast_module.current_mode]["ufo_spawn_max"]
-                        )
-                for cloud in ast_module.dark_matter_clouds:
+                game.shoot_cooldown = max(0, game.shoot_cooldown - 1)
+                game.shot_reset_timer = max(0, game.shot_reset_timer - 1)
+                if game.shot_reset_timer <= 0:
+                    game.shot_count = 0
+                game.ufo_spawn_timer -= 1
+                if game.ufo_spawn_timer <= 0 and game.ufo is None:
+                    game.spawn_ufo()
+                    game.ufo_spawn_timer = np.random.randint(
+                        game.GAME_MODES[game.current_mode]["ufo_spawn_min"],
+                        game.GAME_MODES[game.current_mode]["ufo_spawn_max"]
+                    )
+                for cloud in game.dark_matter_clouds:
                     cloud["x"] += cloud["dx"]
                     cloud["y"] += cloud["dy"]
-                    cloud["x"] %= ast_module.WIDTH
-                    cloud["y"] %= ast_module.HEIGHT
-                for bh in ast_module.black_holes:
+                    cloud["x"] %= game.WIDTH
+                    cloud["y"] %= game.HEIGHT
+                for bh in game.black_holes:
                     bh["x"] += bh["dx"]
                     bh["y"] += bh["dy"]
-                    bh["x"] %= ast_module.WIDTH
-                    bh["y"] %= ast_module.HEIGHT
-                if len(ast_module.asteroids) == 0:
-                    ast_module.level += 1
-                    asteroid_count = ast_module.GAME_MODES[ast_module.current_mode]["asteroids_per_wave"](ast_module.level)
+                    bh["x"] %= game.WIDTH
+                    bh["y"] %= game.HEIGHT
+                if len(game.asteroids) == 0:
+                    game.level += 1
+                    asteroid_count = game.GAME_MODES[game.current_mode]["asteroids_per_wave"](game.level)
                     for _ in range(asteroid_count):
-                        if hasattr(ast_module, 'spawn_asteroid'):
-                            ast_module.spawn_asteroid(ast_module.ASTEROID_SIZES[0])
-                    if ast_module.GAME_MODES[ast_module.current_mode].get("relativistic", False):
-                        if hasattr(ast_module, 'spawn_black_holes'):
-                            ast_module.spawn_black_holes()
-                for particle in ast_module.particles[:]:
+                        game.spawn_asteroid(game.ASTEROID_SIZES[0])
+                    if game.GAME_MODES[game.current_mode].get("relativistic", False):
+                        game.spawn_black_holes()
+                for particle in game.particles[:]:
                     particle["x"] += particle["dx"]
                     particle["y"] += particle["dy"]
                     particle["life"] -= 1
                     if particle["life"] <= 0:
-                        ast_module.particles.remove(particle)
+                        game.particles.remove(particle)
                 
                 reward = 1
-                if ast_module.ship["thrusting"]:
+                if game.ship["thrusting"]:
                     reward -= 10
-                if ast_module.lives < prev_lives:
+                if game.lives < prev_lives:
                     reward -= 1000
-                if any(np.hypot(ast_module.ship["x"] - bh["x"], ast_module.ship["y"] - bh["y"]) < bh["radius"] + ast_module.ship["radius"] for bh in ast_module.black_holes):
+                if any(np.hypot(game.ship["x"] - bh["x"], game.ship["y"] - bh["y"]) < bh["radius"] + game.ship["radius"] for bh in game.black_holes):
                     reward -= 5000
-                reward += (ast_module.score - prev_score)
-                if ast_module.ufo is None and prev_ufo is not None:
+                reward += (game.score - prev_score)
+                if game.ufo is None and prev_ufo is not None:
                     reward += 500
-                prev_lives = ast_module.lives
-                prev_score = ast_module.score
-                prev_ufo = ast_module.ufo
-                ast_module.last_reward = reward
+                prev_lives = game.lives
+                prev_score = game.score
+                prev_ufo = game.ufo
+                game.last_reward = reward
                 
                 states.append(state)
                 actions.append(action.cpu().numpy())
                 log_probs.append(log_prob.cpu().item())
                 rewards.append(reward)
                 values.append(value.cpu().item())
-                dones.append(ast_module.game_state != "playing")
+                dones.append(game.game_state != "playing")
                 
                 steps += 1
-                if not headless and hasattr(ast_module, 'screen') and ast_module.screen is not None:
-                    print(f"Rendering: Screen initialized={hasattr(ast_module, 'screen') and ast_module.screen is not None}")
-                    ast_module.screen.fill(ast_module.BLACK)
-                    if hasattr(ast_module, 'draw_objects'):
-                        ast_module.draw_objects()
+                if not headless and game.screen is not None:
+                    print(f"Rendering: Step {steps}")
+                    game.screen.fill(game.BLACK)
+                    game.draw_objects()
                     pygame.display.flip()
-                    ast_module.clock.tick(30)
+                    game.clock.tick(30)
                 
-                if ast_module.lives <= 0 and ast_module.current_mode != "time_attack":
-                    ast_module.game_state = "game_over"
+                if game.lives <= 0 and game.current_mode != "time_attack":
+                    game.game_state = "game_over"
             
-            if steps < max_steps and ast_module.game_state == "playing":
+            if steps < max_steps and game.game_state == "playing":
                 with torch.no_grad():
-                    _, value = self.model(torch.FloatTensor(self.get_game_state(ast_module)).to(self.device))
+                    _, value = self.model(torch.FloatTensor(self.get_game_state(game)).to(self.device))
                 values.append(value.cpu().item())
             else:
                 values.append(0)
             
             rollouts.append((states, actions, log_probs, rewards, values, dones))
-            print(f"Episode {ep+1}: Score={ast_module.score}, Steps={steps}, Reward={sum(rewards):.2f}")
+            print(f"Episode {ep+1}: Score={game.score}, Steps={steps}, Reward={sum(rewards):.2f}")
         
         return rollouts
 
@@ -432,90 +527,47 @@ if __name__ == "__main__":
     
     try:
         pygame.init()
-        # Instantiate Ast.py as a class
-        if isinstance(ast, type):
-            ast_module = ast()
-            print("Instantiated ast_module as class")
-        else:
-            ast_module = ast
-            print("Using ast_module directly")
+        game = Game()
         
         if args.manual:
             print("Running in manual mode...")
-            ast_module.game_state = "playing"
-            ast_module.current_mode = "relativistic"
-            if hasattr(ast_module, 'reset_game'):
-                ast_module.reset_game()
-            else:
-                print("Warning: reset_game not found, using fallback reset")
-                ast_module.ship = {"x": 400, "y": 300, "dx": 0, "dy": 0, "angle": 0, "radius": 10, "thrusting": False}
-                ast_module.bullets = []
-                ast_module.enemy_bullets = []
-                ast_module.asteroids = []
-                ast_module.ufo = None
-                ast_module.black_holes = []
-                ast_module.particles = []
-                ast_module.lives = 3
-                ast_module.score = 0
-                ast_module.level = 1
-                ast_module.game_state = "playing"
-                ast_module.ufo_spawn_timer = 100
-                ast_module.keys = set()
-                ast_module.WIDTH = getattr(ast_module, 'WIDTH', 800)
-                ast_module.HEIGHT = getattr(ast_module, 'HEIGHT', 600)
-                ast_module.SPEED_OF_LIGHT = getattr(ast_module, 'SPEED_OF_LIGHT', 10)
-                ast_module.SHIP_SPEED = getattr(ast_module, 'SHIP_SPEED', 0.5)
-                ast_module.ROTATION_SPEED = getattr(ast_module, 'ROTATION_SPEED', 5)
-                ast_module.FRICTION = getattr(ast_module, 'FRICTION', 0.99)
-                ast_module.ASTEROID_SIZES = getattr(ast_module, 'ASTEROID_SIZES', [30, 20, 10])
-                ast_module.GAME_MODES = getattr(ast_module, 'GAME_MODES', {
-                    "relativistic": {
-                        "ufo_spawn_min": 50,
-                        "ufo_spawn_max": 200,
-                        "asteroids_per_wave": lambda level: 4 + level,
-                        "relativistic": True
-                    }
-                })
-                ast_module.shoot_cooldown = 0
-                ast_module.shot_reset_timer = 60
-                ast_module.shot_count = 0
-                ast_module.dark_matter_clouds = getattr(ast_module, 'dark_matter_clouds', [])
-            while ast_module.game_state == "playing":
+            game.game_state = "playing"
+            game.current_mode = "relativistic"
+            game.reset_game()
+            while game.game_state == "playing":
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        ast_module.game_state = "game_over"
+                        game.game_state = "game_over"
                     elif event.type == pygame.KEYDOWN:
-                        ast_module.keys.add(event.key)
+                        game.keys.add(event.key)
                     elif event.type == pygame.KEYUP:
-                        ast_module.keys.discard(event.key)
-                if hasattr(ast_module, 'update'):
-                    ast_module.update()
-                if hasattr(ast_module, 'screen') and ast_module.screen is not None:
-                    ast_module.screen.fill(ast_module.BLACK)
-                    if hasattr(ast_module, 'draw_objects'):
-                        ast_module.draw_objects()
+                        game.keys.discard(event.key)
+                game.update()
+                if game.screen is not None:
+                    game.screen.fill(game.BLACK)
+                    game.draw_objects()
                     pygame.display.flip()
-                    ast_module.clock.tick(30)
+                    game.clock.tick(30)
         else:
             agent = PPOAgent()
             agent.load_model()
             
             if args.test:
                 print("Testing trained agent...")
-                rollouts = agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
+                rollouts = agent.collect_rollouts(game, episodes=1, headless=False, max_steps=7200)
                 print("Completed test run")
             else:
                 iterations = 10  # Reduced for debugging
                 for i in range(iterations):
                     print(f"Iteration {i+1}/{iterations}")
                     headless = i % 2 != 0  # Visualize every other iteration
-                    rollouts = agent.collect_rollouts(ast_module, episodes=5, headless=headless, max_steps=3600)
+                    rollouts = agent.collect_rollouts(game, episodes=5, headless=headless, max_steps=3600)
                     agent.update(rollouts)
                     total_rewards = [sum(rollout[3]) for rollout in rollouts]
                     print(f"Average Reward: {sum(total_rewards)/len(total_rewards):.2f}, Max: {max(total_rewards):.2f}")
                     agent.save_model()
                 print("Testing with best model...")
-                agent.collect_rollouts(ast_module, episodes=1, headless=False, max_steps=7200)
+                agent.collect_rollouts(game, episodes=1, headless=False, max_steps=7200)
     except Exception as e:
         print(f"Error occurred: {e}")
         import traceback
