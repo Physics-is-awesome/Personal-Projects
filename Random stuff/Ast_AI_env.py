@@ -383,9 +383,9 @@ class Game:
     def update(self):
         print(f"Processing keys: {self.keys}")  # Debug AI actions
         self.apply_gravity()
-            self.asteroid_destroyed = False
+        self.asteroid_destroyed = False
 
-            for asteroid in self.asteroids[:]:
+        for asteroid in self.asteroids[:]:
 
             for bullet in self.bullets[:]:
                 if math.hypot(bullet["x"] - asteroid["x"], bullet["y"] - asteroid["y"]) < asteroid["radius"]:
