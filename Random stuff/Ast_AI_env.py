@@ -949,7 +949,7 @@ class PPOAgent:
                     reward -= 5000
                 reward += (game.score - prev_score)
                 if game.ufo is None and prev_ufo is not None:
-                    reward += 1000
+                    reward += 8000
                 prev_lives = game.lives
                 prev_score = game.score
                 prev_ufo = game.ufo
