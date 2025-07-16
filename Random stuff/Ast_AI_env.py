@@ -933,7 +933,7 @@ class PPOAgent:
                     game.keys.add(pygame.K_UP)
                 if action[3] > 0.5 and game.shoot_cooldown <= 0:
                     game.keys.add(pygame.K_SPACE)
-                print(f"Step {steps}: AI actions: {game.keys}, Ship: x={game.ship['x']:.2f}, y={game.ship['y']:.2f}, angle={game.ship['angle']:.2f}, Bullets={len(game.blets)}, Score={game.score}")
+                print(f"Step {steps}: AI actions: {game.keys}, Ship: x={game.ship['x']:.2f}, y={game.ship['y']:.2f}, angle={game.ship['angle']:.2f}, Bullets={len(game.bullets)}, Score={game.score}")
                 
                 try:
                     game.update()
