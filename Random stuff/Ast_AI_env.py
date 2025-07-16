@@ -1088,10 +1088,10 @@ if __name__ == "__main__":
                 rollouts = agent.collect_rollouts(game, episodes=1, headless=False, max_steps=7200)
                 print("Completed test run")
             else:
-                iterations = 30
+                iterations = 80
                 for i in range(iterations):
                     print(f"Iteration {i+1}/{iterations}")
-                    headless = i % 8 != 0
+                    headless = i % 30 != 0
                     rollouts = agent.collect_rollouts(game, episodes=5, headless=headless, max_steps=3600)
                     agent.update(rollouts)
                     total_rewards = [sum(rollout[3]) for rollout in rollouts]
