@@ -942,15 +942,14 @@ class PPOAgent:
                     break
                 
                 reward = 1
-                if game.ship["thrusting"]:
-                    reward -= 10
+
                 if game.lives < prev_lives:
                     reward -= 1000
                 if any(np.hypot(game.ship["x"] - bh["x"], game.ship["y"] - bh["y"]) < bh["radius"] + game.ship["radius"] for bh in game.black_holes):
                     reward -= 5000
                 reward += (game.score - prev_score)
                 if game.ufo is None and prev_ufo is not None:
-                    reward += 500
+                    reward += 1000
                 prev_lives = game.lives
                 prev_score = game.score
                 prev_ufo = game.ufo
