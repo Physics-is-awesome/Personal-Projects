@@ -953,6 +953,9 @@ class PPOAgent:
                
                 if game.asteroid_destroyed:
                     reward += 20
+                ship_speed - np.hypot(game.ship["dx"], game.ship["dy"])
+                if ship_speed > 5:
+                    reward -= 0.5
 
                 if game.lives < prev_lives:
                     reward -= 30
