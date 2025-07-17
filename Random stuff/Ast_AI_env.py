@@ -907,7 +907,7 @@ class PPOAgent:
         print(f"Starting collect_rollouts: episodes={episodes}, max_steps={max_steps}, headless={headless}")
         for ep in range(episodes):
             game.game_state = "playing"
-            game.current_mode = "relativistic"
+            game.current_mode = "Classic Mode"
             print(f"Episode {ep+1}: Resetting game")
             game.reset_game()
             states, actions, log_probs, rewards, values, dones = [], [], [], [], [], []
