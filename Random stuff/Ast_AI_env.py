@@ -958,7 +958,7 @@ class PPOAgent:
                     reward -= 30
               
                 if game.score - prev_score >= 0:
-                    reward += 1.2*(game.score - prev_score)
+                    reward += 0.5*(game.score - prev_score)
               
                 prev_lives = game.lives
                 prev_score = game.score
