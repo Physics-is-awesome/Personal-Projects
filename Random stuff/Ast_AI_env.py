@@ -950,7 +950,7 @@ class PPOAgent:
                     print(f"Error in game.update: {e}")
                     break
                 
-                reward = 1
+                reward = 0.1
                 if game.asteroid_destroyed:
                     reward += 800
 
