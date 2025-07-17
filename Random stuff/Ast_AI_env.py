@@ -145,7 +145,7 @@ class Game:
                 "relativistic": True
             }
         }
-        self.current_mode = "relativistic"  # Default to relativistic for AI
+        self.current_mode = "Classic Mode"  # Default to relativistic for AI
         self.score = 0
         self.lives = self.GAME_MODES[self.current_mode]["lives"]
         self.level = 1
