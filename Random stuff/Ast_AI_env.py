@@ -1098,7 +1098,7 @@ if __name__ == "__main__":
             
             if args.test:
                 print("Testing trained agent...")
-                rollouts = agent.collect_rollouts(game, episodes=1, headless=False, max_steps=7200)
+                rollouts = agent.collect_rollouts(game, episodes=1, headless=False, max_steps=50000)
                 print("Completed test run")
             else:
                 iterations = 100000000
