@@ -1047,7 +1047,7 @@ class PPOAgent:
                 surr2 = torch.clamp(ratio, 1 - self.clip_eps, 1 + self.clip_eps) * batch_advantages
                 actor_loss = -torch.min(surr1, surr2).mean()
                 critic_loss = nn.MSELoss()(value.squeeze(), batch_returns)
-                loss = actor_loss + 0.5 * critic_loss - 0.07 * entropy
+                loss = actor_loss + 0.5 * critic_loss - 0.1 * entropy
                 
                 self.optimizer.zero_grad()
                 loss.backward()
