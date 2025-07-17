@@ -952,15 +952,16 @@ class PPOAgent:
                 
                 reward = 0.1
                 if game.asteroid_destroyed:
-                    reward += 800
+                    reward += 1400
 
                 if game.lives < prev_lives:
-                    reward -= 1000
+                    reward -= 3000
                 if any(np.hypot(game.ship["x"] - bh["x"], game.ship["y"] - bh["y"]) < bh["radius"] + game.ship["radius"] for bh in game.black_holes):
                     reward -= 5000
-                reward += (game.score - prev_score)
+                if game.score - prev_score >= 0:
+                    reward += 300*(game.score - prev_score)
                 if game.ufo is None and prev_ufo is not None:
-                    reward += 8000
+                    reward += 800
                 prev_lives = game.lives
                 prev_score = game.score
                 prev_ufo = game.ufo
