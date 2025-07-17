@@ -949,7 +949,7 @@ class PPOAgent:
                 except Exception as e:
                     print(f"Error in game.update: {e}")
                     break
-                
+                reward = 0.0
                
                 if game.asteroid_destroyed:
                     reward += 2000
