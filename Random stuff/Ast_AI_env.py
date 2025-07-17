@@ -145,7 +145,7 @@ class Game:
                 "relativistic": True
             }
         }
-        self.current_mode = "Classic Mode"  # Default to relativistic for AI
+        self.current_mode = "classic"  # Default to relativistic for AI
         self.score = 0
         self.lives = self.GAME_MODES[self.current_mode]["lives"]
         self.level = 1
@@ -907,7 +907,7 @@ class PPOAgent:
         print(f"Starting collect_rollouts: episodes={episodes}, max_steps={max_steps}, headless={headless}")
         for ep in range(episodes):
             game.game_state = "playing"
-            game.current_mode = "Classic Mode"
+            game.current_mode = "classic"
             print(f"Episode {ep+1}: Resetting game")
             game.reset_game()
             states, actions, log_probs, rewards, values, dones = [], [], [], [], [], []
