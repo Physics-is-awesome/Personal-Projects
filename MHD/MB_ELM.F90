@@ -92,7 +92,7 @@ program elm_mhd_advanced
 
      ! Output diagnostics
      if (mod(t, 100_ikind) == 0 .and. rank == 0) then
-        write Ode: write(*, *) 'Step:', t, 'Energy:', energy, 'Entropy Production:', entropy_prod
+        write(*, *) 'Step:', t, 'Energy:', energy, 'Entropy Production:', entropy_prod
      end if
   end do
 
@@ -299,20 +299,25 @@ subroutine apply_boundary_conditions(rho, m_psi, m_theta, s, B_psi, B_theta)
   implicit none
   real(8), intent(inout) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(inout) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
+  integer(ikind) :: i, j
   ! SOL: Outflow; Pedestal: No-flux
-  rho(1,:) = rho(2,:); rho(npsi,:) = rho(npsi-1,:)
-  m_psi(1,:) = 0.0; m_psi(npsi,:) = 0.0
-  m_theta(1,:) = 0.0; m_theta(npsi,:) = 0.0
-  s(1,:) = s(2,:); s(npsi,:) = s(npsi-1,:)
-  B_psi(1,:) = B_psi(2,:); B_psi(npsi,:) = B_psi(npsi-1,:)
-  B_theta(1,:) = B_theta(2,:); B_theta(npsi,:) = B_theta(npsi-1,:)
+  do j = 1, ntheta
+     rho(1,j) = rho(2,j); rho(npsi,j) = rho(npsi-1,j)
+     m_psi(1,j) = 0.0; m_psi(npsi,j) = 0.0
+     m_theta(1,j) = 0.0; m_theta(npsi,j) = 0.0
+     s(1,j) = s(2,j); s(npsi,j) = s(npsi-1,j)
+     B_psi(1,j) = B_psi(2,j); B_psi(npsi,j) = B_psi(npsi-1,j)
+     B_theta(1,j) = B_theta(2,j); B_theta(npsi,j) = B_theta(npsi-1,j)
+  end do
   ! Periodic in theta
-  rho(:,1) = rho(:,ntheta-1); rho(:,ntheta) = rho(:,2)
-  m_psi(:,1) = m_psi(:,ntheta-1); m_psi(:,ntheta) = m_psi(:,2)
-  m_theta(:,1) = m_theta(:,ntheta-1); m_theta(:,ntheta) = m_theta(:,2)
-  s(:,1) = s(:,ntheta-1); s(:,ntheta) = s(:,2)
-  B_psi(:,1) = B_psi(:,ntheta-1); B_psi(:,ntheta) = B_psi(:,2)
-  B_theta(:,1) = B_theta(:,ntheta-1); B_theta(:,ntheta) = B_theta(:,2)
+  do i = 1, npsi
+     rho(i,1) = rho(i,ntheta-1); rho(i,ntheta) = rho(i,2)
+     m_psi(i,1) = m_psi(i,ntheta-1); m_psi(i,ntheta) = m_psi(i,2)
+     m_theta(i,1) = m_theta(i,ntheta-1); m_theta(i,ntheta) = m_theta(i,2)
+     s(i,1) = s(i,ntheta-1); s(i,ntheta) = s(i,2)
+     B_psi(i,1) = B_psi(i,ntheta-1); B_psi(i,ntheta) = B_psi(i,2)
+     B_theta(i,1) = B_theta(i,ntheta-1); B_theta(i,ntheta) = B_theta(i,2)
+  end do
 end subroutine apply_boundary_conditions
 
 ! Subroutine to compute energy and entropy
