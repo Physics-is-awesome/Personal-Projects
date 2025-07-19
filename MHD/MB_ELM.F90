@@ -327,8 +327,17 @@ subroutine compute_energy_entropy(rho, m_psi, m_theta, s, B_psi, B_theta, T, gra
   real(8), intent(in) :: curl_B(npsi,ntheta), mu_chem(npsi,ntheta)
   real(8), intent(in) :: eta(npsi,ntheta), mu_visc(npsi,ntheta), kappa(npsi,ntheta), D(npsi,ntheta)
   real(8), intent(out) :: energy, entropy, entropy_prod
+  real(8) :: grad_mu(2,npsi,ntheta)  ! Local declaration for grad_mu
   integer(ikind) :: i, j
   real(8) :: e
+
+  ! Compute grad_mu locally to ensure availability
+  do i = 2, npsi-1
+     do j = 2, ntheta-1
+        grad_mu(1,i,j) = (mu_chem(i+1,j) - mu_chem(i-1,j))/(2.0*dpsi)
+        grad_mu(2,i,j) = (mu_chem(i,j+1) - mu_chem(i,j-1))/(2.0*dtheta)
+     end do
+  end do
 
   energy = 0.0; entropy = 0.0; entropy_prod = 0.0
   do i = 2, npsi-1
