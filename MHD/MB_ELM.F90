@@ -3,10 +3,8 @@
 ! State variables: rho (density), m (momentum), s (entropy), B (magnetic field)
 ! Includes resistivity, viscosity, heat conduction, particle diffusion, and SOL transport
 
-program elm_mhd_advanced
-  use mpi
+module elm_mhd_mod
   implicit none
-
   ! Constants
   integer, parameter :: ikind = 4
   real(8), parameter :: mu_0 = 1.25663706e-6  ! Magnetic permeability (H/m)
@@ -21,6 +19,12 @@ program elm_mhd_advanced
   real(8), parameter :: mu_0_visc = 1.0e-4  ! Viscosity (kg/m/s)
   real(8), parameter :: kappa_0 = 1.0e-3  ! Thermal conductivity (W/m/K)
   real(8), parameter :: D_0 = 1.0e-4  ! Particle diffusion coefficient (m^2/s)
+end module elm_mhd_mod
+
+program elm_mhd_advanced
+  use mpi
+  use elm_mhd_mod
+  implicit none
 
   ! State variables (2D arrays)
   real(8), allocatable :: rho(:,:), m_psi(:,:), m_theta(:,:), s(:,:), B_psi(:,:), B_theta(:,:)
@@ -57,37 +61,34 @@ program elm_mhd_advanced
   allocate(tau(2,2,npsi,ntheta), J_rho(2,npsi,ntheta), q(2,npsi,ntheta), J(2,npsi,ntheta))
 
   ! Initialize fields
-  call initialize_fields(rho, m_psi, m_theta, s, B_psi, B_theta, eta, mu_visc, kappa, D, &
-                        npsi, ntheta, psi_min, psi_max, theta_min, theta_max)
+  call initialize_fields(rho, m_psi, m_theta, s, B_psi, B_theta, eta, mu_visc, kappa, D)
 
   ! Main time-stepping loop
   do t = 1, n_steps
      ! Compute derived quantities
-     call compute_derived(rho, m_psi, m_theta, s, u_psi, u_theta, T, p, mu_chem, npsi, ntheta)
+     call compute_derived(rho, m_psi, m_theta, s, u_psi, u_theta, T, p, mu_chem)
 
      ! Compute Poisson bracket
      call compute_poisson(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_theta, p, &
-                          rho_new, m_psi_new, m_theta_new, s_new, B_psi_new, B_theta_new, &
-                          npsi, ntheta)
+                          rho_new, m_psi_new, m_theta_new, s_new, B_psi_new, B_theta_new)
 
      ! Compute 4-bracket
      call compute_4bracket(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_theta, T, mu_chem, &
                           eta, mu_visc, kappa, D, grad_ux, grad_uy, grad_T, grad_mu, curl_B, &
                           tau, J_rho, q, J, rho_new, m_psi_new, m_theta_new, s_new, &
-                          B_psi_new, B_theta_new, npsi, ntheta)
+                          B_psi_new, B_theta_new)
 
      ! Implicit solve (placeholder: explicit update for now)
      call implicit_solve(rho, m_psi, m_theta, s, B_psi, B_theta, &
-                        rho_new, m_psi_new, m_theta_new, s_new, B_psi_new, B_theta_new, &
-                        npsi, ntheta)
+                        rho_new, m_psi_new, m_theta_new, s_new, B_psi_new, B_theta_new)
 
      ! Apply boundary conditions
-     call apply_boundary_conditions(rho, m_psi, m_theta, s, B_psi, B_theta, npsi, ntheta)
+     call apply_boundary_conditions(rho, m_psi, m_theta, s, B_psi, B_theta)
 
      ! Compute energy and entropy
      call compute_energy_entropy(rho, m_psi, m_theta, s, B_psi, B_theta, T, grad_ux, grad_T, &
                                 curl_B, mu_chem, eta, mu_visc, kappa, D, &
-                                energy, entropy, entropy_prod, npsi, ntheta)
+                                energy, entropy, entropy_prod)
 
      ! Output diagnostics
      if (mod(t, 100_ikind) == 0 .and. rank == 0) then
@@ -96,7 +97,7 @@ program elm_mhd_advanced
   end do
 
   ! Save final state
-  if (rank == 0) call save_fields(rho, m_psi, m_theta, s, B_psi, B_theta, npsi, ntheta)
+  if (rank == 0) call save_fields(rho, m_psi, m_theta, s, B_psi, B_theta)
 
   ! Finalize MPI
   call MPI_FINALIZE(ierr)
@@ -110,22 +111,19 @@ program elm_mhd_advanced
 end program elm_mhd_advanced
 
 ! Subroutine to initialize fields (pedestal with ELM perturbation)
-subroutine initialize_fields(rho, m_psi, m_theta, s, B_psi, B_theta, eta, mu_visc, kappa, D, &
-                            npsi, ntheta, psi_min, psi_max, theta_min, theta_max)
+subroutine initialize_fields(rho, m_psi, m_theta, s, B_psi, B_theta, eta, mu_visc, kappa, D)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
-  real(8), intent(in) :: psi_min, psi_max, theta_min, theta_max
   real(8), intent(out) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(out) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   real(8), intent(out) :: eta(npsi,ntheta), mu_visc(npsi,ntheta), kappa(npsi,ntheta), D(npsi,ntheta)
   integer(ikind) :: i, j
   real(8) :: psi, theta, r, pedestal_width = 0.1, B0 = 1.0, psi_sep = 1.0
-  real(8), parameter :: eta_0 = 1.0e-5, mu_0_visc = 1.0e-4, kappa_0 = 1.0e-3, D_0 = 1.0e-4
 
   do i = 1, npsi
      do j = 1, ntheta
-        psi = psi_min + (i-1) * (psi_max-psi_min)/real(npsi-1, 8)
-        theta = theta_min + (j-1) * (theta_max-theta_min)/real(ntheta-1, 8)
+        psi = psi_min + (i-1) * dpsi
+        theta = theta_min + (j-1) * dtheta
         r = abs(psi - psi_sep)  ! Distance from separatrix
         ! Pedestal-like profile with ELM perturbation
         rho(i,j) = 1.0 + 0.5 * exp(-r**2 / pedestal_width**2) + 0.1 * sin(5.0*theta) * exp(-r**2)
@@ -144,9 +142,9 @@ subroutine initialize_fields(rho, m_psi, m_theta, s, B_psi, B_theta, eta, mu_vis
 end subroutine initialize_fields
 
 ! Subroutine to compute derived quantities
-subroutine compute_derived(rho, m_psi, m_theta, s, u_psi, u_theta, T, p, mu_chem, npsi, ntheta)
+subroutine compute_derived(rho, m_psi, m_theta, s, u_psi, u_theta, T, p, mu_chem)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta), s(npsi,ntheta)
   real(8), intent(out) :: u_psi(npsi,ntheta), u_theta(npsi,ntheta), T(npsi,ntheta)
   real(8), intent(out) :: p(npsi,ntheta), mu_chem(npsi,ntheta)
@@ -167,10 +165,9 @@ end subroutine compute_derived
 
 ! Subroutine to compute Poisson bracket
 subroutine compute_poisson(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_theta, p, &
-                          drho_dt, dm_psi_dt, dm_theta_dt, ds_dt, dB_psi_dt, dB_theta_dt, &
-                          npsi, ntheta)
+                          drho_dt, dm_psi_dt, dm_theta_dt, ds_dt, dB_psi_dt, dB_theta_dt)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(in) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   real(8), intent(in) :: u_psi(npsi,ntheta), u_theta(npsi,ntheta), p(npsi,ntheta)
@@ -178,10 +175,6 @@ subroutine compute_poisson(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_thet
   real(8), intent(out) :: ds_dt(npsi,ntheta), dB_psi_dt(npsi,ntheta), dB_theta_dt(npsi,ntheta)
   real(8) :: div_rho_u(npsi,ntheta), div_m_u(npsi,ntheta), curl_uB(npsi,ntheta)
   integer(ikind) :: i, j
-  real(8), parameter :: mu_0 = 1.25663706e-6
-  real(8) :: dpsi, dtheta
-  dpsi = (psi_max-psi_min)/real(npsi-1, 8)
-  dtheta = (theta_max-theta_min)/real(ntheta-1, 8)
 
   drho_dt = 0.0; dm_psi_dt = 0.0; dm_theta_dt = 0.0; ds_dt = 0.0; dB_psi_dt = 0.0; dB_theta_dt = 0.0
   do i = 2, npsi-1
@@ -216,9 +209,9 @@ end subroutine compute_poisson
 subroutine compute_4bracket(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_theta, T, mu_chem, &
                            eta, mu_visc, kappa, D, grad_ux, grad_uy, grad_T, grad_mu, curl_B, &
                            tau, J_rho, q, J, drho_dt, dm_psi_dt, dm_theta_dt, ds_dt, &
-                           dB_psi_dt, dB_theta_dt, npsi, ntheta)
+                           dB_psi_dt, dB_theta_dt)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(in) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   real(8), intent(in) :: u_psi(npsi,ntheta), u_theta(npsi,ntheta), T(npsi,ntheta), mu_chem(npsi,ntheta)
@@ -230,10 +223,6 @@ subroutine compute_4bracket(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_the
   real(8), intent(inout) :: ds_dt(npsi,ntheta), dB_psi_dt(npsi,ntheta), dB_theta_dt(npsi,ntheta)
   integer(ikind) :: i, j
   real(8) :: div_tau(npsi,ntheta), div_q(npsi,ntheta), div_J_rho(npsi,ntheta), curl_J(npsi,ntheta)
-  real(8), parameter :: mu_0 = 1.25663706e-6
-  real(8) :: dpsi, dtheta
-  dpsi = (psi_max-psi_min)/real(npsi-1, 8)
-  dtheta = (theta_max-theta_min)/real(ntheta-1, 8)
 
   do i = 2, npsi-1
      do j = 2, ntheta-1
@@ -276,7 +265,7 @@ subroutine compute_4bracket(rho, m_psi, m_theta, s, B_psi, B_theta, u_psi, u_the
   drho_dt = drho_dt - div_J_rho
   dm_psi_dt = dm_psi_dt + div_tau
   dm_theta_dt = dm_theta_dt + div_tau
-  ds_dt = ds_dt - div_q/(max(rho*T, 1.0e-10)) + &
+  ds_dt = ds_dt - div_q/(max(rho(i,j)*T(i,j), 1.0e-10)) + &
           (mu_visc(i,j)/max(T(i,j), 1.0e-10) * &
            (grad_ux(1,i,j)**2 + grad_ux(2,i,j)**2 + grad_uy(1,i,j)**2 + grad_uy(2,i,j)**2) + &
            eta(i,j)/(mu_0**2 * max(T(i,j), 1.0e-10)) * curl_B(i,j)**2 + &
@@ -288,16 +277,13 @@ end subroutine compute_4bracket
 
 ! Subroutine for implicit solve (placeholder for GMRES)
 subroutine implicit_solve(rho, m_psi, m_theta, s, B_psi, B_theta, &
-                         rho_new, m_psi_new, m_theta_new, s_new, B_psi_new, B_theta_new, &
-                         npsi, ntheta)
+                         rho_new, m_psi_new, m_theta_new, s_new, B_psi_new, B_theta_new)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(inout) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(inout) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   real(8), intent(in) :: rho_new(npsi,ntheta), m_psi_new(npsi,ntheta), m_theta_new(npsi,ntheta)
   real(8), intent(in) :: s_new(npsi,ntheta), B_psi_new(npsi,ntheta), B_theta_new(npsi,ntheta)
-  real(8) :: dt
-  dt = 1.0e-5
   ! Placeholder: Explicit update (replace with GMRES solver)
   rho = rho + dt * rho_new
   m_psi = m_psi + dt * m_psi_new
@@ -308,9 +294,9 @@ subroutine implicit_solve(rho, m_psi, m_theta, s, B_psi, B_theta, &
 end subroutine implicit_solve
 
 ! Subroutine to apply boundary conditions
-subroutine apply_boundary_conditions(rho, m_psi, m_theta, s, B_psi, B_theta, npsi, ntheta)
+subroutine apply_boundary_conditions(rho, m_psi, m_theta, s, B_psi, B_theta)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(inout) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(inout) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   ! SOL: Outflow; Pedestal: No-flux
@@ -332,9 +318,9 @@ end subroutine apply_boundary_conditions
 ! Subroutine to compute energy and entropy
 subroutine compute_energy_entropy(rho, m_psi, m_theta, s, B_psi, B_theta, T, grad_ux, grad_T, &
                                  curl_B, mu_chem, eta, mu_visc, kappa, D, &
-                                 energy, entropy, entropy_prod, npsi, ntheta)
+                                 energy, entropy, entropy_prod)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(in) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   real(8), intent(in) :: T(npsi,ntheta), grad_ux(2,npsi,ntheta), grad_T(2,npsi,ntheta)
@@ -343,10 +329,6 @@ subroutine compute_energy_entropy(rho, m_psi, m_theta, s, B_psi, B_theta, T, gra
   real(8), intent(out) :: energy, entropy, entropy_prod
   integer(ikind) :: i, j
   real(8) :: e
-  real(8), parameter :: mu_0 = 1.25663706e-6
-  real(8) :: dpsi, dtheta
-  dpsi = (psi_max-psi_min)/real(npsi-1, 8)
-  dtheta = (theta_max-theta_min)/real(ntheta-1, 8)
 
   energy = 0.0; entropy = 0.0; entropy_prod = 0.0
   do i = 2, npsi-1
@@ -368,9 +350,9 @@ subroutine compute_energy_entropy(rho, m_psi, m_theta, s, B_psi, B_theta, T, gra
 end subroutine compute_energy_entropy
 
 ! Subroutine to save fields
-subroutine save_fields(rho, m_psi, m_theta, s, B_psi, B_theta, npsi, ntheta)
+subroutine save_fields(rho, m_psi, m_theta, s, B_psi, B_theta)
+  use elm_mhd_mod
   implicit none
-  integer(ikind), intent(in) :: npsi, ntheta
   real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
   real(8), intent(in) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
   integer(ikind) :: i, j, stat
@@ -390,5 +372,3 @@ subroutine save_fields(rho, m_psi, m_theta, s, B_psi, B_theta, npsi, ntheta)
   end do
   close(10)
 end subroutine save_fields
-
-end program elm_mhd_advanced
