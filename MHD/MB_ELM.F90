@@ -92,7 +92,7 @@ program elm_mhd_advanced
 
      ! Output diagnostics
      if (mod(t, 100_ikind) == 0 .and. rank == 0) then
-        write(*, *) 'Step:', t, 'Energy:', energy, 'Entropy Production:', entropy_prod
+        write Ode: write(*, *) 'Step:', t, 'Energy:', energy, 'Entropy Production:', entropy_prod
      end if
   end do
 
@@ -302,3 +302,84 @@ subroutine apply_boundary_conditions(rho, m_psi, m_theta, s, B_psi, B_theta)
   ! SOL: Outflow; Pedestal: No-flux
   rho(1,:) = rho(2,:); rho(npsi,:) = rho(npsi-1,:)
   m_psi(1,:) = 0.0; m_psi(npsi,:) = 0.0
+  m_theta(1,:) = 0.0; m_theta(npsi,:) = 0.0
+  s(1,:) = s(2,:); s(npsi,:) = s(npsi-1,:)
+  B_psi(1,:) = B_psi(2,:); B_psi(npsi,:) = B_psi(npsi-1,:)
+  B_theta(1,:) = B_theta(2,:); B_theta(npsi,:) = B_theta(npsi-1,:)
+  ! Periodic in theta
+  rho(:,1) = rho(:,ntheta-1); rho(:,ntheta) = rho(:,2)
+  m_psi(:,1) = m_psi(:,ntheta-1); m_psi(:,ntheta) = m_psi(:,2)
+  m_theta(:,1) = m_theta(:,ntheta-1); m_theta(:,ntheta) = m_theta(:,2)
+  s(:,1) = s(:,ntheta-1); s(:,ntheta) = s(:,2)
+  B_psi(:,1) = B_psi(:,ntheta-1); B_psi(:,ntheta) = B_psi(:,2)
+  B_theta(:,1) = B_theta(:,ntheta-1); B_theta(:,ntheta) = B_theta(:,2)
+end subroutine apply_boundary_conditions
+
+! Subroutine to compute energy and entropy
+subroutine compute_energy_entropy(rho, m_psi, m_theta, s, B_psi, B_theta, T, grad_ux, grad_T, &
+                                 curl_B, mu_chem, eta, mu_visc, kappa, D, &
+                                 energy, entropy, entropy_prod)
+  use elm_mhd_mod
+  implicit none
+  real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
+  real(8), intent(in) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
+  real(8), intent(in) :: T(npsi,ntheta), grad_ux(2,npsi,ntheta), grad_T(2,npsi,ntheta)
+  real(8), intent(in) :: curl_B(npsi,ntheta), mu_chem(npsi,ntheta)
+  real(8), intent(in) :: eta(npsi,ntheta), mu_visc(npsi,ntheta), kappa(npsi,ntheta), D(npsi,ntheta)
+  real(8), intent(out) :: energy, entropy, entropy_prod
+  real(8) :: grad_mu(2,npsi,ntheta)  ! Local declaration for grad_mu
+  integer(ikind) :: i, j
+  real(8) :: e
+
+  ! Compute grad_mu locally
+  do i = 2, npsi-1
+     do j = 2, ntheta-1
+        grad_mu(1,i,j) = (mu_chem(i+1,j) - mu_chem(i-1,j))/(2.0*dpsi)
+        grad_mu(2,i,j) = (mu_chem(i,j+1) - mu_chem(i,j-1))/(2.0*dtheta)
+     end do
+  end do
+
+  energy = 0.0; entropy = 0.0; entropy_prod = 0.0
+  do i = 2, npsi-1
+     do j = 2, ntheta-1
+        e = T(i,j)
+        energy = energy + (0.5 * (m_psi(i,j)**2 + m_theta(i,j)**2)/max(rho(i,j), 1.0e-10) + &
+                          rho(i,j) * e + 0.5 * (B_psi(i,j)**2 + B_theta(i,j)**2)/mu_0) * dpsi * dtheta
+        entropy = entropy + s(i,j) * dpsi * dtheta
+        entropy_prod = entropy_prod + (D(i,j)/max(T(i,j), 1.0e-10) * &
+                                      (grad_mu(1,i,j)**2 + grad_mu(2,i,j)**2) + &
+                                      mu_visc(i,j)/max(T(i,j), 1.0e-10) * &
+                                      (grad_ux(1,i,j)**2 + grad_ux(2,i,j)**2) + &
+                                      kappa(i,j)/(max(T(i,j), 1.0e-10)**2) * &
+                                      (grad_T(1,i,j)**2 + grad_T(2,i,j)**2) + &
+                                      eta(i,j)/(mu_0**2 * max(T(i,j), 1.0e-10)) * curl_B(i,j)**2) * &
+                                      rho(i,j) * max(T(i,j), 1.0e-10) * dpsi * dtheta
+     end do
+  end do
+end subroutine compute_energy_entropy
+
+! Subroutine to save fields
+subroutine save_fields(rho, m_psi, m_theta, s, B_psi, B_theta)
+  use elm_mhd_mod
+  implicit none
+  real(8), intent(in) :: rho(npsi,ntheta), m_psi(npsi,ntheta), m_theta(npsi,ntheta)
+  real(8), intent(in) :: s(npsi,ntheta), B_psi(npsi,ntheta), B_theta(npsi,ntheta)
+  integer(ikind) :: i, j
+  integer :: stat
+
+  open(unit=10, file='elm_mhd_output.dat', status='replace', iostat=stat)
+  if (stat /= 0) then
+     print *, 'Error opening output file'
+     return
+  end if
+  do i = 1, npsi
+     do j = 1, ntheta
+        write(10, *, iostat=stat) i, j, rho(i,j), m_psi(i,j), m_theta(i,j), s(i,j), B_psi(i,j), B_theta(i,j)
+        if (stat /= 0) then
+           print *, 'Error writing to output file'
+           exit
+        end if
+     end do
+  end do
+  close(10)
+end subroutine save_fields
