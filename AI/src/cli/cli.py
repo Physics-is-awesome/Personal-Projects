@@ -7,6 +7,8 @@ from yaml import safe_load
 from dotenv import load_dotenv
 import os
 
+os.environ["CHROMADB_TELEMETRY_ENABLED"] = "false"
+
 @click.group()
 @click.pass_context
 def cli(ctx):
