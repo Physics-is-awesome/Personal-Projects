@@ -1,5 +1,5 @@
 click>=8.1.7
-chromadb>=0.4.24
+chromadb>=0.5.3
 openai>=1.51.0
 sympy>=1.13.3
 numpy>=1.26.4
