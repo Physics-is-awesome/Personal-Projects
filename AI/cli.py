@@ -4,13 +4,24 @@ from src.agents.sage_agent import SageAgent
 from src.agents.mentor_agent import MentorAgent
 from src.memory.memory_manager import MemoryManager
 from yaml import safe_load
+from dotenv import load_dotenv
+import os
 
 @click.group()
 @click.pass_context
 def cli(ctx):
     """Plasma Assistant CLI for mathematical plasma physics research."""
+    # Load environment variables from .env file
+    load_dotenv()
+    
+    # Read configuration from config.yaml
     with open("config/config.yaml", "r") as f:
         config = safe_load(f)
+    
+    # Add API key from environment to llm config
+    config["llm"]["api_key"] = os.getenv("OPENAI_API_KEY")
+    
+    # Initialize memory and agents
     memory = MemoryManager(config["memory"])
     ctx.obj = {
         "mathematical_agent": MathematicalAgent(config, memory),
