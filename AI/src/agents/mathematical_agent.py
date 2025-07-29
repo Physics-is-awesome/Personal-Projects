@@ -1,33 +1,30 @@
-import sympy as sp
-import numpy as np
-from scipy.integrate import odeint
+from src.tools.math_tools import MathTools
+from src.llm.llm_interface import LLMInterface
 
-class MathTools:
-    def __init__(self):
-        sp.init_printing()
+class MathematicalAgent:
+    def __init__(self, config, memory):
+        self.math_tools = MathTools()
+        self.llm = LLMInterface(config["llm"])
+        self.memory = memory
 
-    def solve_symbolic(self, equation, variable):
-        """Solve a symbolic equation using SymPy."""
-        try:
-            var = sp.Symbol(variable)
-            solution = sp.solve(equation, var)
-            return str(solution)
-        except Exception as e:
-            return f"Error solving symbolically: {str(e)}"
+    def solve_problem(self, problem):
+        """Solve a mathematical problem (symbolic, numerical, or theorem proving)."""
+        results, _ = self.memory.query("math_solutions", problem, n_results=1)
+        if results and results[0]:
+            return f"Retrieved from memory: {results[0]}"
 
-    def solve_numerical(self, func, y0, t):
-        """Solve an ODE numerically using SciPy."""
-        try:
-            solution = odeint(func, y0, t)
-            return solution
-        except Exception as e:
-            return f"Error solving numerically: {str(e)}"
-
-    def suggest_tool(self, problem_description):
-        """Suggest a mathematical tool for a problem."""
-        # Simple heuristic-based suggestion (can be enhanced with LLM)
-        if "dispersion" in problem_description.lower():
-            return "Use SymPy for symbolic derivation of dispersion relations."
-        elif "simulation" in problem_description.lower():
-            return "Use SciPy for numerical ODE solving or finite element methods."
-        return "Consider SymPy for symbolic math or SciPy for numerical analysis."
+        if "solve" in problem.lower() and "=" in problem:
+            try:
+                var = "x"
+                solution = self.math_tools.solve_symbolic(problem, var)
+                self.memory.store("math_solutions", solution, {"problem": problem})
+                return solution
+            except:
+                pass
+        elif "simulate" in problem.lower():
+            return self.math_tools.solve_numerical(lambda y, t: [0], [1], [0, 1])[0]
+        else:
+            prompt = f"For a mathematical plasma physics problem: {problem}, suggest a solution approach or prove a theorem."
+            response = self.llm.generate(prompt)
+            self.memory.store("math_solutions", response, {"problem": problem})
+            return response
