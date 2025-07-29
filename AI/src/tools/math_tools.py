@@ -10,7 +10,10 @@ class MathTools:
         """Solve a symbolic equation using SymPy."""
         try:
             var = sp.Symbol(variable)
-            solution = sp.solve(equation, var)
+            # Parse the equation as a SymPy expression
+            expr = sp.sympify(equation)
+            # Solve for the variable (assuming expr = 0)
+            solution = sp.solve(expr, var)
             return str(solution)
         except Exception as e:
             return f"Error solving symbolically: {str(e)}"
