@@ -1,5 +1,4 @@
 llm:
-  api_key: "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"
   model: "gpt-4"
 memory:
   db_path: "data/memory/chromadb"
