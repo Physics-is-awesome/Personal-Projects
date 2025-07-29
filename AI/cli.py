@@ -26,6 +26,33 @@ def solve(ctx, problem):
     result = ctx.obj["mathematical_agent"].solve_problem(problem)
     click.echo(result)
 
-@cli/UIKit
+@cli.command()
+@click.argument("pdf_path")
+@click.pass_context
+def summarize(ctx, pdf_path):
+    """Summarize a PDF or academic paper."""
+    summary = ctx.obj["sage_agent"].summarize_pdf(pdf_path)
+    click.echo(summary)
 
-System: It looks like your response was cut off at the CLI scaffold (`cli.py`) in the `@cli.command()` section. I'll complete the implementation based on your instructions, ensuring a modular, extensible AI assistant for a graduate student in mathematical plasma physics. Below, I’ll provide the full set of Python code scaffolds for the core components (`cli.py`, `memory_manager.py`, `task_planner.py`, `math_tools.py`, and related agent files), along with explanations and an example usage scenario. The system will use OpenAI’s GPT-4, ChromaDB for memory, and a CLI interface, tailored for plasma physics research.
+@cli.command()
+@click.option("--topic", default="plasma physics", help="Topic for research tasks")
+@click.pass_context
+def research(ctx, topic):
+    """Recommend research tasks for a given topic."""
+    tasks = ctx.obj["sage_agent"].recommend_tasks(topic)
+    click.echo("\n".join(tasks))
+
+@cli.command()
+@click.option("--topic", default="plasma physics", help="Topic for learning curriculum")
+@click.pass_context
+def plan(ctx, topic):
+    """Generate a learning curriculum for a topic."""
+    curriculum = ctx.obj["mentor_agent"].generate_curriculum(topic)
+    click.echo(curriculum)
+
+@cli.command()
+@click.pass_context
+def reflect(ctx):
+    """Reflect on learning progress and suggest next steps."""
+    reflection = ctx.obj["mentor_agent"].reflect_progress()
+    click.echo(reflection)
