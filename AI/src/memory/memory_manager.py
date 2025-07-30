@@ -40,7 +40,6 @@ class MemoryManager:
         collection = self.collections.get(collection_name)
         if not collection:
             raise ValueError(f"Unknown collection: {collection_name}")
-        # Fetch all IDs in the collection
         all_records = collection.get()
         ids = all_records.get("ids", [])
         if ids:
