@@ -4,7 +4,10 @@ from datetime import datetime
 
 class MemoryManager:
     def __init__(self, config):
-        self.client = chromadb.PersistentClient(path=config["db_path"])
+        self.client = chromadb.PersistentClient(
+            path=config["db_path"],
+            settings=chromadb.Settings(allow_reset=True, anonymized_telemetry=False)
+        )
         self.collections = {
             "math_solutions": self.client.get_or_create_collection("math_solutions"),
             "research_summaries": self.client.get_or_create_collection("research_summaries"),
@@ -31,3 +34,10 @@ class MemoryManager:
             raise ValueError(f"Unknown collection: {collection_name}")
         results = collection.query(query_texts=[query_text], n_results=n_results)
         return results["documents"][0], results["metadatas"][0]
+
+    def clear_collection(self, collection_name):
+        """Clear all data in a specified collection."""
+        collection = self.collections.get(collection_name)
+        if not collection:
+            raise ValueError(f"Unknown collection: {collection_name}")
+        collection.delete()
