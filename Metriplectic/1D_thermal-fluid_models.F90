@@ -41,7 +41,8 @@ module Functionals
 contains
   subroutine compute_variational_derivatives()
     integer :: i
-    real :: rho, vel, e, p, s
+    real :: rho, e, p, s
+    real, intent(out) :: vel
     do i = 1, N
       rho = U(1,i)
       vel = U(2,i) / rho
@@ -131,6 +132,7 @@ program MetriplecticFull
   call initialize_grid()
   call step_forward()
   call output_results()
+  call compute_variational_derivatives(vel)
 contains
   subroutine output_results()
     real :: u, p
