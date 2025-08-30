@@ -1,17 +1,14 @@
 !--------------------------------------------------------------
 ! Fortran90 code for metriplectic 1D thermal-fluid model
 !--------------------------------------------------------------
-
 module Parameters
   implicit none
   real, parameter :: gamma = 1.4
-  real, parameter :: Rgas  = 287.0
-  integer, parameter :: N  = 200
-  real,    parameter :: L  = 100.0
-  real,    parameter :: dx = L / N
+  integer, parameter :: N = 200
+  real, parameter :: L = 100.0
+  real, parameter :: dx = L / N
   real, parameter :: Tfinal = 10.0
-  real, parameter :: CFL    = 0.5
-
+  real, parameter :: CFL = 0.5
 contains
   real function dt(umax)
     real, intent(in) :: umax
@@ -19,131 +16,117 @@ contains
   end function dt
 end module Parameters
 
+!------------------- GRID AND VARIABLES -------------------
 module Grid
   use Parameters
   implicit none
   real, allocatable :: x(:)
-  real, allocatable :: U(:,:), V(:,:)
+  real, allocatable :: U(:,:), V(:,:), dHdU(:,:), dSdU(:,:)
 contains
   subroutine initialize_grid()
     integer :: i
-    allocate(x(N), U(3,N), V(3,N))
+    allocate(x(N), U(3,N), V(3,N), dHdU(3,N), dSdU(3,N))
     do i = 1, N
       x(i) = (i - 0.5) * dx
-      ! Uniform initial state: density 1, zero momentum, unit energy
-      U(1,i) = 1.0
-      U(2,i) = 0.0
-      U(3,i) = 1.0 / (gamma - 1.0)
+      U(1,i) = 1.0 ! rho
+      U(2,i) = 0.0 ! momentum
+      U(3,i) = 1.0 / (gamma - 1.0) ! energy
     end do
   end subroutine initialize_grid
 end module Grid
 
+!------------------- FUNCTIONALS MODULE -------------------
 module Functionals
-  use Grid, only: U
   use Parameters
+  use Grid, only: U, dHdU, dSdU
   implicit none
 contains
-  subroutine compute_derivatives(dH, dS)
-    real, allocatable, intent(out) :: dH(:,:), dS(:,:)
+  subroutine compute_variational_derivatives()
     integer :: i
-    real :: rho, u, E, p, s
+    real :: rho, u, e, p, s
 
-    allocate(dH(3,N), dS(3,N))
     do i = 1, N
       rho = U(1,i)
-      u   = U(2,i) / rho
-      E   = U(3,i) / rho
-      p   = (gamma - 1.0) * rho * (E - 0.5 * u * u)
-      s   = log(p / rho**gamma)
+      u = U(2,i) / rho
+      e = U(3,i) / rho - 0.5 * u * u
+      p = (gamma - 1.0) * rho * e
+      s = log(p / rho**gamma)
 
-      ! δH/δU
-      dH(1,i) = 0.5 * u * u - (E - 0.5 * u * u) * (gamma - 1.0)
-      dH(2,i) = u
-      dH(3,i) = 1.0
+      dHdU(1,i) = 0.5 * u * u + e - (gamma - 1.0) * e
+      dHdU(2,i) = u
+      dHdU(3,i) = 1.0
 
-      ! δS/δU
-      dS(1,i) = s - gamma
-      dS(2,i) = u
-      dS(3,i) = 0.0
+      dSdU(1,i) = -gamma + s
+      dSdU(2,i) = u
+      dSdU(3,i) = 0.0
     end do
-  end subroutine compute_derivatives
+  end subroutine compute_variational_derivatives
 end module Functionals
 
+!------------------- BRACKETS MODULE -------------------
 module Brackets
-  use Grid, only: U, V
-  use Functionals, only: compute_derivatives
   use Parameters
+  use Grid, only: U, V, dHdU, dSdU
+  use Functionals, only: compute_variational_derivatives
   implicit none
 contains
-  subroutine eval_brackets(RHS)
+  subroutine compute_brackets(RHS)
     real, allocatable, intent(out) :: RHS(:,:)
-    real, allocatable :: dH(:,:), dS(:,:)
     integer :: i
-
     allocate(RHS(3,N))
-    call compute_derivatives(dH, dS)
+    call compute_variational_derivatives()
     RHS = 0.0
 
     do i = 2, N-1
-      ! Central difference for ∂ₓU
       V(:,i) = (U(:,i+1) - U(:,i-1)) / (2.0 * dx)
-
-      ! Conservative (Poisson) term
-      RHS(:,i) = RHS(:,i) + cross_poisson(dH(:,i), V(:,i))
-
-      ! Dissipative (metriplectic) term
-      RHS(:,i) = RHS(:,i) + cross_metrip(dS(:,i), V(:,i))
+      RHS(:,i) = poisson_bracket(i) + metric_bracket(i)
     end do
 
-    ! Zero‐flux boundary conditions
     RHS(:,1) = RHS(:,2)
     RHS(:,N) = RHS(:,N-1)
-  end subroutine eval_brackets
+  end subroutine compute_brackets
 
-  function cross_poisson(dHloc, Vloc) result(Pout)
-    real, intent(in) :: dHloc(3), Vloc(3)
+  function poisson_bracket(i) result(Pout)
+    integer, intent(in) :: i
     real :: Pout(3)
-    ! Skew‐symmetric coupling
     Pout(1) = 0.0
-    Pout(2) = -dHloc(3) * Vloc(1) + dHloc(1) * Vloc(3)
-    Pout(3) =  dHloc(2) * Vloc(1) - dHloc(1) * Vloc(2)
-  end function cross_poisson
+    Pout(2) = -dHdU(3,i)*V(1,i) + dHdU(1,i)*V(3,i)
+    Pout(3) =  dHdU(2,i)*V(1,i) - dHdU(1,i)*V(2,i)
+  end function poisson_bracket
 
-  function cross_metrip(dSloc, Vloc) result(Dout)
-    real, intent(in) :: dSloc(3), Vloc(3)
+  function metric_bracket(i) result(Dout)
+    integer, intent(in) :: i
     real :: Dout(3)
-    ! Symmetric dissipation ensuring positive entropy production
-    Dout = dSloc * (Vloc(1)**2 + Vloc(2)**2 + Vloc(3)**2)
-  end function cross_metrip
+    real :: normV2
+    normV2 = V(1,i)**2 + V(2,i)**2 + V(3,i)**2
+    Dout = dSdU(:,i) * normV2
+  end function metric_bracket
 end module Brackets
 
+!------------------- TIME INTEGRATION -------------------
 module TimeStepper
+  use Parameters, only: dt, Tfinal
   use Grid, only: U
-  use Brackets, only: eval_brackets
-  use Parameters, only: dt
+  use Brackets, only: compute_brackets
   implicit none
 contains
   subroutine step_forward()
     real :: t, umax, dti
-    real, allocatable :: RHSn(:,:), RHSm(:,:), Un(:,:)
-    integer :: nsteps, it
+    real, allocatable :: RHS(:,:), Utemp(:,:)
+    integer :: it, nsteps
 
     t = 0.0
-    nsteps = int(Tfinal / (dt(1.0) + 1.0e-10))
-    allocate(RHSn(3,N), RHSm(3,N), Un(3,N))
+    allocate(RHS(3,N), Utemp(3,N))
+    nsteps = int(Tfinal / dt(1.0))
 
     do it = 1, nsteps
-      ! Adaptive time step based on CFL condition
       umax = maxval(abs(U(2,:) / U(1,:)) + sqrt(gamma * (gamma - 1.0) * (U(3,:) / U(1,:))))
-      dti  = dt(umax)
+      dti = dt(umax)
 
-      ! Implicit midpoint predictor
-      call eval_brackets(RHSn)
-      Un = U + 0.5 * dti * RHSn
-
-      ! Corrector step at midpoint
-      call eval_brackets(RHSm)
-      U = U + dti * RHSm
+      call compute_brackets(RHS)
+      Utemp = U + 0.5 * dti * RHS
+      call compute_brackets(RHS)
+      U = U + dti * RHS
 
       t = t + dti
       if (t >= Tfinal) exit
@@ -151,8 +134,9 @@ contains
   end subroutine step_forward
 end module TimeStepper
 
-program Metriplectic1D
-  use Grid,    only: initialize_grid, x, U
+!------------------- MAIN PROGRAM -------------------
+program MetriplecticFull
+  use Grid, only: initialize_grid, x, U
   use TimeStepper, only: step_forward
   implicit none
 
@@ -164,13 +148,13 @@ contains
   subroutine output_results()
     real :: u, p
     integer :: i
-    open(unit = 10, file = 'solution.dat', status = 'unknown')
-    write(10, '(A)') '# x rho u p'
-    do i = 1, N
+    open(unit=10, file="solution_full.dat", status="unknown")
+    write(10, '(A)') "# x rho u p"
+    do i = 1, size(x)
       u = U(2,i) / U(1,i)
       p = (gamma - 1.0) * (U(3,i) - 0.5 * U(2,i)**2 / U(1,i))
       write(10, '(F8.3, 3X, 3E12.5)') x(i), U(1,i), u, p
     end do
     close(10)
   end subroutine output_results
-end program Metriplectic1D
+end program MetriplecticFull
