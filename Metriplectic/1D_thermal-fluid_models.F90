@@ -55,7 +55,7 @@ contains
       dHdU(3,i) = 1.0
 
       dSdU(1,i) = -gamma + s
-      dSdU(2,i) = vel
+      dSdU(2,i) = vel(i)
       dSdU(3,i) = 0.0
     end do
   end subroutine compute_variational_derivatives
