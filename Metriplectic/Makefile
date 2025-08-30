@@ -1,15 +1,44 @@
-FC = gfortran
-FFLAGS = -O2 -fdefault-real-8 -Wall
-TARGET = metriplectic_galerkin
-SRC = metriplectic_galerkin.f90
+# Makefile - build both Galerkin and Matrix-assembled metriplectic programs
+FC ?= gfortran
+FFLAGS ?= -O2 -fdefault-real-8 -Wall
+LDFLAGS ?=
+# Optionally link LAPACK/BLAS if you need eigenvalue/linear-solvers:
+USE_LAPACK ?= 0
+ifeq ($(USE_LAPACK),1)
+  LDFLAGS += -llapack -lblas
+endif
 
-all: $(TARGET)
+GAL_SRCS = metriplectic_galerkin.f90
+MAT_SRCS = metriplectic_matrix_fixed.f90
 
-$(TARGET): $(SRC)
-	$(FC) $(FFLAGS) -o $(TARGET) $(SRC)
+GAL_BIN = metriplectic_galerkin
+MAT_BIN = metriplectic_matrix_fixed
 
-run: $(TARGET)
-	./$(TARGET)
+.PHONY: all galerkin metriplectic run_gal run_mat run clean
+
+all: $(GAL_BIN) $(MAT_BIN)
+
+# build Galerkin program
+$(GAL_BIN): $(GAL_SRCS)
+	$(FC) $(FFLAGS) -o $@ $^ $(LDFLAGS)
+
+# build Matrix-assembled program
+$(MAT_BIN): $(MAT_SRCS)
+	$(FC) $(FFLAGS) -o $@ $^ $(LDFLAGS)
+
+# convenience targets to build only one of them
+galerkin: $(GAL_BIN)
+metriplectic: $(MAT_BIN)
+
+# run targets
+run_gal: $(GAL_BIN)
+	./$(GAL_BIN)
+
+run_mat: $(MAT_BIN)
+	./$(MAT_BIN)
+
+# run both in sequence
+run: run_gal run_mat
 
 clean:
-	rm -f $(TARGET) *.mod *.o *.dat
+	rm -f $(GAL_BIN) $(MAT_BIN) *.o *.mod *.dat *.png
