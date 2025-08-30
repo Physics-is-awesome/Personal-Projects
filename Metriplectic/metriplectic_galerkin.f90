@@ -131,6 +131,7 @@ program metriplectic_galerkin
 
   ! FE matrices
   real(dp), allocatable :: Mass(:,:), K(:,:)
+  real(dp), allocatable :: Uold(:), Umid(:), k1(:), k2(:)
   real(dp), allocatable :: Mdiag(:)       ! lumped mass diag
   real(dp), allocatable :: P(:,:), G(:,:) ! block Poisson and Metric
   real(dp), allocatable :: U(:), dH(:), dS(:), rhs(:)
@@ -147,6 +148,7 @@ program metriplectic_galerkin
   allocate(G(Mdim,Mdim))
   allocate(U(Mdim), dH(Mdim), dS(Mdim), rhs(Mdim))
   allocate(x(NN))
+  allocate(Uold(Mdim), Umid(Mdim), k1(Mdim), k2(Mdim))
 
   ! grid nodes (cell centers at nodes for simplicity)
   do i = 1, NN
@@ -180,7 +182,7 @@ program metriplectic_galerkin
   ! time loop (explicit midpoint RK2 as demonstration)
   t = 0.0_dp
   do step = 1, nsteps
-        ! --- Correct RK2 (explicit midpoint) ---
+    ! --- Correct RK2 (explicit midpoint) ---
     ! store old solution
     Uold = U
 
