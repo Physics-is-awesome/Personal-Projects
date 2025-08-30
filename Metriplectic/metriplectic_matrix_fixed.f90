@@ -267,10 +267,12 @@ contains
   end subroutine check_antisymmetry_mass
 
   function Mass_block(M) result(Mb)
-    real(dp), intent(in) :: M(:,:)
+    real(dp), intent(in) :: M(:)
+    real(dp), allocatable :: Mb(:,:)  ! declare the function result here
     integer :: n, i, j
-    n = size(M,1)
-    real(dp) :: Mb(3*n,3*n)
+
+    n = size(M)
+    allocate(Mb(3*n, 3*n))
     Mb = 0.0_dp
     do i = 1, n
       do j = 1, n
