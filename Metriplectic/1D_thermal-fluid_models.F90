@@ -45,7 +45,7 @@ contains
     real, intent(out) :: vel(N)
     do i = 1, N
       rho = U(1,i)
-      vel = U(2,i) / rho
+      vel(i) = U(2,i) / rho
       e = U(3,i) / rho - 0.5 * vel * vel
       p = (gamma - 1.0) * rho * e
       s = log(p / rho**gamma)
