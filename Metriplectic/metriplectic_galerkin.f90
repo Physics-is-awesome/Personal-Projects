@@ -180,19 +180,26 @@ program metriplectic_galerkin
   ! time loop (explicit midpoint RK2 as demonstration)
   t = 0.0_dp
   do step = 1, nsteps
-    ! compute rhs1 = P*dH + G*dS at current state
-    call compute_variational_derivatives(NN, Mass, Mdiag, U, dH, dS)
-    rhs = matvec(P, dH, Mdim) + matvec(G, dS, Mdim)
+        ! --- Correct RK2 (explicit midpoint) ---
+    ! store old solution
+    Uold = U
 
-    ! half-step
-    U = U + 0.5_dp * dt * rhs
+    ! k1 = RHS(Uold)
+    call compute_variational_derivatives(NN, Mass, Mdiag, Uold, dH, dS)
+    k1 = matvec(P, dH, Mdim) + matvec(G, dS, Mdim)
 
-    ! recompute derivatives at midpoint
-    call compute_variational_derivatives(NN, Mass, Mdiag, U, dH, dS)
-    rhs = matvec(P, dH, Mdim) + matvec(G, dS, Mdim)
+    ! midpoint
+    Umid = Uold + 0.5_dp * dt * k1
 
-    ! full step
-    U = U + dt * rhs
+    ! k2 = RHS(Umid)
+    call compute_variational_derivatives(NN, Mass, Mdiag, Umid, dH, dS)
+    k2 = matvec(P, dH, Mdim) + matvec(G, dS, Mdim)
+
+    ! final update: use original Uold
+    U = Uold + dt * k2
+    ! --- end RK2 ---
+
+
 
     t = t + dt
     if (mod(step, max(1, nsteps/10)) == 0) then
