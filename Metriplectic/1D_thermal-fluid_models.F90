@@ -98,7 +98,7 @@ contains
 end module Brackets
 
 module TimeStepper
-  use Parameters, only: dt, Tfinal
+  use Parameters, only: dt, Tfinal, gamma
   use Grid, only: U
   use Brackets, only: compute_brackets
   implicit none
