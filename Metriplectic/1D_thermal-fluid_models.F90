@@ -16,7 +16,6 @@ contains
   end function dt
 end module Parameters
 
-!------------------- GRID AND VARIABLES -------------------
 module Grid
   use Parameters
   implicit none
@@ -28,14 +27,13 @@ contains
     allocate(x(N), U(3,N), V(3,N), dHdU(3,N), dSdU(3,N))
     do i = 1, N
       x(i) = (i - 0.5) * dx
-      U(1,i) = 1.0 ! rho
-      U(2,i) = 0.0 ! momentum
-      U(3,i) = 1.0 / (gamma - 1.0) ! energy
+      U(1,i) = 1.0
+      U(2,i) = 0.0
+      U(3,i) = 1.0 / (gamma - 1.0)
     end do
   end subroutine initialize_grid
 end module Grid
 
-!------------------- FUNCTIONALS MODULE -------------------
 module Functionals
   use Parameters
   use Grid, only: U, dHdU, dSdU
@@ -44,7 +42,6 @@ contains
   subroutine compute_variational_derivatives()
     integer :: i
     real :: rho, u, e, p, s
-
     do i = 1, N
       rho = U(1,i)
       u = U(2,i) / rho
@@ -63,7 +60,6 @@ contains
   end subroutine compute_variational_derivatives
 end module Functionals
 
-!------------------- BRACKETS MODULE -------------------
 module Brackets
   use Parameters
   use Grid, only: U, V, dHdU, dSdU
@@ -76,12 +72,10 @@ contains
     allocate(RHS(3,N))
     call compute_variational_derivatives()
     RHS = 0.0
-
     do i = 2, N-1
       V(:,i) = (U(:,i+1) - U(:,i-1)) / (2.0 * dx)
       RHS(:,i) = poisson_bracket(i) + metric_bracket(i)
     end do
-
     RHS(:,1) = RHS(:,2)
     RHS(:,N) = RHS(:,N-1)
   end subroutine compute_brackets
@@ -103,7 +97,6 @@ contains
   end function metric_bracket
 end module Brackets
 
-!------------------- TIME INTEGRATION -------------------
 module TimeStepper
   use Parameters, only: dt, Tfinal
   use Grid, only: U
@@ -114,36 +107,29 @@ contains
     real :: t, umax, dti
     real, allocatable :: RHS(:,:), Utemp(:,:)
     integer :: it, nsteps
-
     t = 0.0
     allocate(RHS(3,N), Utemp(3,N))
     nsteps = int(Tfinal / dt(1.0))
-
     do it = 1, nsteps
       umax = maxval(abs(U(2,:) / U(1,:)) + sqrt(gamma * (gamma - 1.0) * (U(3,:) / U(1,:))))
       dti = dt(umax)
-
       call compute_brackets(RHS)
       Utemp = U + 0.5 * dti * RHS
       call compute_brackets(RHS)
       U = U + dti * RHS
-
       t = t + dti
       if (t >= Tfinal) exit
     end do
   end subroutine step_forward
 end module TimeStepper
 
-!------------------- MAIN PROGRAM -------------------
 program MetriplecticFull
   use Grid, only: initialize_grid, x, U
   use TimeStepper, only: step_forward
   implicit none
-
   call initialize_grid()
   call step_forward()
   call output_results()
-
 contains
   subroutine output_results()
     real :: u, p
@@ -158,3 +144,4 @@ contains
     close(10)
   end subroutine output_results
 end program MetriplecticFull
+
