@@ -42,7 +42,7 @@ contains
   subroutine compute_variational_derivatives()
     integer :: i
     real :: rho, e, p, s
-    real, intent(out) :: vel
+    real, intent(out) :: vel(N)
     do i = 1, N
       rho = U(1,i)
       vel = U(2,i) / rho
