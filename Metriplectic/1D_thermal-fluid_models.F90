@@ -2,6 +2,7 @@
 ! Fortran90 code for metriplectic 1D thermal-fluid model
 !--------------------------------------------------------------
 
+
 module Parameters
   implicit none
   integer, parameter :: dp = selected_real_kind(15, 307)
@@ -82,7 +83,7 @@ contains
       vel(i) = U(2,i) / rho(i)
       sigma_loc = U(3,i)
       s(i) = sigma_loc / rho(i)
-      ! paper's nondimensional ideal gas thermodynamics:
+      ! nondimensional ideal-gas like thermo used in paper
       T(i) = rho(i)**(gamma-1) * exp( (gamma-1) * s(i) )
       p(i) = rho(i) * T(i)
     end do
@@ -104,7 +105,7 @@ contains
 
     real(dp) :: rho(N), vel(N), s(N), T(N), p(N)
     real(dp) :: m(N), sigma(N)
-    real(dp) :: du_dx(N), d2u_dx2(N), dT_dx(N), d2T_dx2(N)
+    real(dp) :: du_dx(N), d2u_dx2(N), dT_dx(N)
     real(dp) :: flux_mu(N), flux_sigma_u(N)
     integer :: i
 
@@ -120,7 +121,6 @@ contains
     du_dx = matvec(D, vel, N)
     d2u_dx2 = matvec(D2, vel, N)
     dT_dx = matvec(D, T, N)
-    d2T_dx2 = matvec(D2, T, N)
 
     ! continuity: drho/dt = -d_x m
     rhs(1,:) = - matvec(D, m, N)
@@ -132,26 +132,20 @@ contains
     rhs(2,:) = - matvec(D, flux_mu, N) - matvec(D, p, N) + (1.0_dp / Re) * d2u_dx2
 
     ! entropy density sigma evolution:
-    ! dσ/dt = - d_x (σ u) + viscous heating term + thermal diffusion term
     do i = 1, N
       flux_sigma_u(i) = sigma(i) * vel(i)
     end do
-    ! -d_x(σ u)
     rhs(3,:) = - matvec(D, flux_sigma_u, N)
 
-    ! add viscous heating : (1/Re)*(1/T)*(du_dx)^2 (pointwise)
+    ! viscous heating (1/Re)*(1/T)*(du_dx)^2
     do i = 1, N
       rhs(3,i) = rhs(3,i) + (1.0_dp / Re) * (1.0_dp / T(i)) * (du_dx(i)**2)
     end do
 
-    ! thermal diffusion flux: f = (1/(Re*Pr))*(1/T) * dT_dx ; add -d_x(f)
-    do i = 1, N
-      ! compute f(i)
-      ! we will compute vector f and apply D to it
-    end do
+    ! thermal diffusion flux divergence: add matvec(D, (1/(Re*Pr)) * dT_dx / T)
     rhs(3,:) = rhs(3,:) + matvec(D, (1.0_dp/(Re*Pr)) * (dT_dx / T), N)
 
-    ! additional correction (nonlinear) (1/(Re*Pr))*(1/T^2)*(dT_dx)^2
+    ! nonlinear correction term (1/(Re*Pr))*(dT_dx^2/T^2)
     do i = 1, N
       rhs(3,i) = rhs(3,i) + (1.0_dp/(Re*Pr)) * ( (dT_dx(i)**2) / (T(i)**2) )
     end do
@@ -198,7 +192,7 @@ program main
   real(dp) :: rho(N), vel(N), s(N), T(N), p(N)
   real(dp) :: umax, dt
   integer :: step, nsteps, picard_iter, i
-  real(dp) :: t
+  real(dp) :: time_now
   real(dp) :: Htot, Stot
 
   ! initialize grid
@@ -230,13 +224,13 @@ program main
 
   open(unit=20, file='energy.dat', status='replace', action='write')
   open(unit=21, file='entropy.dat', status='replace', action='write')
-  write(20,'(A)') "# t H_tot"
-  write(21,'(A)') "# t S_tot"
+  write(20,'(A)') "# time H_tot"
+  write(21,'(A)') "# time S_tot"
 
-  t = 0.0_dp
+  time_now = 0.0_dp
   step = 0
 
-  do while (t < Tfinal .and. step < nsteps)
+  do while ( (time_now < Tfinal) .AND. (step < nsteps) )
     step = step + 1
 
     ! Picard iterations for implicit midpoint
@@ -246,24 +240,23 @@ program main
       picard_iter = picard_iter + 1
       call compute_rhs(Umid, D, D2, rhs)
       Umid = U + 0.5_dp * dt * rhs
-      ! convergence test: max change
-      if (maxval(abs(0.5_dp * dt * rhs)) < picard_tol) exit
-      if (picard_iter >= max_picard) exit
+      if ( maxval(abs(0.5_dp * dt * rhs)) < picard_tol ) exit
+      if ( picard_iter >= max_picard ) exit
     end do
 
     call compute_rhs(Umid, D, D2, rhs)
     Unew = U + dt * rhs
 
     U = Unew
-    t = t + dt
+    time_now = time_now + dt
 
-    if (mod(step,10) == 0 .or. t >= Tfinal) then
+    if ( (mod(step,10) == 0) .OR. (time_now >= Tfinal) ) then
       call thermodynamics_from_state(U, rho, vel, s, T, p)
       Htot = compute_total_H(U)
       Stot = sum(U(3,:)) * dx
-      write(20,'(F12.6,2X,ES16.9)') t, Htot
-      write(21,'(F12.6,2X,ES16.9)') t, Stot
-      write(*,'(A,F8.6,A,I6,A,I3)') "t=", t, " step=", step, " picard_iter=", picard_iter
+      write(20,'(F12.6,2X,ES16.9)') time_now, Htot
+      write(21,'(F12.6,2X,ES16.9)') time_now, Stot
+      write(*,'(A,F10.6,A,I6,A,I3)') "time=", time_now, " step=", step, " picard_iter=", picard_iter
     end if
 
   end do
@@ -281,3 +274,4 @@ program main
   write(*,*) "Finished. Outputs: solution.dat, energy.dat, entropy.dat"
 
 end program main
+
