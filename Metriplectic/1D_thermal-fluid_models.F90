@@ -126,6 +126,7 @@ end module TimeStepper
 program MetriplecticFull
   use Grid, only: initialize_grid, x, U
   use TimeStepper, only: step_forward
+  use Parameters, only: gamma
   implicit none
   call initialize_grid()
   call step_forward()
