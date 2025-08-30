@@ -41,20 +41,20 @@ module Functionals
 contains
   subroutine compute_variational_derivatives()
     integer :: i
-    real :: rho, u, e, p, s
+    real :: rho, vel, e, p, s
     do i = 1, N
       rho = U(1,i)
-      u = U(2,i) / rho
-      e = U(3,i) / rho - 0.5 * u * u
+      vel = U(2,i) / rho
+      e = U(3,i) / rho - 0.5 * vel * vel
       p = (gamma - 1.0) * rho * e
       s = log(p / rho**gamma)
 
-      dHdU(1,i) = 0.5 * u * u + e - (gamma - 1.0) * e
-      dHdU(2,i) = u
+      dHdU(1,i) = 0.5 * vel * vel + e - (gamma - 1.0) * e
+      dHdU(2,i) = vel
       dHdU(3,i) = 1.0
 
       dSdU(1,i) = -gamma + s
-      dSdU(2,i) = u
+      dSdU(2,i) = vel
       dSdU(3,i) = 0.0
     end do
   end subroutine compute_variational_derivatives
@@ -137,9 +137,9 @@ contains
     open(unit=10, file="solution_full.dat", status="unknown")
     write(10, '(A)') "# x rho u p"
     do i = 1, size(x)
-      u = U(2,i) / U(1,i)
+      vel = U(2,i) / U(1,i)
       p = (gamma - 1.0) * (U(3,i) - 0.5 * U(2,i)**2 / U(1,i))
-      write(10, '(F8.3, 3X, 3E12.5)') x(i), U(1,i), u, p
+      write(10, '(F8.3, 3X, 3E12.5)') x(i), U(1,i), vel, p
     end do
     close(10)
   end subroutine output_results
