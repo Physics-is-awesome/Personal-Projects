@@ -28,7 +28,7 @@ program metriplectic_galerkin_new
 
   integer :: Mdim, i, j, step, nsteps, newton_iters
   real(dp) :: umax, dt, t
-  real(dp), allocatable :: Mass(:,:), K(:,:), Minv(:,:)
+  real(dp), allocatable :: Mass(:,:), Ks(:,:), Minv(:,:)
   real(dp), allocatable :: P(:,:), G(:,:)
   real(dp), allocatable :: U(:), Unew(:), Uold(:)
   real(dp), allocatable :: dHnod(:), dSnod(:), dHcoef(:), dScoef(:)
@@ -41,7 +41,7 @@ program metriplectic_galerkin_new
   integer :: info
 
   Mdim = 3 * N
-  allocate(Mass(N,N), K(N,N), Minv(N,N))
+  allocate(Mass(N,N), Ks(N,N), Minv(N,N))
   allocate(P(Mdim,Mdim), G(Mdim,Mdim))
   allocate(U(Mdim), Unew(Mdim), Uold(Mdim))
   allocate(dHnod(Mdim), dSnod(Mdim), dHcoef(Mdim), dScoef(Mdim))
@@ -55,7 +55,7 @@ program metriplectic_galerkin_new
   end do
 
   ! Assemble FE Mass and Stiffness matrices
-  call assemble_FE_mass_stiff(N, h, Mass, K)
+  call assemble_FE_mass_stiff(N, h, Mass, Ks)
 
   ! Compute Minv (dense) by solving Mass * Minv_col = e_j for each column
   call invert_dense_mass(N, Mass, Minv)
@@ -64,7 +64,7 @@ program metriplectic_galerkin_new
   call build_block_Minv(N, Minv, Minv_full)
 
   ! Assemble P and G exactly using Minv and K (paper weak-form)
-  call assemble_block_P_G_exact(N, Minv, K, P, G, Re, Pr)
+  call assemble_block_P_G_exact(N, Minv, Ks, P, G, Re, Pr)
 
   ! Diagnostics: check antisymmetry of P in Mass inner product and symmetry of G
   call check_P_G_properties(N, Mass, P, G, normPantisym, normGsym)
@@ -214,16 +214,16 @@ contains
   end subroutine build_block_Minv
 
   ! ---------------------------------------------------------------------
-  subroutine assemble_block_P_G_exact(Nn, Minv, K, Pout, Gout, Re_in, Pr_in)
+  subroutine assemble_block_P_G_exact(Nn, Minv, Ks, Pout, Gout, Re_in, Pr_in)
     integer, intent(in) :: Nn
-    real(dp), intent(in) :: Minv(Nn,Nn), K(Nn,Nn)
+    real(dp), intent(in) :: Minv(Nn,Nn), Ks(Nn,Nn)
     real(dp), intent(out) :: Pout(3*Nn,3*Nn), Gout(3*Nn,3*Nn)
     real(dp), intent(in) :: Re_in, Pr_in
     integer :: i, j, k
     real(dp), allocatable :: D(:,:)
     allocate(D(Nn,Nn))
-    ! Compute D = Minv * K exactly (represents weak derivative mapping)
-    D = matmat(Minv, K, Nn, Nn, Nn)
+    ! Compute D = Minv * Ks exactly (represents weak derivative mapping)
+    D = matmat(Minv, Ks, Nn, Nn, Nn)
 
     Pout = 0.0_dp
     Gout = 0.0_dp
@@ -234,16 +234,16 @@ contains
       do j = 1, Nn
         Pout(i, Nn + j)     = - D(i,j)        ! P(rho, m) = -D
         Pout(Nn + j, i)     =   D(j,i)        ! P(m, rho) = D^T  (so antisymm)
-        Pout(Nn + i, 2*Nn + j) =  K(i,j)      ! P(m, sigma) = K
-        Pout(2*Nn + j, Nn + i) = -K(j,i)      ! P(sigma, m) = -K^T
+        Pout(Nn + i, 2*Nn + j) =  Ks(i,j)      ! P(m, sigma) = K
+        Pout(2*Nn + j, Nn + i) = -Ks(j,i)      ! P(sigma, m) = -K^T
       end do
     end do
 
     ! Metric G: symmetric PSD from stiffness K (viscosity & thermal)
     do i = 1, Nn
       do j = 1, Nn
-        Gout(Nn + i, Nn + j) = (1.0_dp / Re_in) * K(i,j)
-        Gout(2*Nn + i, 2*Nn + j) = (1.0_dp / (Re_in * Pr_in)) * K(i,j)
+        Gout(Nn + i, Nn + j) = (1.0_dp / Re_in) * Ks(i,j)
+        Gout(2*Nn + i, 2*Nn + j) = (1.0_dp / (Re_in * Pr_in)) * Ks(i,j)
       end do
     end do
 
