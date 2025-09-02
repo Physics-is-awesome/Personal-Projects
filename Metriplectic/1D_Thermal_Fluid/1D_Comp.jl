@@ -228,7 +228,7 @@ function compute_Minv(M)
     # use dense inverse via factorization (paper-exact mapping)
     Minv = Array{Float64}(undef, size(M,1), size(M,2))
     # Solve M * X = I for X
-    Id = Matrix(sparse(I,size(M,1)))
+    Id = Matrix{Float64}(I, size(M, 1), size(M, 2))
     # use LU on dense conversion for stability
     Minv .= Matrix(M) \ Id
     return Minv
