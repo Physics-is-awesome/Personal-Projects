@@ -11,6 +11,10 @@ program metriplectic_galerkin_new
   implicit none
   integer, parameter :: dp = selected_real_kind(15,307)
 
+  use, intrinsic :: ieee_arithmetic, only: ieee_set_halting_mode, ieee_invalid
+  
+  call ieee_set_halting_mode(ieee_invalid, .true.)
+
   ! ---------------- user parameters ----------------
   integer, parameter :: Nnodes = 60        ! number of FE nodes (periodic)
   integer, parameter :: N = Nnodes
