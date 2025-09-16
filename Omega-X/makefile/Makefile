@@ -1,40 +1,44 @@
-#============================================
-# Makefile for Metriplectic 1D Thermal-Fluid
-#============================================
+#==================================================
+# Makefile for modular metriplectic project layout
+#==================================================
 
-# Fortran compiler and flags
+# Compiler and flags
 FC = gfortran
-FFLAGS = -O2 -Wall -Wno-unused-variable -std=f2008
+FFLAGS = -O2 -Wall -std=f2008
 
-# Executable name
+# Output executable name
 EXEC = run_metriplectic
 
-# Object files
-OBJS = \
-    mesh.o \
-    state.o \
-    functionals.o \
-    brackets.o \
-    assembly.o \
-    io.o \
-    time_integrator.o \
-    main_driver.o
+# Directories
+SRC_DIR = src
+OBJ_DIR = obj
+MOD_DIR = mod
 
-# Default target
+# Create object and module directories if not present
+$(shell mkdir -p $(OBJ_DIR) $(MOD_DIR))
+
+# All Fortran source files
+SRC = $(wildcard $(SRC_DIR)/*/*.f90)
+
+# Object files with path
+OBJS = $(patsubst $(SRC_DIR)/%.f90, $(OBJ_DIR)/%.o, $(subst /,.,$(SRC)))
+
+# Build target
 all: $(EXEC)
 
-# Link step
+# Linking rule
 $(EXEC): $(OBJS)
-	$(FC) $(FFLAGS) -o $(EXEC) $(OBJS)
+	$(FC) $(FFLAGS) -o $@ $(OBJS)
 
-# Compile each module
-%.o: %.f90
-	$(FC) $(FFLAGS) -c $<
+# Compilation rule
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
+	@mkdir -p $(dir $@)
+	$(FC) $(FFLAGS) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-# Clean up
+# Clean target
 clean:
-	rm -f *.o *.mod $(EXEC)
+	rm -rf $(OBJ_DIR) $(MOD_DIR) $(EXEC)
 
-# Run the executable
+# Run target
 run: $(EXEC)
 	./$(EXEC)
