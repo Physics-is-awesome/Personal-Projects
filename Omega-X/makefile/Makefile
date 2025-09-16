@@ -18,7 +18,8 @@ MOD_DIR = mod
 $(shell mkdir -p $(OBJ_DIR) $(MOD_DIR))
 
 # All Fortran source files
-SRC = $(wildcard $(SRC_DIR)/*/*.f90)
+src = $(wildcard $(SRC_DIR)/*.f90) $(wildcard $(SRC_DIR)/*/*.f90)
+
 print-src:
 	@echo "Found source files:"
 	@echo $(SRC)
