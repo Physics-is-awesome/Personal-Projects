@@ -6,43 +6,45 @@
 FC = gfortran
 FFLAGS = -O2 -Wall -std=f2008
 
-# Output and paths
+# Executable name
 EXEC = run_metriplectic
-SRC_DIR = ../src
-OBJ_DIR = obj
-MOD_DIR = mod
 
-# Create needed folders
+# Directories
+SRC_DIR := ../src
+OBJ_DIR := obj
+MOD_DIR := mod
+
+# Create build directories
 $(shell mkdir -p $(OBJ_DIR) $(MOD_DIR))
 
-# Find all .f90 files in Core/ and driver/
-SRC = $(wildcard $(SRC_DIR)/Core/*.f90) $(wildcard $(SRC_DIR)/driver/*.f90)
+# Source files from Core/ and driver/
+SRC := $(wildcard $(SRC_DIR)/Core/*.f90) $(wildcard $(SRC_DIR)/driver/*.f90)
 
-# Convert source filenames to object file names
-OBJS = $(patsubst $(SRC_DIR)/%.f90, $(OBJ_DIR)/%.o, $(subst /,.,$(SRC)))
+# Convert paths like src/Core/mesh.f90 → obj/mesh.o
+OBJS := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC:.f90=.o))
 
 # Default target
 all: $(EXEC)
 
-# Link executable
+# Link object files into final executable
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $(OBJS)
 
-# Compile rule
+# Compile .f90 files into .o files with module output in mod/
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
 
-# Clean build artifacts
+# Clean up build artifacts
 clean:
-	rm -f $(OBJ_DIR)/*.o $(MOD_DIR)/*.mod $(EXEC)
+	rm -rf $(OBJ_DIR)/*.o $(MOD_DIR)/*.mod $(EXEC)
 
 # Run program
 run: $(EXEC)
 	./$(EXEC)
 
-# Print found source files (for debugging)
+# Print found sources
 print-src:
-	@echo "Found sources:"
-	@echo $(SRC)
+	@echo "SRC = $(SRC)"
+	@echo "OBJS = $(OBJS)"
 
