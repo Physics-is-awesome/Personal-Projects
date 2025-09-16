@@ -19,6 +19,9 @@ $(shell mkdir -p $(OBJ_DIR) $(MOD_DIR))
 
 # All Fortran source files
 SRC = $(wildcard $(SRC_DIR)/*/*.f90)
+print-src:
+	@echo "Found source files:"
+	@echo $(SRC)
 
 # Object files with path
 OBJS = $(patsubst $(SRC_DIR)/%.f90, $(OBJ_DIR)/%.o, $(subst /,.,$(SRC)))
