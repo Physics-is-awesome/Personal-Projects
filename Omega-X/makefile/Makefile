@@ -2,48 +2,70 @@
 # Metriplectic Project Makefile
 #===============================
 
-# Compiler and flags
+# Compiler
 FC = gfortran
 FFLAGS = -O2 -Wall -std=f2008
 
-# Executable name
+# Output
 EXEC = run_metriplectic
+OBJ_DIR = obj
+MOD_DIR = mod
 
-# Directories
-SRC_DIR := ../src
-OBJ_DIR := obj
-MOD_DIR := mod
-
-# Create build directories
+# Create directories
 $(shell mkdir -p $(OBJ_DIR) $(MOD_DIR))
 
-# Source files from Core/ and driver/
-SRC := $(wildcard $(SRC_DIR)/Core/*.f90) $(wildcard $(SRC_DIR)/driver/*.f90)
+# Source files
+SRC_DIR = ../src/Core
+DRIVER_DIR = ../src/driver
 
-# Convert paths like src/Core/mesh.f90 → obj/mesh.o
-OBJS := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC:.f90=.o))
+# Object files
+OBJ_MESH = $(OBJ_DIR)/mesh.o
+OBJ_STATES = $(OBJ_DIR)/states.o
+OBJ_FUNCTIONALS = $(OBJ_DIR)/functionals.o
+OBJ_ASSEMBLY = $(OBJ_DIR)/assembly.o
+OBJ_BRACKETS = $(OBJ_DIR)/brackets.o
+OBJ_IO = $(OBJ_DIR)/io.o
+OBJ_TIME = $(OBJ_DIR)/time_integrator.o
+OBJ_DRIVER = $(OBJ_DIR)/1D_Thermal_driver.o
+
+OBJS = $(OBJ_MESH) $(OBJ_STATES) $(OBJ_FUNCTIONALS) $(OBJ_ASSEMBLY) \
+       $(OBJ_BRACKETS) $(OBJ_IO) $(OBJ_TIME) $(OBJ_DRIVER)
 
 # Default target
 all: $(EXEC)
 
-# Link object files into final executable
+# Link
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $(OBJS)
 
-# Compile .f90 files into .o files with module output in mod/
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
-	@mkdir -p $(dir $@)
+# Compile rules with module dependencies
+$(OBJ_MESH): $(SRC_DIR)/mesh.f90
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
 
-# Clean up build artifacts
+$(OBJ_STATES): $(SRC_DIR)/states.f90 $(OBJ_MESH)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+$(OBJ_FUNCTIONALS): $(SRC_DIR)/functionals.f90 $(OBJ_STATES)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+$(OBJ_ASSEMBLY): $(SRC_DIR)/assembly.f90 $(OBJ_MESH)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+$(OBJ_BRACKETS): $(SRC_DIR)/brackets.f90 $(OBJ_FUNCTIONALS) $(OBJ_ASSEMBLY) $(OBJ_STATES)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+$(OBJ_IO): $(SRC_DIR)/io.f90 $(OBJ_FUNCTIONALS) $(OBJ_STATES)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+$(OBJ_TIME): $(SRC_DIR)/time_integrator.f90 $(OBJ_BRACKETS) $(OBJ_STATES)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+$(OBJ_DRIVER): $(DRIVER_DIR)/1D_Thermal_driver.f90 $(OBJ_TIME) $(OBJ_IO)
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
+# Clean
 clean:
 	rm -rf $(OBJ_DIR)/*.o $(MOD_DIR)/*.mod $(EXEC)
-
-# Run program
-run: $(EXEC)
-	./$(EXEC)
-
-# Print found sources
 print-src:
 	@echo "SRC = $(SRC)"
 	@echo "OBJS = $(OBJS)"
