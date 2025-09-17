@@ -29,7 +29,7 @@ program main_driver
     call assemble_matrices()
 
     print *, "Beginning simulation..."
-    call write_fields()
+    call write_fields(time)
     call write_conserved(time)
 
     !------------------------------------------
@@ -40,7 +40,7 @@ program main_driver
 
         if (mod(step, output_interval) == 0) then
             print *, "Step:", step, "Time:", time
-            call write_fields()
+            call write_fields(time)
             call write_conserved(time)
         end if
     end do
@@ -48,7 +48,7 @@ program main_driver
     !------------------------------------------
     ! Final Output
     !------------------------------------------
-    call write_fields()
+    call write_fields(time)
     call write_conserved(time)
 
     print *, "Simulation complete."
