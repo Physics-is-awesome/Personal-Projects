@@ -7,20 +7,7 @@ module io
 
 contains
 
-    subroutine write_state(time, output_counter)
-        real, intent(in) :: time
-        integer, intent(in) :: output_counter
-        integer :: i, unit
-        character(len=100) :: filename
 
-        write(filename, '("output/fields_t", I4.4, ".dat")') output_counter
-        open(unit=10, file=filename, status='replace')
-        write(unit, '(A)') "# x      rho     u       e"
-        do i = 1, nx
-            write(unit, '(F8.4, 3F10.5)') x(i), rho(i), u(i), e(i)
-        end do
-        close(unit)
-    end subroutine write_state
 
     subroutine write_fields(time)
         use mesh, only: nx, x, dx
