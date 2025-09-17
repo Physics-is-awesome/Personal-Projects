@@ -1,79 +1,60 @@
 module io
-    use state
-    use functionals
-    use mesh
-    use, intrinsic :: ieee_arithmetic
     implicit none
+    private
+    public :: write_fields, write_conserved
 
     integer :: output_counter = 0
 
 contains
 
-!=========================================================
-! Write full field output to file
-!=========================================================
-subroutine write_state()
-    character(len=50) :: filename
-    integer :: i
-    real :: T, s
+    subroutine write_fields(time)
+        use mesh, only: nx, x, dx
+        use states, only: rho, u, e
+        implicit none
+        real, intent(in) :: time
+        character(len=100) :: filename
+        integer :: unit, i
 
-    call compute_hamiltonian()
-    call compute_entropy()
+        ! Format file name
+        write(filename, '("output/fields_t", I4.4, ".dat")') output_counter
+        unit = 10
 
-    write(filename, '("output/fields_t", I4.4, ".dat")') output_counter
-    open(unit=10, file=filename, status="replace")
+        ! Open file and write header
+        open(unit=unit, file=filename, status='replace', action='write')
+        write(unit, '(A)') "# x     rho     u     e"
 
-    write(10, '(A)') "# x    rho     u      e     T     s"
+        ! Write data
+        do i = 1, nx
+            write(unit, '(F10.5, 3F10.5)') x(i), rho(i), u(i), e(i)
+        end do
 
-    do i = 1, nx
-        if (ieee_is_nan(T(i))) then
-            print*, 'False number in(tempature  x=', x(i)
+        close(unit)
+        output_counter = output_counter + 1
+    end subroutine write_fields
+
+    subroutine write_conserved(time)
+        use functionals, only: H_val, S_val, compute_hamiltonian, compute_entropy
+        implicit none
+        real, intent(in) :: time
+        integer :: unit
+        logical :: exists
+
+        call compute_hamiltonian()
+        call compute_entropy()
+
+        unit = 20
+
+        ! Create or append to conserved.dat
+        inquire(file="output/conserved.dat", exist=exists)
+        if (.not. exists .or. output_counter == 0) then
+            open(unit=unit, file="output/conserved.dat", status="replace", action="write")
+            write(unit, '(A)') "# time     H       S"
+        else
+            open(unit=unit, file="output/conserved.dat", status="old", position="append", action="write")
         end if
-        if (ieee_is_nan(s(i))) then
-            print*, 'False number in entropy at x=', x(i)
-        end if
-       
-        write(10, '(F10.5, 5F10.5)') x(i), rho(i), u(i), e(i), T, s
-        if (ieee_is_nan(rho(i))) then
-            print*, 'Rho is false in ', x(i)
-        end if
-        if (ieee_is_nan(u(i))) then
-            print*, 'u is false in x=', x(i)
-        end if
-        if (ieee_is_nan(e(i))) then
-            print*, 'e is false in x=', x(i)
-        end if
-        
-    end do
 
-    close(10)
-
-
-end subroutine write_state
-
-
-!=========================================================
-! Append conserved quantities H and S to file
-!=========================================================
-subroutine write_conserved(time)
-    real, intent(in) :: time
-    integer :: unit
-
-    call compute_hamiltonian()
-    call compute_entropy()
-
-    unit = 20
-    if (output_counter == 0) then
-        open(unit=unit, file="output/conserved.dat", status="replace")
-        write(unit, '(A)') "# time     H       S"
-    else
-        open(unit=unit, file="output/conserved.dat", status="old", position="append")
-    end if
-
-    write(unit, '(F10.5, 2F15.8)') time, H_val, S_val
-
-    close(unit)
-    output_counter = output_counter + 1
-end subroutine write_conserved
+        write(unit, '(F10.5, 2F15.8)') time, H_val, S_val
+        close(unit)
+    end subroutine write_conserved
 
 end module io
