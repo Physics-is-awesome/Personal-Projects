@@ -8,7 +8,7 @@ import matplotlib.animation as animation
 # 1. Locate output folder
 # -----------------------------
 script_dir = os.path.dirname(os.path.abspath(__file__))  # src/visual
-data_dir = os.path.abspath(os.path.join(script_dir, "../../output"))
+data_dir = os.path.abspath(os.path.join(script_dir, "../../makefile/output"))
 
 if not os.path.exists(data_dir):
     raise FileNotFoundError(f"Output folder not found: {data_dir}")
