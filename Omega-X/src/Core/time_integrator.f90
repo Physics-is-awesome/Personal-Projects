@@ -43,7 +43,8 @@ subroutine time_step_midpoint(dt)
         rho(i) = rho(i) + dt * drho_dt(i)
         u(i)   = u(i)   + dt * du_dt(i)
         e(i)   = e(i)   + dt * de_dt(i)
-        print*, 'e is', e
+        print*, 'dt is', dt
+        print,* 'de_dt is' de_dt(i)
     end do
 
     time = time + dt
