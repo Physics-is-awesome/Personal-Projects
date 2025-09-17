@@ -23,11 +23,11 @@ contains
 
         ! Open file and write header
         open(unit=unit, file=filename, status='replace', action='write')
-        write(unit, '(A)') "# x     rho     u     e"
+        write(unit, '(A)') "# x     rho     u     e     T"
 
         ! Write data
         do i = 1, nx
-            write(unit, '(F10.5, 3F10.5)') x(i), rho(i), u(i), e(i)
+            write(unit, '(F10.5, 3F10.5)') x(i), rho(i), u(i), e(i), time
         end do
 
         close(unit)
