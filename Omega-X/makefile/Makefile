@@ -75,6 +75,11 @@ $(OBJ_TIME): $(SRC_DIR)/time_integrator.f90 $(OBJ_BRACKETS) $(OBJ_STATES)
 $(OBJ_DRIVER): $(DRIVER_DIR)/1D_Thermal_driver.f90 $(OBJ_TIME) $(OBJ_IO)
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
 
+# Run
+run: $(EXEC)
+	mkdir -p output
+	./$(EXEC)
+
 # Clean
 clean:
 	rm -rf $(OBJ_DIR)/*.o $(MOD_DIR)/*.mod $(EXEC)
