@@ -52,6 +52,9 @@ obj/io.o: obj/states.o obj/functionals.o
 obj/1D_Thermal_driver.o: obj/time_integrator.o obj/io.o
 
 # Compile rules with module dependencies
+$(OBJ_check): $(SRC_DIR)/runtime_checks.f90
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
+
 $(OBJ_MESH): $(SRC_DIR)/mesh.f90
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
 
