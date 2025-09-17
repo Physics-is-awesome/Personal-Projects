@@ -15,10 +15,6 @@ program main_driver
 
     integer :: step
 
-    ! -----------------------------------------
-    ! Create file 
-    ! -----------------------------------------
-    call system("mkdir -p output")
 
     !------------------------------------------
     ! Initialization
