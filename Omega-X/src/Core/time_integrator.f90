@@ -33,7 +33,7 @@ subroutine time_step_midpoint(dt)
     end do
 
     ! Replace state with midpoint state
-    call overwrite_state(rho_tmp, u_tmp, e_tmp)
+    !call overwrite_state(rho_tmp, u_tmp, e_tmp)
 
     ! Stage 2
     call compute_brackets()
