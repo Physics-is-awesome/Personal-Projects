@@ -1,30 +1,14 @@
 module time_integrator
     use state
     use brackets
+    use debug_utils
     implicit none
 
     real :: time = 0.0
 
 contains
 
-!--------------------------------------------------------
-! Forward Euler method:
-!   z^{n+1} = z^n + dt * dz/dt
-!--------------------------------------------------------
-subroutine time_step_euler(dt)
-    real, intent(in) :: dt
-    integer :: i
 
-    call compute_brackets()
-
-    do i = 1, nx
-        rho(i) = rho(i) + dt * drho_dt(i)
-        u(i)   = u(i)   + dt * du_dt(i)
-        e(i)   = e(i)   + dt * de_dt(i)
-    end do
-
-    time = time + dt
-end subroutine time_step_euler
 
 
 !--------------------------------------------------------
