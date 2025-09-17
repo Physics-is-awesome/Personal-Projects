@@ -80,7 +80,7 @@ subroutine metric_bracket()
                 stop
             endif
 
-            gradS_du(i) = (dS_du(i+1) - dS_du(i-1)) / (x(i+1) - x(i-1))
+       
         endif
 
         gradS_du(i) = (dS_du(i+1) - dS_du(i-1)) / (x(i+1) - x(i-1))
