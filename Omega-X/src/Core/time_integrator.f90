@@ -52,17 +52,17 @@ end subroutine time_step_midpoint
 !--------------------------------------------------------
 ! Utility to overwrite current state
 !--------------------------------------------------------
-subroutine overwrite_state(rho_new, u_new, e_new)
-    real, intent(in) :: rho_new(nx), u_new(nx), e_new(nx)
-    integer :: i
+!subroutine overwrite_state(rho_new, u_new, e_new)
+ !   real, intent(in) :: rho_new(nx), u_new(nx), e_new(nx)
+  !  integer :: i
 
-    do i = 1, nx
-        rho = rho_new
-        u = u_new
-        e = e_new
-    end do
+   ! do i = 1, nx
+    !    rho = rho_new
+     !   u = u_new
+      !  e = e_new
+    !end do
     
 
-end subroutine overwrite_state
+!end subroutine overwrite_state
 
 end module time_integrator
