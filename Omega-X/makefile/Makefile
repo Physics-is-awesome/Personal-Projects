@@ -37,6 +37,14 @@ all: $(EXEC)
 # Link
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $(OBJS)
+# order of compiling 
+
+obj/states.o: obj/mesh.o
+obj/functionals.o: obj/states.o
+obj/brackets.o: obj/functionals.o obj/states.o
+obj/time_integrator.o: obj/brackets.o obj/states.o
+obj/io.o: obj/states.o obj/functionals.o
+obj/1D_Thermal_driver.o: obj/time_integrator.o obj/io.o
 
 # Compile rules with module dependencies
 $(OBJ_MESH): $(SRC_DIR)/mesh.f90
