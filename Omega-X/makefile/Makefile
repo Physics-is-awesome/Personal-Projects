@@ -4,7 +4,7 @@
 
 # Compiler
 FC = gfortran
-FFLAGS = -O0 -g -fcheck=all -Wall -std=f2008
+FFLAGS = -O0 -fcheck=all -ffpe-trap=invalid,zero,overflow
 LDFLAGS = -O2 -Wall -lc  
 
 # Output
