@@ -50,7 +50,7 @@ contains
     ! Compute pressure (ideal gas)
     ! -------------------------------------------------
     function pressure(i) result(p)
-        integer, intent(in) :: i
+        integer :: i
         real :: p
         do i = 1, nx
             p = (gamma - 1.0) * rho(i) * e(i)
@@ -61,7 +61,7 @@ contains
     ! Compute temperature (optional)
     ! -------------------------------------------------
     function temperature(i) result(T)
-        integer, intent(in) :: i
+        integer :: i
         real :: T
         do i = 1, nx
             T = (gamma - 1.0) * e(i)
