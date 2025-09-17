@@ -5,6 +5,7 @@
 # Compiler
 FC = gfortran
 FFLAGS = -O2 -Wall -std=f2008
+LDFLAGS = -O2 -Wall -lc  
 
 # Output
 EXEC = run_metriplectic
