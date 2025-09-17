@@ -69,6 +69,20 @@ subroutine metric_bracket()
 
     ! Compute gradients of δS/δu and δS/δe
     do i = 2, nx-1
+        if (i > 1 .and. i < N) then
+            if ((x(i+1) - x(i-1)) == 0.0) then
+                print *, "Division by zero in gradS_du at i=", i
+                stop
+            endif
+
+            if (.not. ieee_is_finite(dS_du(i+1)) .or. .not. ieee_is_finite(dS_du(i-1))) then
+                print *, "NaN in dS_du at i=", i
+                stop
+            endif
+
+            gradS_du(i) = (dS_du(i+1) - dS_du(i-1)) / (x(i+1) - x(i-1))
+        endif
+
         gradS_du(i) = (dS_du(i+1) - dS_du(i-1)) / (x(i+1) - x(i-1))
         gradS_de(i) = (dS_de(i+1) - dS_de(i-1)) / (x(i+1) - x(i-1))
     end do
