@@ -4,7 +4,7 @@
 
 # Compiler
 FC = gfortran
-FFLAGS = -O0 -fcheck=all -ffpe-trap=invalid,zero,overflow
+FFLAGS = -O0 -fcheck=all -ffpe-trap=invalid,zero,overflow -fbacktrace
 LDFLAGS = -O2 -Wall -lc  
 
 # Output
