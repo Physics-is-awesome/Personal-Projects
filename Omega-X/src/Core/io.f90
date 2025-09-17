@@ -37,7 +37,7 @@ subroutine write_state()
 
     close(10)
 
-    output_counter = output_counter + 1
+
 end subroutine write_state
 
 
@@ -62,6 +62,7 @@ subroutine write_conserved(time)
     write(unit, '(F10.5, 2F15.8)') time, H_val, S_val
 
     close(unit)
+    output_counter = output_counter + 1
 end subroutine write_conserved
 
 end module io
