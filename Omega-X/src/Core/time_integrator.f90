@@ -1,7 +1,6 @@
 module time_integrator
     use state
     use brackets
-    use runtime_checks
     implicit none
 
     real :: time = 0.0
