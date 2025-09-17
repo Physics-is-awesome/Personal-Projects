@@ -13,7 +13,7 @@ contains
         use mesh, only: nx, x, dx
         use state, only: rho, u, e
         implicit none
-        
+        real, intent(in) :: time
         character(len=100) :: filename
         integer :: unit, i
 
