@@ -57,9 +57,9 @@ subroutine overwrite_state(rho_new, u_new, e_new)
     integer :: i
 
     do i = 1, nx
-        rho(i) = rho_new(i)
-        u(i)   = u_new(i)
-        e(i)   = e_new(i)
+        call set_rho(rho, rho_new)
+        call set_u(u, u_new)
+        call set_e(e, e_new)
     end do
     
 
