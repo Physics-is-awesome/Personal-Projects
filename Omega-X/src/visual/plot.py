@@ -8,7 +8,7 @@ import matplotlib.animation as animation
 # 1. Locate output folder
 # -----------------------------
 script_dir = os.path.dirname(os.path.abspath(__file__))  # src/visual
-data_dir = os.path.abspath(os.path.join(script_dir, "../../makefile/output"))
+data_dir = os.path.abspath(os.path.join(script_dir, "../../output"))
 
 if not os.path.exists(data_dir):
     raise FileNotFoundError(f"Output folder not found: {data_dir}")
@@ -27,25 +27,27 @@ print(f"Found {len(file_list)} field files.")
 # 3. Prepare figure for animation
 # -----------------------------
 fig, ax = plt.subplots()
-line, = ax.plot([], [])
 ax.set_xlabel("Grid index")
 ax.set_ylabel("Field value")
 ax.set_title("Simulation")
 
 def update(frame):
+    ax.clear()  # clear previous lines
     data = np.loadtxt(file_list[frame])
     x = np.arange(len(data))
-    line.set_data(x, data)
+    ax.plot(x, data, color='blue')
     ax.set_xlim(0, len(data)-1)
     ax.set_ylim(np.min(data), np.max(data))
+    ax.set_xlabel("Grid index")
+    ax.set_ylabel("Field value")
     ax.set_title(f"Time step {frame}")
-    return line,
+    ax.grid(True)
 
 # -----------------------------
 # 4. Create and save animation
 # -----------------------------
 movie_filename = os.path.join(data_dir, "simulation.mp4")
-ani = animation.FuncAnimation(fig, update, frames=len(file_list), blit=True)
+ani = animation.FuncAnimation(fig, update, frames=len(file_list))
 ani.save(movie_filename, writer='ffmpeg', fps=10)
 print(f"Movie saved as {movie_filename}")
 
@@ -54,7 +56,7 @@ print(f"Movie saved as {movie_filename}")
 # -----------------------------
 final_data = np.loadtxt(file_list[-1])
 plt.figure()
-plt.plot(np.arange(len(final_data)), final_data)
+plt.plot(np.arange(len(final_data)), final_data, color='red')
 plt.xlabel("Grid index")
 plt.ylabel("Field value")
 plt.title("Final field")
