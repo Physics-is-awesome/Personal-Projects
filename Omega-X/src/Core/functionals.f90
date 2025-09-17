@@ -18,7 +18,7 @@ contains
 subroutine compute_hamiltonian()
     integer :: i
     H_val = 0.0
-    do i = 1, nx
+    do i = 1, nx-1
         H_val = H_val + (0.5 * rho(i) * u(i)**2 + rho(i) * e(i)) * dx(i)
     end do
 end subroutine compute_hamiltonian
@@ -37,7 +37,7 @@ subroutine compute_entropy()
     real :: s_i
 
     S_val = 0.0
-    do i = 1, nx
+    do i = 1, nx-1
         if (rho(i) > 1e-12 .and. e(i) > 1e-12) then
             s_i = log(e(i)) - gamma * log(rho(i))   ! specific entropy
         else
