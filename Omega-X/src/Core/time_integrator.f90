@@ -78,6 +78,11 @@ subroutine overwrite_state(rho_new, u_new, e_new)
         u(i)   = u_new(i)
         e(i)   = e_new(i)
     end do
+    if (any(rho /= rho)) then
+        print *, "NaN detected in rho at step", t_step
+        stop
+    endif
+
 end subroutine overwrite_state
 
 end module time_integrator
