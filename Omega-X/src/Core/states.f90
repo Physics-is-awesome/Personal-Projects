@@ -52,7 +52,9 @@ contains
     function pressure(i) result(p)
         integer, intent(in) :: i
         real :: p
-        p = (gamma - 1.0) * rho(i) * e(i)
+        do i = 1, nx
+            p = (gamma - 1.0) * rho(i) * e(i)
+        end do
     end function pressure
 
     ! -------------------------------------------------
@@ -61,7 +63,9 @@ contains
     function temperature(i) result(T)
         integer, intent(in) :: i
         real :: T
-        T = (gamma - 1.0) * e(i)
+        do i = 1, nx
+            T = (gamma - 1.0) * e(i)
+        end do
     end function temperature
 
 end module state
