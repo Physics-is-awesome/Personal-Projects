@@ -9,7 +9,7 @@ contains
 
     subroutine write_fields(time)
         use mesh, only: nx, x, dx
-        use states, only: rho, u, e
+        use state, only: rho, u, e
         implicit none
         real, intent(in) :: time
         character(len=100) :: filename
