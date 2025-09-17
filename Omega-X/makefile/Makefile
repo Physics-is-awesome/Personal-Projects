@@ -20,7 +20,7 @@ SRC_DIR = ../src/Core
 DRIVER_DIR = ../src/driver
 
 # Object files
-OBJ_check = $(OBJ_DIR)/checks.o
+
 OBJ_MESH = $(OBJ_DIR)/mesh.o
 OBJ_STATES = $(OBJ_DIR)/states.o
 OBJ_FUNCTIONALS = $(OBJ_DIR)/functionals.o
@@ -31,7 +31,7 @@ OBJ_TIME = $(OBJ_DIR)/time_integrator.o
 OBJ_DRIVER = $(OBJ_DIR)/1D_Thermal_driver.o
 
 OBJS = $(OBJ_MESH) $(OBJ_STATES) $(OBJ_FUNCTIONALS) $(OBJ_ASSEMBLY) \
-       $(OBJ_BRACKETS) $(OBJ_IO) $(OBJ_TIME) $(OBJ_DRIVER) $(OBJ_check)
+       $(OBJ_BRACKETS) $(OBJ_IO) $(OBJ_TIME) $(OBJ_DRIVER) 
 
 # Default target
 all: $(EXEC)
@@ -43,7 +43,6 @@ $(EXEC): $(OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(OBJS)
 
 # order of compiling 
-obj/mesh.o: obj/check.o
 obj/states.o: obj/mesh.o
 obj/functionals.o: obj/states.o
 obj/brackets.o: obj/functionals.o obj/states.o
@@ -52,8 +51,6 @@ obj/io.o: obj/states.o obj/functionals.o
 obj/1D_Thermal_driver.o: obj/time_integrator.o obj/io.o
 
 # Compile rules with module dependencies
-$(OBJ_check): $(SRC_DIR)/runtime_checks.f90
-	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
 
 $(OBJ_MESH): $(SRC_DIR)/mesh.f90
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -I$(MOD_DIR) -o $@
