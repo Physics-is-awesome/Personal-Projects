@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 
 # --- User settings ---
 script_dir = os.path.dirname(os.path.abspath(__file__))  # src/visual
-data_dir = os.path.abspath(os.path.join(script_dir, "../../output"))
+data_dir = os.path.abspath(os.path.join(script_dir, "../makefile/output"))
 file_pattern = "fields_t*.dat"  # File pattern
 movie_filename = "simulation.mp4"
 final_image_filename = "final_field.png"
