@@ -1,7 +1,6 @@
 module time_integrator
     use state
     use brackets
-    use debug_utils
     implicit none
 
     real :: time = 0.0
