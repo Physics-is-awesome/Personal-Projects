@@ -4,8 +4,8 @@
 
 # Compiler
 FC = gfortran
-FFLAGS = -O0 -fcheck=all -ffpe-trap=invalid,zero,overflow -fbacktrace
-LDFLAGS = -O2 -Wall -lc  
+FFLAGS = -g -O0 -fcheck=all -ffpe-trap=invalid,zero,overflow -fbacktrace
+LDFLAGS = -g -O2 -Wall -lc  
 
 # Output
 EXEC = run_metriplectic
