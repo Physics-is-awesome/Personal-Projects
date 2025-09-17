@@ -43,6 +43,10 @@ subroutine poisson_bracket()
         ! Total energy flux
         de_dt(i) = -((e(i+1) * u(i+1) + pressure(i+1) * u(i+1)/rho(i+1)) - &
                      (e(i-1) * u(i-1) + pressure(i-1) * u(i-1)/rho(i-1))) / (x(i+1) - x(i-1))
+        print*, 'e is', e(i+1)
+        print*, 'pressure is', pressure(i+1)
+        print*, 'u is', u(i+1
+        print*, 'rho is', rho(i+1)
     end do
 end subroutine poisson_bracket
 
