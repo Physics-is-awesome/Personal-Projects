@@ -2,6 +2,7 @@ module io
     use state
     use functionals
     use mesh
+    use, intrinsic :: ieee_arithmetic
     implicit none
 
     integer :: output_counter = 0
@@ -31,8 +32,19 @@ subroutine write_state()
         else
             T = 0.0
             s = 0.0
+            print*, "False number in(tempature or entropy " x(i)
         end if
         write(10, '(F10.5, 5F10.5)') x(i), rho(i), u(i), e(i), T, s
+        if (ieee_is_nan(rho(i))) then
+            print*, "Rho is false in " x(i)
+        end if
+        if (ieee_is_nan(u(i))) then
+            print*, "u is false in " x(i)
+        end if
+        if (ieee_is_nan(e(i))) then
+            print*, "e is false in " x(i)
+        end if
+        
     end do
 
     close(10)
