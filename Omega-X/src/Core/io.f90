@@ -13,7 +13,7 @@ contains
         use mesh, only: nx, x, dx
         use state, only: rho, u, e
         implicit none
-        real, intent(in) :: time
+        
         character(len=100) :: filename
         integer :: unit, i
 
@@ -23,11 +23,11 @@ contains
 
         ! Open file and write header
         open(unit=unit, file=filename, status='replace', action='write')
-        write(unit, '(A)') "# x     rho     u     e     T"
+        write(unit, '(A)') "# x     rho     u     e"
 
         ! Write data
         do i = 1, nx
-            write(unit, '(F10.5, 3F10.5)') x(i), rho(i), u(i), e(i), time
+            write(unit, '(F10.5, 3F10.5)') x(i), rho(i), u(i), e(i)
         end do
 
         close(unit)
