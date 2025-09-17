@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 # --- User settings ---
-data_dir = "output"          # Folder with simulation outputs
+script_dir = os.path.dirname(os.path.abspath(__file__))  # src/visual
+data_dir = os.path.abspath(os.path.join(script_dir, "../../output"))
 file_pattern = "fields_t*.dat"  # File pattern
 movie_filename = "simulation.mp4"
 final_image_filename = "final_field.png"
 
 # --- Find all output files ---
-file_list = sorted(glob.glob(os.path.join(data_dir, file_pattern)))
+file_list = sorted(glob.glob(os.path.join(data_dir, "fields_t*.dat")))
 
 if not file_list:
     raise FileNotFoundError(f"No files found in {data_dir} matching {file_pattern}")
