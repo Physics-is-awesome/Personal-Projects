@@ -38,6 +38,9 @@ all: $(EXEC)
 # Link
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $(OBJS)
+$(EXEC): $(OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(OBJS)
+
 # order of compiling 
 
 obj/states.o: obj/mesh.o
