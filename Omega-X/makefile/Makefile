@@ -20,7 +20,7 @@ SRC_DIR = ../src/Core
 DRIVER_DIR = ../src/driver
 
 # Object files
-OBJ_check = $(OBJ_DIR)/runtime_checks.o
+OBJ_check = $(OBJ_DIR)/checks.o
 OBJ_MESH = $(OBJ_DIR)/mesh.o
 OBJ_STATES = $(OBJ_DIR)/states.o
 OBJ_FUNCTIONALS = $(OBJ_DIR)/functionals.o
