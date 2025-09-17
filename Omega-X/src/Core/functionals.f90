@@ -59,6 +59,8 @@ subroutine compute_dH()
     integer :: i
 
     do i = 1, nx-1
+        print*, 'u is ', u(i)
+        print*, 'e is ', e(i)
         dH_drho(i) = 0.5 * u(i)**2 + e(i)
         dH_du(i)   = rho(i) * u(i)
         dH_de(i)   = rho(i)
