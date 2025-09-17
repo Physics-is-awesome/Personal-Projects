@@ -1,7 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = np.loadtxt("output/fields_t0000.dat", comments="#")
+import glob
+import numpy as np
+
+data_dir = "results"
+file_list = sorted(glob.glob(os.path.join(data_dir, "fields_t*.dat")))
+
+for filename in file_list:
+    data = np.loadtxt(filename)
 x, rho, u, e, T, s = data.T
 
 plt.plot(x, rho, label='Density')
