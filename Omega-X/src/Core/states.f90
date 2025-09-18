@@ -32,7 +32,6 @@ contains
         do i = 1, nx
             ! Example: centered density bump, rest velocity, uniform internal energy
             rho(i) = 1.0 + 0.2 * exp( -100.0 * (x(i) - 0.5)**2 )
-            print*, 'rho is', rho
             u(i)   = 0.0
             e(i)   = 2.5   ! Adjust to give desired pressure
         end do
