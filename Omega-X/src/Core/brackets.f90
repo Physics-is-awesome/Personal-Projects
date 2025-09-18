@@ -35,7 +35,7 @@ subroutine poisson_bracket()
     do i = 2, nx-1
         ! Upwinded fluxes (naive discretization)
         drho_dt(i) = -(rho(i+1)*u(i+1) - rho(i-1)*u(i-1)) / (x(i+1) - x(i-1))
-        print*, 'drho_dt', drho_dt(i)
+        print*, 'drho_dt on i=',i, 'is', drho_dt(i)
 
         ! Compute pressure and enthalpy
         ! h = e + p/ρ = e + (γ - 1)e = γ e
