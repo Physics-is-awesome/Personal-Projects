@@ -63,9 +63,9 @@ contains
     function temperature(i) result(T)
         integer :: i
         real :: T
-        do i = 1, nx
-            T = (gamma - 1.0) * e(i)
-        end do
+        
+        T = (gamma - 1.0) * e(i)
+        
     end function temperature
 
 end module state
