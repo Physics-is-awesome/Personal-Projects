@@ -20,6 +20,7 @@ subroutine compute_hamiltonian()
     H_val = 0.0
     do i = 1, nx-1
         H_val = H_val + (0.5 * rho(i) * u(i)**2 + rho(i) * e(i)) * dx(i)
+        print*, 'the hamiltonian is', H_val
     end do
 end subroutine compute_hamiltonian
 
