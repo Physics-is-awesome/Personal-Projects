@@ -1,0 +1,102 @@
+\documentclass[12pt]{book}
+\usepackage[width=4.375in, height=7.0in, top=1.0in, papersize={5.5in,8.5in}]{geometry}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tipa}
+\usepackage{dirtree}
+\usepackage[hidelinks]{hyperref}
+%\usepackage{txfonts}
+\usepackage{textcomp}
+%\usepackage{amsthm}
+%\usepackage{array}
+%\usepackage{xy}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}  % for syntax highlighting colors
+
+\lstset{
+  language=[90]Fortran,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=10pt,
+  backgroundcolor=\color{white},
+  frame=single,
+  breaklines=true,
+  captionpos=b,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=2
+}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  language=make,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=10pt,
+  backgroundcolor=\color{white},
+  frame=single,
+  breaklines=true,
+  captionpos=b,
+  showstringspaces=false,
+  tabsize=2
+}
+
+
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{}
+\fancyhead[LE,RO]{\bfseries\thepage}
+\fancyhead[LO]{\bfseries\rightmark}
+\fancyhead[RE]{\bfseries\leftmark}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\addtolength{\headheight}{0.5pt}
+\setlength{\footskip}{0in}
+\renewcommand{\footruleskip}{0pt}
+\fancypagestyle{plain}{%
+\fancyhead{}
+
+
+\renewcommand{\headrulewidth}{0pt}
+}
+%
+%\parindent 0in
+\parskip 0.05in
+%
+\begin{document}
+\frontmatter
+%
+\chapter*{\Huge \center Lógos}
+\thispagestyle{empty}
+%{\hspace{0.25in} \includegraphics{./ru_sun.jpg} }
+\section*{\huge \center AJ Cason}
+\setcounter{secnumdepth}{8}
+\setcounter{tocdepth}{8}
+%
+%
+\tableofcontents
+%
+\mainmatter
+
+
+\include{(pt_1)}
+%%%%%%%%%%%%%%%%%%%%%%%
+\include{(pt_2)}
+\backmatter
+%
+\end{document}
