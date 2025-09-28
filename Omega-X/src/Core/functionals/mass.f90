@@ -2,7 +2,7 @@ module momentum
   use mesh
   use states
   implicit none
-  real(8), intent(in)  :: p_h(N), dx(u_h, i), dx, Mii
+  real(8), intent(in)  :: p_h(N), dx(u_h, i), mii(i), dx
   real(8), intent(out) :: dpdt(N)
   real(8) :: mass_RHS(N)
   integer :: i
