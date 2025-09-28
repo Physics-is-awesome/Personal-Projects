@@ -2,7 +2,7 @@ module momentum
   use mesh
   use states
   implicit none
-  real(8), intent(in)  :: u_h(N), m_h(N), d_dx(u_h, i), d_dx(eta_h, i), rho_h(i), sigma_h(i) d_dx(T_h, i), d_dx(u_h, i), Re, dx, dphi_dx
+  real(8), intent(in)  :: u_h(N), m_h(N), d_dx(u_h, i), d_dx(eta_h, i), rho_h(i), sigma_h(i) d_dx(T_h, i), d_dx(u_h, i), Mii(N) Re, dx, dphi_dx
   real(8), intent(out) :: dmdt(N)
   real(8) :: momentum_RHS(N)
   integer :: i
