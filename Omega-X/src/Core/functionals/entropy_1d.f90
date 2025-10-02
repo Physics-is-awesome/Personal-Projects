@@ -1,6 +1,6 @@
-module entropy
-  use mesh
-  use projection_matrix
+module entropy_1d
+  use mesh_1d
+  use projection_matrix_1d
   implicit none
   real(8), intent(in)  :: sigma_h(N), u_h(N), T_h(N)
   real(8), intent(out) :: rhs(N)
@@ -52,4 +52,4 @@ module entropy
   ! Optional: boundary conditions (e.g., no entropy flux)
   rhs(1) = 0.0d0
   rhs(N) = 0.0d0
-end module entropy
+end module entropy_1d
