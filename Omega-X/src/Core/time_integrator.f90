@@ -1,70 +1,50 @@
 module time_integrator
-    use state
-    use brackets
-    implicit none
-
-    real :: time = 0.0
+  use mesh
+  use states
+  use velocity
+  use eos
+  use mass_rhs
+  use momentum_rhs
+  use entropy_rhs
+  implicit none
+  private
+  public :: advance_one_step
 
 contains
 
+  subroutine advance_one_step(dt)
+    implicit none
+    real(8), intent(in) :: dt
 
-
-
-!--------------------------------------------------------
-! Midpoint method (RK2):
-!   z* = z^n + 0.5*dt * dz/dt
-!   dz/dt at midpoint → z^{n+1} = z^n + dt * dz/dt(z*)
-!
-! Note: This is better for preserving structure
-!--------------------------------------------------------
-subroutine time_step_midpoint(dt)
-    real, intent(in) :: dt
+    real(8) :: u_h(N), rhs_m(N), rhs_rho(N), rhs_sigma(N)
     integer :: i
-    real, dimension(nx) :: rho_tmp, u_tmp, e_tmp
-    real, dimension(nx) :: drho_dt_tmp, du_dt_tmp, de_dt_tmp
 
-    ! Stage 1
-    call compute_brackets()
+    ! Step 1: Compute velocity
+    call compute_velocity(m_h, rho_h, u_h)
 
-    do i = 1, nx
-        rho_tmp(i) = rho(i) + 0.5 * dt * drho_dt(i)
-        u_tmp(i)   = u(i)   + 0.5 * dt * du_dt(i)
-        e_tmp(i)   = e(i)   + 0.5 * dt * de_dt(i)
+    ! Step 2: Compute eta = sigma / rho
+    do i = 1, N
+      eta_h(i) = sigma_h(i) / rho_h(i)
     end do
 
-    ! Replace state with midpoint state
-    !call overwrite_state(rho_tmp, u_tmp, e_tmp)
-
-    ! Stage 2
-    call compute_brackets()
-
-    ! Update original state
-    do i = 1, nx
-        rho(i) = rho(i) + dt * drho_dt(i)
-        u(i)   = u(i)   + dt * du_dt(i)
-        e(i)   = e(i)   + dt * de_dt(i)
-        !print*, 'dt is', dt
-        !print*, 'de_dt is', de_dt(i)
+    ! Step 3: Compute temperature via EOS
+    do i = 1, N
+      T_h(i) = compute_temperature(rho_h(i), eta_h(i))
     end do
 
-    time = time + dt
-end subroutine time_step_midpoint
+    ! Step 4: Compute Galerkin RHS terms
+    call compute_momentum_rhs_galerkin(rhs_m, rho_h, m_h, sigma_h, eta_h, T_h)
+    call compute_mass_rhs_galerkin(rhs_rho, rho_h, u_h)
+    call compute_entropy_rhs_galerkin(rhs_sigma, sigma_h, u_h, T_h)
 
+    ! Step 5: Advance in time (Euler / RK1)
+    do i = 1, N
+      m_h(i)     = m_h(i)     + dt * rhs_m(i)
+      rho_h(i)   = rho_h(i)   + dt * rhs_rho(i)
+      sigma_h(i) = sigma_h(i) + dt * rhs_sigma(i)
+    end do
 
-!--------------------------------------------------------
-! Utility to overwrite current state
-!--------------------------------------------------------
-!subroutine overwrite_state(rho_new, u_new, e_new)
- !   real, intent(in) :: rho_new(nx), u_new(nx), e_new(nx)
-  !  integer :: i
-
-   ! do i = 1, nx
-    !    rho = rho_new
-     !   u = u_new
-      !  e = e_new
-    !end do
-    
-
-!end subroutine overwrite_state
+  end subroutine advance_one_step
 
 end module time_integrator
+
