@@ -3,10 +3,10 @@ FC = gfortran
 FFLAGS = -O2 -Wall -fimplicit-none
 
 # Directories
-SRC_DIR := src
-OBJ_DIR := obj
-MOD_DIR := mod
-BIN_DIR := bin
+SRC_DIR := Personal-Projects/Omega-X/src
+OBJ_DIR := Personal-Projects/Omega-X/makefile/OBJ
+MOD_DIR := Personal-Projects/Omega-X/makefile/MOD
+BIN_DIR := Personal-Projects/Omega-X/makefile/BIN
 EXEC := $(BIN_DIR)/thermal_sim
 
 # Get all .f90 source files recursively
