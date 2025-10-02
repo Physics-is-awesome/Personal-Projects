@@ -1,8 +1,8 @@
-program omega_x_driver
-  use mesh
-  use states
-  use time_integrator
-  use io
+program omega_x_driver_1d
+  use mesh_1d
+  use states_1d
+  use time_integrator_1d
+  use io_1d
   implicit none
 
   real(8) :: dt, t, t_end
@@ -30,4 +30,4 @@ program omega_x_driver
     call write_state_to_csv(fname)
   end if
 
-end program omega_x_driver
+end program omega_x_driver_1d
