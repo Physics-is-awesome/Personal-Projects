@@ -31,7 +31,7 @@ contains
       eta_h(i) = 1.0d0
       sigma_h(i) = rho_h(i) * eta_h(i)
       m_h(i) = 0.0d0
-      T_h(i) = compute_temperature(rho_h(i), eta_h(i))  ! Uses EOS
+      T_h(i) = (0.4d0) * eta  ! Ideal gas ! Uses EOS
     end do
 
   end subroutine initialize_states
