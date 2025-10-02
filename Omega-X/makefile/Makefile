@@ -8,19 +8,11 @@ BIN_DIR = bin
 EXEC = $(BIN_DIR)/thermal_sim
 
 # Source files
-CORE_SRCS = $(wildcard $(SRC_DIR)/Core/*.f90) \
-            $(wildcard $(SRC_DIR)/Core/EOS/*.f90) \
-            $(wildcard $(SRC_DIR)/Core/functionals/*.f90) \
-            $(wildcard $(SRC_DIR)/Core/initialize/*.f90) \
-            $(wildcard $(SRC_DIR)/Core/io/*.f90) \
-            $(wildcard $(SRC_DIR)/Core/mesh/*.f90) \
-            $(wildcard $(SRC_DIR)/Core/time_integrator/*.f90)
-
+CORE_SRCS = $(wildcard $(SRC_DIR)/Core/**/*.f90)
 DRIVER_SRCS = $(SRC_DIR)/driver/1D_Thermal_driver.f90
-
 ALL_SRCS = $(CORE_SRCS) $(DRIVER_SRCS)
 
-# Object files
+# Object files: preserve folder hierarchy
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.f90,$(OBJ_DIR)/%.o,$(ALL_SRCS))
 
 # Default target
@@ -47,6 +39,10 @@ $(BIN_DIR):
 
 # Clean
 clean:
+	rm -rf $(OBJ_DIR) $(MODULE_DIR) $(BIN_DIR)
+
+.PHONY: all clean
+
 	rm -rf $(OBJ_DIR) $(MODULE_DIR) $(BIN_DIR)
 
 .PHONY: all clean
