@@ -1,46 +1,49 @@
-module momentum_1d
+module entropy_1d
   implicit none
 contains
 
-  subroutine compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs)
+  subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs)
+    implicit none
+    ! Dummy arguments
     integer, intent(in) :: N
-    real(8), intent(in) :: rho_h(N), m_h(N), sigma_h(N), eta_h(N), T_h(N), Re, dx
+    real(8), intent(in) :: sigma_h(N), u_h(N), T_h(N)
+    real(8), intent(in) :: dx, Re, Pr, gamma
     real(8), intent(out) :: rhs(N)
-    real(8) :: u_h(N), du_proj(N), mu(N), dmu_proj(N), deta_proj(N), dT_proj(N)
+
+    ! Local variables
+    real(8) :: flux(N), dx_u(N), dx_T(N)
+    real(8) :: visc_prod(N), heat_prod(N), heat_grad(N), heat_term(N)
     integer :: i
 
-    ! Compute velocity
+    ! Compute flux
     do i = 1, N
-      if (rho_h(i) > 1.0d-12) then
-        u_h(i) = m_h(i) / rho_h(i)
-      else
-        u_h(i) = 0.0d0
-      end if
+      flux(i) = sigma_h(i) * u_h(i)
     end do
 
     ! Apply weak derivatives
-    call apply_weak_derivative(u_h, du_proj)
-    mu = m_h * u_h
-    call apply_weak_derivative(mu, dmu_proj)
-    call apply_weak_derivative(eta_h, deta_proj)
-    call apply_weak_derivative(T_h, dT_proj)
+    call apply_weak_derivative(flux, rhs)
+    call apply_weak_derivative(u_h, dx_u)
+    call apply_weak_derivative(T_h, dx_T)
 
-    ! Compute RHS
-    do i = 2, N-1
-      rhs(i) = 0.0d0
-      rhs(i) = rhs(i) - m_h(i) * du_proj(i) * dx
-      rhs(i) = rhs(i) + dmu_proj(i) * dx
-      rhs(i) = rhs(i) - rho_h(i) * deta_proj(i) * dx
-      rhs(i) = rhs(i) - sigma_h(i) * dT_proj(i) * dx
-      rhs(i) = rhs(i) - (1.0d0 / Re) * du_proj(i) * dx
+    ! Viscous and thermal terms
+    do i = 1, N
+      visc_prod(i) = (dx_u(i)**2) / T_h(i)
+      heat_grad(i) = dx_T(i) / T_h(i)
+      heat_prod(i) = (dx_T(i)**2) / (T_h(i)**2)
+      heat_term(i) = (gamma / (gamma - 1.0d0)) * (heat_prod(i) - heat_grad(i) / dx)
+      rhs(i) = rhs(i) - (1.0d0 / Re) * visc_prod(i) * dx
+      rhs(i) = rhs(i) - (1.0d0 / (Re * Pr)) * heat_term(i) * dx
+    end do
+
+    ! Divide by dx
+    do i = 1, N
+      rhs(i) = -rhs(i) / dx
     end do
 
     ! Boundary conditions
     rhs(1) = 0.0d0
     rhs(N) = 0.0d0
 
-  end subroutine compute_momentum_rhs
+  end subroutine compute_entropy_rhs
 
-end module momentum_1d
-
-
+end module entropy_1d
