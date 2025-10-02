@@ -1,57 +1,39 @@
 # Compiler and flags
 FC = gfortran
 FFLAGS = -O2 -Wall -fimplicit-none
-MODULE_DIR = mod
-OBJ_DIR = obj
-SRC_DIR = src
-BIN_DIR = bin
-EXEC = $(BIN_DIR)/thermal_sim
 
-# Source files (list them explicitly or use wildcard per folder)
-CORE_SRCS = \
-  $(SRC_DIR)/Core/brackets.f90 \
-  $(SRC_DIR)/Core/EOS/EOS_1d_thermal.f90 \
-  $(SRC_DIR)/Core/functionals/entropy_1d.f90 \
-  $(SRC_DIR)/Core/functionals/mass_1d.f90 \
-  $(SRC_DIR)/Core/functionals/momentum_1d.f90 \
-  $(SRC_DIR)/Core/functionals/projection_matrix_1d.f90 \
-  $(SRC_DIR)/Core/initialize/states_1d.f90 \
-  $(SRC_DIR)/Core/io/io_1d.f90 \
-  $(SRC_DIR)/Core/mesh/mesh_1d.f90 \
-  $(SRC_DIR)/Core/time_integrator/time_integrator.f90
+# Directories
+SRC_DIR := src
+OBJ_DIR := obj
+MOD_DIR := mod
+BIN_DIR := bin
+EXEC := $(BIN_DIR)/thermal_sim
 
-DRIVER_SRCS = $(SRC_DIR)/driver/1D_Thermal_driver.f90
+# Get all .f90 source files recursively
+SRC_FILES := $(shell find $(SRC_DIR) -name '*.f90')
 
-ALL_SRCS = $(CORE_SRCS) $(DRIVER_SRCS)
-
-# Object files (replace src/ with obj/)
-OBJ_FILES = $(patsubst $(SRC_DIR)/%.f90,$(OBJ_DIR)/%.o,$(ALL_SRCS))
+# Create matching object files in obj/ (preserve path)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.f90,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 # Default target
 all: $(EXEC)
 
-# Build executable
+# Link the executable
 $(EXEC): $(OBJ_FILES) | $(BIN_DIR)
-	$(FC) $(FFLAGS) -J$(MODULE_DIR) -o $@ $^
+	$(FC) $(FFLAGS) -J$(MOD_DIR) -o $@ $^
 
-# Build object files
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | $(OBJ_DIR) $(MODULE_DIR)
+# Compile each object file
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | $(MOD_DIR)
 	@mkdir -p $(dir $@)
-	$(FC) $(FFLAGS) -c $< -J$(MODULE_DIR) -o $@
+	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -o $@
 
-# Create directories if they don't exist
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+# Ensure bin and mod directories exist
+$(BIN_DIR) $(MOD_DIR):
+	mkdir -p $@
 
-$(MODULE_DIR):
-	mkdir -p $(MODULE_DIR)
-
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
-
-# Clean
+# Clean build artifacts
 clean:
-	rm -rf $(OBJ_DIR) $(MODULE_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR)
 
 .PHONY: all clean
 
