@@ -6,7 +6,7 @@ module entropy_1d
   subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs)
     use mesh_1d
     use projection_matrix_1d
-    implicit none
+    integer, intent(in) :: N
     real(8), intent(in)  :: sigma_h(N), u_h(N), T_h(N)
     real(8), intent(out) :: rhs(N)
 
