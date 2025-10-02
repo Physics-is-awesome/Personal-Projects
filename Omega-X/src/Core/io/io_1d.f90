@@ -1,7 +1,7 @@
-module io
-  use mesh
-  use states
-  use velocity
+module io_1d
+  use mesh_1d
+  use states_1d
+  use velocity_1d
   implicit none
   private
   public :: write_state_to_csv
