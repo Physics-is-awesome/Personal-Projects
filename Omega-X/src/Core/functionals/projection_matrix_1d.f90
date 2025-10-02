@@ -1,5 +1,5 @@
-module projection_matrix
-  use mesh
+module projection_matrix_1d
+  use mesh_1d
   implicit none
   real(8), allocatable :: D(:,:)
   public :: initialize_projection_matrix, apply_weak_derivative
@@ -41,4 +41,4 @@ contains
     end do
   end subroutine apply_weak_derivative
 
-end module projection_matrix
+end module projection_matrix_1d
