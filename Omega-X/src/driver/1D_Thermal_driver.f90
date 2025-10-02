@@ -1,56 +1,22 @@
-program main_driver
-    use mesh
-    use state
-    use assembly
-    use time_integrator
-    use io
-    implicit none
+program omega_x_driver
+  use mesh
+  use states
+  use time_integrator
+  implicit none
 
-    !------------------------------------------
-    ! Parameters
-    !------------------------------------------
-    integer, parameter :: nsteps = 1000
-    real,    parameter :: dt     = 0.001
-    integer, parameter :: output_interval = 20
+  real(8) :: dt, t, t_end
 
-    integer :: step
+  dt = 1.0d-3
+  t_end = 1.0d0
+  t = 0.0d0
 
+  call initialize_mesh()
+  call initialize_states()
 
-    !------------------------------------------
-    ! Initialization
-    !------------------------------------------
-    print *, "Initializing mesh..."
-    call initialize_mesh()
+  do while (t < t_end)
+    call advance_one_step(dt)
+    t = t + dt
+    print *, 't = ', t
+  end do
 
-    print *, "Initializing state..."
-    call initialize_state()
-
-    print *, "Assembling FEM matrices..."
-    call assemble_matrices()
-
-    print *, "Beginning simulation..."
-    call write_fields(time)
-    call write_conserved(time)
-
-    !------------------------------------------
-    ! Time Loop
-    !------------------------------------------
-    do step = 1, nsteps
-        call time_step_midpoint(dt)
-
-        if (mod(step, output_interval) == 0) then
-            print *, "Step:", step, "Time:", time
-            call write_fields(time)
-            call write_conserved(time)
-        end if
-    end do
-
-    !------------------------------------------
-    ! Final Output
-    !------------------------------------------
-    call write_fields(time)
-    call write_conserved(time)
-
-    print *, "Simulation complete."
-
-end program main_driver
+end program omega_x_driver
