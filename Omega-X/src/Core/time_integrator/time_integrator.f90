@@ -1,11 +1,11 @@
-module time_integrator
-  use mesh
-  use states
-  use velocity
-  use eos
-  use mass_rhs
-  use momentum_rhs
-  use entropy_rhs
+module time_integrator_1d
+  use mesh_1d
+  use states_1d
+  use velocity_1d
+  use eos_1d
+  use mass_1d
+  use momentum_1d
+  use entropy_1d
   implicit none
   private
   public :: advance_one_step
