@@ -1,21 +1,26 @@
-module momentum
+module mass
   use mesh
-  use states
+  use projection_matrix
   implicit none
-  real(8), intent(in)  :: p_h(N), dx(u_h, i), mii(i), dx
-  real(8), intent(out) :: dpdt(N)
-  real(8) :: mass_RHS(N)
+  real(8), intent(in)  :: rho_h(N), u_h(N)
+  real(8), intent(out) :: rho_rhs(N)
+  real(8) :: flux(N)
   integer :: i
 
-do i = 2, N-1
-    mass_RHS(i) =  - p_h(i) * d_dx(u_h, i) * dx                     ! (p ∂x u, φ)
+  ! Compute pointwise flux: rho * u
+  do i = 1, N
+    flux(i) = rho_h(i) * u_h(i)
+  end do
 
-end do
+  ! Apply Galerkin derivative projection to flux
+  call apply_weak_derivative(flux, rho_rhs)
 
-do i = 2, N-1
-    dpdt(i) = - mass_RHS(i) / Mii(i)
-end do
+  ! Multiply by 1/dx to apply M^{-1} (lumped mass matrix)
+  do i = 1, N
+    rho_rhs(i) = -rho_rhs(i) / dx
+  end do
 
-
-
-end module momentum
+  ! Optional: boundary conditions (e.g., zero mass flux)
+  rho_rhs(1) = 0.0d0
+  rho_rhs(N) = 0.0d0
+end module mass
