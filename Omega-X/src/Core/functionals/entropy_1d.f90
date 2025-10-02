@@ -1,4 +1,5 @@
 module entropy_1d
+  use states_1d
   implicit none
 contains
 
