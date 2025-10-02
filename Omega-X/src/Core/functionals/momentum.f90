@@ -42,5 +42,5 @@ module momentum
   ! Boundary conditions
   rhs(1) = 0.0d0
   rhs(N) = 0.0d0
-end subroutine momentum
+end module momentum
 
