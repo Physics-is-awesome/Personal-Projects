@@ -17,6 +17,7 @@ OBJ_CORE := \
     $(OBJ_DIR)/Core/initialize/states_1d.o \
 	$(OBJ_DIR)/Core/functionals/projection_matrix_1d.o \
     $(OBJ_DIR)/Core/functionals/mass_1d.o \
+	$(OBJ_DIR)/Core/functionals/velocity_1d.o \
     $(OBJ_DIR)/Core/functionals/momentum_1d.o \
     $(OBJ_DIR)/Core/functionals/entropy_1d.o \
     $(OBJ_DIR)/Core/time_integrator/time_integrator.o \
@@ -53,6 +54,10 @@ $(OBJ_DIR)/Core/functionals/projection_matrix_1d.o: $(OBJ_DIR)/Core/initialize/s
 $(OBJ_DIR)/Core/functionals/momentum_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/momentum_1d.f90 -J$(MOD_DIR) -o $@
+
+$(OBJ_DIR)/Core/functionals/velocity_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
+	@mkdir -p $(dir $@)
+	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/velocity_1d.f90 -J$(MOD_DIR) -o $@
 
 $(OBJ_DIR)/Core/functionals/entropy_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
