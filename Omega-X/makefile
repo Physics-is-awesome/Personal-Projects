@@ -49,9 +49,11 @@ $(EXEC): $(MODULE_OBJS) $(DRIVER_OBJ) | $(BIN_DIR)
 # Compile modules and driver
 # ========================
 # General rule: compile any .f90 source to corresponding obj/ folder
+# Compile any .f90 source in nested directories
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | $(MOD_DIR)
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -o $@
+
 
 # ========================
 # Directories
