@@ -1,6 +1,6 @@
-module mass
-  use mesh
-  use projection_matrix
+module mass_1d
+  use mesh_1d
+  use projection_matrix_1d
   implicit none
   real(8), intent(in)  :: rho_h(N), u_h(N)
   real(8), intent(out) :: rho_rhs(N)
@@ -23,4 +23,4 @@ module mass
   ! Optional: boundary conditions (e.g., zero mass flux)
   rho_rhs(1) = 0.0d0
   rho_rhs(N) = 0.0d0
-end module mass
+end module mass_1d
