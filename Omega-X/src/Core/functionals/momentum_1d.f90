@@ -1,7 +1,7 @@
 
-module momentum
-  use mesh
-  use projection_matrix
+module momentum_1d
+  use mesh_1d
+  use projection_matrix_1d
   implicit none
   real(8), intent(in)  :: rho_h(N), m_h(N), sigma_h(N), eta_h(N), T_h(N)
   real(8), intent(out) :: rhs(N)
@@ -42,5 +42,5 @@ module momentum
   ! Boundary conditions
   rhs(1) = 0.0d0
   rhs(N) = 0.0d0
-end module momentum
+end module momentum_1d
 
