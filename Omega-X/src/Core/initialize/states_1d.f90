@@ -36,5 +36,5 @@ contains
 
   end subroutine initialize_states
 
-end module states
+end module states_1d
 
