@@ -14,25 +14,26 @@ BIN_DIR := bin
 EXEC := $(BIN_DIR)/thermal_sim
 
 # ========================
-# Source files
+# Module source files in correct order
 # ========================
-# List all modules explicitly or use a wildcard per folder
 MODULE_SRCS := \
-    $(SRC_DIR)/Core/EOS/EOS_1d_thermal.f90 \
-    $(SRC_DIR)/Core/functionals/entropy_1d.f90 \
+    $(SRC_DIR)/Core/mesh/mesh_1d.f90 \
+    $(SRC_DIR)/Core/initialize/states_1d.f90 \
     $(SRC_DIR)/Core/functionals/mass_1d.f90 \
     $(SRC_DIR)/Core/functionals/momentum_1d.f90 \
+    $(SRC_DIR)/Core/functionals/entropy_1d.f90 \
     $(SRC_DIR)/Core/functionals/projection_matrix_1d.f90 \
-    $(SRC_DIR)/Core/initialize/states_1d.f90 \
-    $(SRC_DIR)/Core/io/io_1d.f90 \
-    $(SRC_DIR)/Core/mesh/mesh_1d.f90 \
-    $(SRC_DIR)/Core/time_integrator/time_integrator.f90
+    $(SRC_DIR)/Core/time_integrator/time_integrator.f90 \
+    $(SRC_DIR)/Core/brackets.f90 \
+    $(SRC_DIR)/Core/EOS/EOS_1d_thermal.f90 \
+    $(SRC_DIR)/Core/io/io_1d.f90
 
+# Map source files to object files
+MODULE_OBJS := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(MODULE_SRCS:.f90=.o))
+
+# Driver
 DRIVER_SRC := $(SRC_DIR)/driver/1D_Thermal_driver.f90
-
-# Object files
-MODULE_OBJS := $(patsubst $(SRC_DIR)/%.f90,$(OBJ_DIR)/%.o,$(MODULE_SRCS))
-DRIVER_OBJ := $(patsubst $(SRC_DIR)/%.f90,$(OBJ_DIR)/%.o,$(DRIVER_SRC))
+DRIVER_OBJ := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(DRIVER_SRC:.f90=.o))
 
 # ========================
 # Default target
@@ -40,31 +41,32 @@ DRIVER_OBJ := $(patsubst $(SRC_DIR)/%.f90,$(OBJ_DIR)/%.o,$(DRIVER_SRC))
 all: $(EXEC)
 
 # ========================
-# Build executable
+# Link executable
 # ========================
 $(EXEC): $(MODULE_OBJS) $(DRIVER_OBJ) | $(BIN_DIR)
 	$(FC) $(FFLAGS) -J$(MOD_DIR) -o $@ $^
 
 # ========================
-# Compile modules and driver
+# Compile any module or driver
 # ========================
-# General rule: compile any .f90 source to corresponding obj/ folder
-# Compile any .f90 source in nested directories
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | $(MOD_DIR)
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $< -J$(MOD_DIR) -o $@
 
-
 # ========================
-# Directories
+# Ensure directories exist
 # ========================
 $(BIN_DIR) $(MOD_DIR):
 	mkdir -p $@
 
 # ========================
-# Clean
+# Clean build artifacts
 # ========================
 clean:
+	rm -rf $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR)
+
+.PHONY: all clean
+
 	rm -rf $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR)
 
 .PHONY: all clean
