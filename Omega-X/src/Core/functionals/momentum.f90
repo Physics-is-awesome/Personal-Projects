@@ -1,26 +1,46 @@
+
 module momentum
   use mesh
-  use states
+  use projection_matrix
   implicit none
-  real(8), intent(in)  :: u_h(N), m_h(N), d_dx(u_h, i), d_dx(eta_h, i), rho_h(i), sigma_h(i) d_dx(T_h, i), d_dx(u_h, i), Mii(N) Re, dx, dphi_dx
-  real(8), intent(out) :: dmdt(N)
-  real(8) :: momentum_RHS(N)
+  real(8), intent(in)  :: rho_h(N), m_h(N), sigma_h(N), eta_h(N), T_h(N)
+  real(8), intent(out) :: rhs(N)
+
+  real(8) :: u_h(N), mu(N)
+  real(8) :: du_proj(N), dmu_proj(N), deta_proj(N), dT_proj(N)
   integer :: i
   real(8), parameter :: Re = 100.0d0
 
-do i = 2, N-1
-    momentum_RHS(i) = &
-   + m_h(i) * dphi_dx * u_h(i) * dx &                  ! (m u, ∂x φ)
-   - m_h(i) * d_dx(u_h, i) * dx &                     ! (m ∂x u, φ)
-   - rho_h(i) * d_dx(eta_h, i) * dx &                 ! (ρ ∂x η, φ)
-   - sigma_h(i) * d_dx(T_h, i) * dx &                 ! (σ ∂x T, φ)
-   - (1.0d0 / Re) * d_dx(u_h, i) * dphi_dx * dx       ! viscous term
-end do
+  ! Compute velocity
+  do i = 1, N
+    if (rho_h(i) > 1.0d-12) then
+      u_h(i) = m_h(i) / rho_h(i)
+    else
+      u_h(i) = 0.0d0
+    end if
+  end do
 
-do i = 2, N-1
-    dmdt(i) = - RHS(i) / Mii(i)
-end do
+  ! Project derivatives
+  call apply_weak_derivative(u_h, du_proj)
 
+  mu = m_h * u_h
+  call apply_weak_derivative(mu, dmu_proj)
 
+  call apply_weak_derivative(eta_h, deta_proj)
+  call apply_weak_derivative(T_h, dT_proj)
 
-end module momentum
+  ! Assemble RHS
+  do i = 2, N-1
+    rhs(i) = 0.0d0
+    rhs(i) = rhs(i) - m_h(i) * du_proj(i) * dx
+    rhs(i) = rhs(i) + dmu_proj(i) * dx
+    rhs(i) = rhs(i) - rho_h(i) * deta_proj(i) * dx
+    rhs(i) = rhs(i) - sigma_h(i) * dT_proj(i) * dx
+    rhs(i) = rhs(i) - (1.0d0 / Re) * du_proj(i) * dx
+  end do
+
+  ! Boundary conditions
+  rhs(1) = 0.0d0
+  rhs(N) = 0.0d0
+end subroutine momentum
+
