@@ -15,10 +15,10 @@ $(shell mkdir -p $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR))
 OBJ_CORE := \
     $(OBJ_DIR)/Core/mesh/mesh_1d.o \
     $(OBJ_DIR)/Core/initialize/states_1d.o \
+	$(OBJ_DIR)/Core/functionals/projection_matrix_1d.o \
     $(OBJ_DIR)/Core/functionals/mass_1d.o \
     $(OBJ_DIR)/Core/functionals/momentum_1d.o \
     $(OBJ_DIR)/Core/functionals/entropy_1d.o \
-    $(OBJ_DIR)/Core/functionals/projection_matrix_1d.o \
     $(OBJ_DIR)/Core/time_integrator/time_integrator.o \
     $(OBJ_DIR)/Core/brackets.o \
     $(OBJ_DIR)/Core/EOS/EOS_1d_thermal.o \
@@ -45,6 +45,11 @@ $(OBJ_DIR)/Core/functionals/mass_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/mass_1d.f90 -J$(MOD_DIR) -o $@
 
+
+$(OBJ_DIR)/Core/functionals/projection_matrix_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
+	@mkdir -p $(dir $@)
+	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/projection_matrix_1d.f90 -J$(MOD_DIR) -o $@
+
 $(OBJ_DIR)/Core/functionals/momentum_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/momentum_1d.f90 -J$(MOD_DIR) -o $@
@@ -53,9 +58,6 @@ $(OBJ_DIR)/Core/functionals/entropy_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/entropy_1d.f90 -J$(MOD_DIR) -o $@
 
-$(OBJ_DIR)/Core/functionals/projection_matrix_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
-	@mkdir -p $(dir $@)
-	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/projection_matrix_1d.f90 -J$(MOD_DIR) -o $@
 
 $(OBJ_DIR)/Core/time_integrator/time_integrator.o: $(OBJ_DIR)/Core/functionals/mass_1d.o $(OBJ_DIR)/Core/functionals/momentum_1d.o $(OBJ_DIR)/Core/functionals/entropy_1d.o $(OBJ_DIR)/Core/functionals/projection_matrix_1d.o
 	@mkdir -p $(dir $@)
