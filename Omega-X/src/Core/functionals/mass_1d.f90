@@ -1,26 +1,31 @@
 module mass_1d
-  use mesh_1d
-  use projection_matrix_1d
   implicit none
-  real(8), intent(in)  :: rho_h(N), u_h(N)
-  real(8), intent(out) :: rho_rhs(N)
-  real(8) :: flux(N)
-  integer :: i
+contains
 
-  ! Compute pointwise flux: rho * u
-  do i = 1, N
-    flux(i) = rho_h(i) * u_h(i)
-  end do
+  subroutine compute_mass_flux(N, rho_h, u_h, dx, rho_rhs)
+    integer, intent(in) :: N
+    real(8), intent(in) :: rho_h(N), u_h(N)
+    real(8), intent(out) :: rho_rhs(N)
+    real(8) :: flux(N)
+    integer :: i
 
-  ! Apply Galerkin derivative projection to flux
-  call apply_weak_derivative(flux, rho_rhs)
+    ! Compute flux
+    do i = 1, N
+      flux(i) = rho_h(i) * u_h(i)
+    end do
 
-  ! Multiply by 1/dx to apply M^{-1} (lumped mass matrix)
-  do i = 1, N
-    rho_rhs(i) = -rho_rhs(i) / dx
-  end do
+    ! Apply weak derivative
+    call apply_weak_derivative(flux, rho_rhs)
 
-  ! Optional: boundary conditions (e.g., zero mass flux)
-  rho_rhs(1) = 0.0d0
-  rho_rhs(N) = 0.0d0
+    ! Divide by dx
+    do i = 1, N
+      rho_rhs(i) = -rho_rhs(i) / dx
+    end do
+
+    ! Boundary conditions
+    rho_rhs(1) = 0.0d0
+    rho_rhs(N) = 0.0d0
+
+  end subroutine compute_mass_flux
+
 end module mass_1d
