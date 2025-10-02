@@ -1,5 +1,5 @@
-module states
-  use mesh
+module states_1d
+  use mesh_1d
   implicit none
   private
   public :: m_h, rho_h, sigma_h, eta_h, T_h
