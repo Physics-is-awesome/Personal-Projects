@@ -18,7 +18,6 @@ EXEC := $(BIN_DIR)/thermal_sim
 # ========================
 # List all modules explicitly or use a wildcard per folder
 MODULE_SRCS := \
-    $(SRC_DIR)/Core/brackets.f90 \
     $(SRC_DIR)/Core/EOS/EOS_1d_thermal.f90 \
     $(SRC_DIR)/Core/functionals/entropy_1d.f90 \
     $(SRC_DIR)/Core/functionals/mass_1d.f90 \
