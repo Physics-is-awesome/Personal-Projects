@@ -11,7 +11,7 @@ module states_1d
   real(8), allocatable :: sigma_h(:)   ! Entropy density
   real(8), allocatable :: eta_h(:)     ! Specific entropy (diagnostic)
   real(8), allocatable :: T_h(:)       ! Temperature (diagnostic)
-  real(8),  :: gamma, Pr, Re
+  real(8)  :: gamma, Pr, Re
 
 contains
   subroutine init_constants()
