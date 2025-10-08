@@ -46,5 +46,5 @@ contains
 
   end subroutine advance_one_step
 
-end module time_integrator
+end module time_integrator_1d
 
