@@ -12,7 +12,7 @@ module time_integrator_1d
 
 contains
 
-  subroutine advance_one_step(dt)
+  subroutine advance_one_step(dt, Pr, Re, gamma, dx, dt)
     implicit none
     real(8), intent(in) :: dt, Pr, Re, gamma, dx
     real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N)
