@@ -8,7 +8,7 @@ contains
     ! Dummy arguments
     integer, intent(in) :: N
     real(8), intent(in) :: sigma_h(N), u_h(N), T_h(N)
-    real(8), intent(in) :: dx, Re, Pr, gamma
+    real(8), intent(in) :: dx
     real(8), intent(out) :: rhs(N)
 
     ! Local variables
