@@ -6,6 +6,7 @@ contains
   subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs_sigma)
     implicit none
     ! Dummy arguments
+    real :: Re, Pr, gamma
     integer, intent(in) :: N
     real(8), intent(in) :: sigma_h(N), u_h(N), T_h(N)
     real(8), intent(in) :: dx
@@ -22,7 +23,7 @@ contains
     end do
 
     ! Apply weak derivatives
-    call apply_weak_derivative(flux, rhs)
+    call apply_weak_derivative(flux, rhs_sigma)
     call apply_weak_derivative(u_h, dx_u)
     call apply_weak_derivative(T_h, dx_T)
 
