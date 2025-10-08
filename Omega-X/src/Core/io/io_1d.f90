@@ -32,4 +32,4 @@ contains
     close(10)
   end subroutine write_state_to_csv
 
-end module io
+end module io_1d
