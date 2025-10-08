@@ -6,7 +6,7 @@ contains
   subroutine compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs_m)
     integer, intent(in) :: N, dx
     real(8), intent(in) :: rho_h(N), m_h(N), sigma_h(N), eta_h(N), T_h(N)
-    real(8), intent(out) :: rhs(N)
+    real(8), intent(out) :: rhs_m(N)
     real(8) :: u_h(N), du_proj(N), mu(N), dmu_proj(N), deta_proj(N), dT_proj(N)
     integer :: i
 
