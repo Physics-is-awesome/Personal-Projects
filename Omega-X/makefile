@@ -62,7 +62,7 @@ $(OBJ_DIR)/Core/functionals/velocity_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.
 $(OBJ_DIR)/Core/functionals/entropy_1d.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/functionals/entropy_1d.f90 -J$(MOD_DIR) -o $@
-$(OBJ_DIR)/Core/EOS/EOS_1d_thermal.o: $(OBJ_DIR)/Core/brackets.o
+$(OBJ_DIR)/Core/EOS/EOS_1d_thermal.o: $(OBJ_DIR)/Core/initialize/states_1d.o
 	@mkdir -p $(dir $@)
 	$(FC) $(FFLAGS) -c $(SRC_DIR)/Core/EOS/EOS_1d_thermal.f90 -J$(MOD_DIR) -o $@
 
