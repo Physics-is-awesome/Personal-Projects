@@ -6,7 +6,7 @@ contains
   subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs_sigma)
     implicit none
     ! Dummy arguments
-    real :: Re, Pr, gamma
+    real(8) :: Re, Pr, gamma
     integer, intent(in) :: N
     real(8), intent(in) :: sigma_h(N), u_h(N), T_h(N)
     real(8), intent(in) :: dx
