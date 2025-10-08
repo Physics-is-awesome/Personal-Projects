@@ -33,9 +33,9 @@ contains
     end do
 
     ! Step 4: Compute Galerkin RHS terms
-    call compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs)
+    call compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs_m)
     call compute_mass_flux(N, rho_h, u_h, dx, rho_rhs)
-    call compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs)
+    call compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs_sigma)
 
     ! Step 5: Advance in time (Euler / RK1)
     do i = 1, N
