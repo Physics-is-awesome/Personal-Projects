@@ -11,8 +11,8 @@ contains
   ! Compute temperature T from specific entropy eta
   ! T = (gamma - 1) * eta
   !------------------------------------------------------------
-  function compute_temperature(rho, eta) result(T)
-    real(8), intent(in) :: rho, eta
+  function compute_temperature(rho_h, eta_h) result(T)
+    real(8), intent(in) :: rho_h, eta_h
     real(8) :: T
 
     T = (gamma - 1.0d0) * eta
@@ -22,11 +22,11 @@ contains
   ! Compute specific entropy eta from temperature
   ! eta = T / (gamma - 1)
   !------------------------------------------------------------
-  function compute_eta(rho, T) result(eta)
-    real(8), intent(in) :: rho, T
-    real(8) :: eta
+  function compute_eta(rho_h, T_h) result(eta_h)
+    real(8), intent(in) :: rho_h, T_h
+    real(8) :: eta_h
 
-    eta = T / (gamma - 1.0d0)
+    eta_h = T_h / (gamma - 1.0d0)
   end function compute_eta
 
 end module eos
