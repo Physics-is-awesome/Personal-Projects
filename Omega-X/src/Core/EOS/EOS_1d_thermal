@@ -4,7 +4,7 @@ module eos
   private
   public :: compute_temperature, compute_eta
 
-  real :: gamma 
+  real(8) :: gamma 
 
 contains
 
