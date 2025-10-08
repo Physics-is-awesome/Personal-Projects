@@ -15,7 +15,7 @@ contains
     real(8) :: u_h(N)
 
     ! Compute velocity u = m / rho
-    call compute_velocity(m_h, rho_h, u_h)
+    call compute_velocity(N, rho_h, m_h, u_h)
 
     ! Open file for writing
     open(unit=10, file=filename, status="replace", action="write", form="formatted")
