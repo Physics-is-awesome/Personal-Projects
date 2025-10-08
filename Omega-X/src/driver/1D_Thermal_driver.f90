@@ -17,7 +17,7 @@ program omega_x_driver_1d
   call initialize_states()
 
   do while (t < t_end)
-    call advance_one_step(dt)
+    call advance_one_step(Pr, Re, gamma, dx, dt)
     t = t + dt
     print *, 't = ', t
   end do
