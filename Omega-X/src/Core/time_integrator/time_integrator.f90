@@ -18,7 +18,8 @@ contains
 
     real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N)
     integer :: i
-
+    ! step 0: call constants
+    call init_constants()
     ! Step 1: Compute velocity
     call compute_velocity(N, rho_h, m_h, u_h)
 
