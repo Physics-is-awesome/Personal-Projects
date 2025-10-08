@@ -14,8 +14,7 @@ contains
 
   subroutine advance_one_step(dt)
     implicit none
-    real(8), intent(in) :: dt
-    real(8) :: Pr, Re, gamma, dx
+    real(8), intent(in) :: dt, Pr, Re, gamma, dx
     real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N)
     integer :: i
 
