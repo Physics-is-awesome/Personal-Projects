@@ -16,7 +16,7 @@ contains
     implicit none
     real(8), intent(in) :: dt
 
-    real(8) :: u_h(N), rhs_m(N), rhs_rho(N), rhs_sigma(N)
+    real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N)
     integer :: i
 
     ! Step 1: Compute velocity
@@ -40,7 +40,7 @@ contains
     ! Step 5: Advance in time (Euler / RK1)
     do i = 1, N
       m_h(i)     = m_h(i)     + dt * rhs_m(i)
-      rho_h(i)   = rho_h(i)   + dt * rhs_rho(i)
+      rho_h(i)   = rho_h(i)   + dt * rho_rhs(i)
       sigma_h(i) = sigma_h(i) + dt * rhs_sigma(i)
     end do
 
