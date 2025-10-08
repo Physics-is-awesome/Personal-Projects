@@ -3,7 +3,7 @@ module momentum_1d
   implicit none
 contains
 
-  subroutine compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs)
+  subroutine compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs_m)
     integer, intent(in) :: N, dx
     real(8), intent(in) :: rho_h(N), m_h(N), sigma_h(N), eta_h(N), T_h(N)
     real(8), intent(out) :: rhs(N)
@@ -28,17 +28,17 @@ contains
 
     ! Compute RHS
     do i = 2, N-1
-      rhs(i) = 0.0d0
-      rhs(i) = rhs(i) - m_h(i) * du_proj(i) * dx
-      rhs(i) = rhs(i) + dmu_proj(i) * dx
-      rhs(i) = rhs(i) - rho_h(i) * deta_proj(i) * dx
-      rhs(i) = rhs(i) - sigma_h(i) * dT_proj(i) * dx
-      rhs(i) = rhs(i) - (1.0d0 / Re) * du_proj(i) * dx
+      rhs_m(i) = 0.0d0
+      rhs_m(i) = rhs(i) - m_h(i) * du_proj(i) * dx
+      rhs_m(i) = rhs(i) + dmu_proj(i) * dx
+      rhs_m(i) = rhs(i) - rho_h(i) * deta_proj(i) * dx
+      rhs_m(i) = rhs(i) - sigma_h(i) * dT_proj(i) * dx
+      rhs_m(i) = rhs(i) - (1.0d0 / Re) * du_proj(i) * dx
     end do
 
     ! Boundary conditions
-    rhs(1) = 0.0d0
-    rhs(N) = 0.0d0
+    rhs_m(1) = 0.0d0
+    rhs_m(N) = 0.0d0
 
   end subroutine compute_momentum_rhs
 
