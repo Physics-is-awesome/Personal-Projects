@@ -29,11 +29,11 @@ contains
     ! Compute RHS
     do i = 2, N-1
       rhs_m(i) = 0.0d0
-      rhs_m(i) = rhs(i)_m - m_h(i) * du_proj(i) * dx
-      rhs_m(i) = rhs(i)_m + dmu_proj(i) * dx
-      rhs_m(i) = rhs(i)_m - rho_h(i) * deta_proj(i) * dx
-      rhs_m(i) = rhs(i)_m - sigma_h(i) * dT_proj(i) * dx
-      rhs_m(i) = rhs(i)_m - (1.0d0 / Re) * du_proj(i) * dx
+      rhs_m(i) = rhs_m(i) - m_h(i) * du_proj(i) * dx
+      rhs_m(i) = rhs_m(i) + dmu_proj(i) * dx
+      rhs_m(i) = rhs_m(i) - rho_h(i) * deta_proj(i) * dx
+      rhs_m(i) = rhs_m(i) - sigma_h(i) * dT_proj(i) * dx
+      rhs_m(i) = rhs_m(i) - (1.0d0 / Re) * du_proj(i) * dx
     end do
 
     ! Boundary conditions
