@@ -1,9 +1,10 @@
 module eos
+  use states_1d
   implicit none
   private
   public :: compute_temperature, compute_eta
 
-  real(8), parameter :: gamma = 1.4d0
+  real :: gamma 
 
 contains
 
@@ -11,11 +12,11 @@ contains
   ! Compute temperature T from specific entropy eta
   ! T = (gamma - 1) * eta
   !------------------------------------------------------------
-  function compute_temperature(rho_h, eta_h) result(T)
+  function compute_temperature(rho_h, eta_h) result(T_h)
     real(8), intent(in) :: rho_h, eta_h
-    real(8) :: T
+    real(8) :: T_h
 
-    T = (gamma - 1.0d0) * eta
+    T_h = (gamma - 1.0d0) * eta_h
   end function compute_temperature
 
   !------------------------------------------------------------
