@@ -4,8 +4,8 @@ program omega_x_driver_1d
   use time_integrator_1d
   use io_1d
   implicit none
-
-  real(8) :: dt, t, t_end, Pr, Re, gamma, dx
+  real(8), intent(in) :: Pr, Re, gamma, dx
+  real(8) :: dt, t, t_end
   integer :: step
   character(len=100) :: fname
   
