@@ -12,11 +12,13 @@ module states_1d
   real(8), allocatable :: eta_h(:)     ! Specific entropy (diagnostic)
   real(8), allocatable :: T_h(:)       ! Temperature (diagnostic)
   real(8),  :: gamma, Pr, Re
-  gamma = 1.4
-  Pr = 0.71
-  Re = 1000.0
-contains
 
+contains
+  subroutine init_constants()
+    gamma = 1.4
+    Pr = 0.71
+    Re = 1000.0
+  end subroutine init_constants
   subroutine initialize_states()
     implicit none
     integer :: i
