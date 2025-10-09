@@ -1,10 +1,11 @@
 module mass_1d
+  use mesh_1d
   implicit none
 contains
 
-  subroutine compute_mass_flux(N, rho_h, u_h, dx, rho_rhs)
+  subroutine compute_mass_flux(N, rho_h, u_h, rho_rhs)
     integer, intent(in) :: N
-    real(8), intent(in) :: rho_h(N), u_h(N), dx
+    real(8), intent(in) :: rho_h(N), u_h(N)
     real(8), intent(out) :: rho_rhs(N)
     real(8) :: flux(N)
     integer :: i
