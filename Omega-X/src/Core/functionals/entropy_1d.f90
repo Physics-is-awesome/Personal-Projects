@@ -1,15 +1,14 @@
 module entropy_1d
   use states_1d
+  use mesh_1d
   implicit none
 contains
 
   subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs_sigma)
     implicit none
     ! Dummy arguments
-    real(8), intent(in) :: Re, Pr, gamma
     integer, intent(in) :: N
     real(8), intent(in) :: sigma_h(N), u_h(N), T_h(N)
-    real(8), intent(in) :: dx
     real(8), intent(out) :: rhs_sigma(N)
 
     ! Local variables
