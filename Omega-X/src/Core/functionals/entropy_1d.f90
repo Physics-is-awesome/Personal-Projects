@@ -4,7 +4,7 @@ module entropy_1d
   implicit none
 contains
 
-  subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs_sigma)
+  subroutine compute_entropy_rhs(N, sigma_h, u_h, T_h, rhs_sigma)
     implicit none
     ! Dummy arguments
     integer, intent(in) :: N
