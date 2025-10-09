@@ -1,5 +1,6 @@
 module momentum_1d
   use states_1d
+  use mesh_1d
   implicit none
 contains
 
