@@ -30,9 +30,9 @@ contains
     Mii = dx
 
     ! Uncomment below to use trapezoidal mass matrix
-    ! Mii(1) = 0.5d0 * dx
-    ! Mii(N) = 0.5d0 * dx
-    ! Mii(2:N-1) = dx
+    Mii(1) = 0.5d0 * dx
+    Mii(N) = 0.5d0 * dx
+    Mii(2:N-1) = dx
 
   end subroutine initialize_mesh
 
