@@ -14,7 +14,7 @@ contains
 
   subroutine advance_one_step(Pr, Re, gamma, dx, dt)
     real(8), intent(in) :: dt, Pr, Re, gamma, dx
-    real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N)
+    real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N), T_h(N), eta_h(i)
     integer :: i
 
     ! Step 1: Compute velocity
@@ -29,8 +29,6 @@ contains
       eta_h(i) =compute_eta(T_h(i))
     end do
     ! Step 4: Compute Galerkin RHS terms
-    ! call temp and eta
-    call compute_temperature(rho_h, eta_h) result(T_h)
     call compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, rhs_m)
     call compute_mass_flux(N, rho_h, u_h, rho_rhs)
     call compute_entropy_rhs(N, sigma_h, u_h, T_h, rhs_sigma)
