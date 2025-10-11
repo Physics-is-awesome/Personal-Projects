@@ -22,7 +22,9 @@ contains
 
     ! Apply weak derivatives
     call apply_weak_derivative(u_h, du_proj)
-    mu = m_h * u_h
+    do i = 2, N-1
+      mu(i) = m_h(i) * u_h(i)
+    end do
     call apply_weak_derivative(mu, dmu_proj)
     call apply_weak_derivative(eta_h, deta_proj)
     call apply_weak_derivative(T_h, dT_proj)
