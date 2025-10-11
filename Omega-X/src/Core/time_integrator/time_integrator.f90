@@ -19,21 +19,21 @@ contains
 
     ! Step 1: Compute velocity
     call compute_velocity(N, rho_h, m_h, u_h)
-
-    ! Step 2: Compute eta = sigma / rho
-    do i = 1, N
-      eta_h(i) = sigma_h(i) / rho_h(i)
+    
+    ! Step 2: calculate tempeture
+    do i = 1, N-1
+      T_h = compute_temperature(rho_h, eta_h) 
     end do
-
-    ! Step 3: Compute temperature via EOS
-    do i = 1, N
-      T_h(i) = compute_temperature(rho_h(i), eta_h(i))
+    ! step three: calculate Eta
+    do i = 1, N-1
+      eta_h =compute_eta(rho_h, T_h)
     end do
-
     ! Step 4: Compute Galerkin RHS terms
-    call compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, dx, Re, rhs_m)
-    call compute_mass_flux(N, rho_h, u_h, dx, rho_rhs)
-    call compute_entropy_rhs(N, sigma_h, u_h, T_h, dx, Re, Pr, gamma, rhs_sigma)
+    ! call temp and eta
+    call compute_temperature(rho_h, eta_h) result(T_h)
+    call compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, rhs_m)
+    call compute_mass_flux(N, rho_h, u_h, rho_rhs)
+    call compute_entropy_rhs(N, sigma_h, u_h, T_h, rhs_sigma)
 
     ! Step 5: Advance in time (Euler / RK1)
     do i = 1, N
