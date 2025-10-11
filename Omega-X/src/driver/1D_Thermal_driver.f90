@@ -5,7 +5,7 @@ program omega_x_driver_1d
   use io_1d
   implicit none
   real(8) :: dt, t, t_end
-  integer :: step
+  integer :: step = 1
   character(len=100) :: fname
   
   dt = 1.0d-3
