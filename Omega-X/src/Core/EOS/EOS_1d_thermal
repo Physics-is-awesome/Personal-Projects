@@ -1,4 +1,4 @@
-module eos
+module eos_1d
   use states_1d
   implicit none
   private
@@ -30,4 +30,4 @@ contains
     eta_h = T_h / (gamma - 1.0d0)
   end function compute_eta
 
-end module eos
+end module eos_1d
