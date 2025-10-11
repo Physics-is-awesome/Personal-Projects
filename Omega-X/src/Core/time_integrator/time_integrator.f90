@@ -14,7 +14,7 @@ contains
 
   subroutine advance_one_step(Pr, Re, gamma, dx, dt)
     real(8), intent(in) :: dt, Pr, Re, gamma, dx
-    real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N), T_h(N), eta_h(i)
+    real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N), T_h(N), eta_h(N)
     integer :: i
 
     ! Step 1: Compute velocity
