@@ -22,11 +22,11 @@ contains
     
     ! Step 2: calculate tempeture
     do i = 1, N-1
-      T_h = compute_temperature(rho_h, eta_h) 
+      T_h = compute_temperature(eta_h) 
     end do
     ! step three: calculate Eta
     do i = 1, N-1
-      eta_h =compute_eta(rho_h, T_h)
+      eta_h =compute_eta(T_h)
     end do
     ! Step 4: Compute Galerkin RHS terms
     ! call temp and eta
