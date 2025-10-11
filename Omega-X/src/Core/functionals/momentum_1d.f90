@@ -5,7 +5,6 @@ module momentum_1d
 contains
 
   subroutine compute_momentum_rhs(N, rho_h, m_h, sigma_h, eta_h, T_h, rhs_m)
-    use states_1d
     integer, intent(in) :: N
     real(8), intent(in) :: rho_h(N), m_h(N), sigma_h(N), eta_h(N), T_h(N)
     real(8), intent(out) :: rhs_m(N)
