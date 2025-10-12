@@ -17,6 +17,7 @@ contains
     end do
 
     ! Apply weak derivative
+    call initialize_projection_matrix()
     call apply_weak_derivative(flux, rho_rhs)
 
     ! Divide by dx
