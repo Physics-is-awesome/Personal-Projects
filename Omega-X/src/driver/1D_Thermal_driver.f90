@@ -32,10 +32,4 @@ program omega_x_driver_1d
 
     step = step + 1
   end do
-
-
-
-
-  
-
 end program omega_x_driver_1d
