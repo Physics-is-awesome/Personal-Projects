@@ -154,12 +154,12 @@ class Ragdoll:
                     b.pos -= delta * (corr * (w2 / wsum))
 
     def apply_balance(self):
-        # Small PD-like stabilization: try to align torso roughly above pelvis
+        # Stronger PD-like stabilization: align torso roughly above pelvis
         target = Vec(self.pelvis.pos.x, self.pelvis.pos.y - 28)
         error = target - self.torso.pos
-        # apply small restoring force to torso and pelvis
-        self.torso.apply_force(error * 45.0)
-        self.pelvis.apply_force((-error) * 12.0)
+        # Increase restoring force to torso and pelvis
+        self.torso.apply_force(error * 100.0)  # Adjust multiplier to make it stronger
+        self.pelvis.apply_force((-error) * 40.0)
 
     def parts_on_ground(self, tiles):
         # simple ground test: if any lower-leg/shin collides with tiles
@@ -311,6 +311,8 @@ def main():
     while running:
         dt = clock.tick(60)/1000.0
         for ev in pygame.event.get():
+            if self.on_ground:
+                self.apply_balance()
             if ev.type == pygame.QUIT:
                 running = False
             if ev.type == pygame.KEYDOWN:
