@@ -13,6 +13,9 @@ contains
     character(len=*), intent(in) :: filename
     integer :: i
     real(8) :: u_h(N)
+    integer :: ierr
+
+    call execute_command_line("mkdir -p output", ierr)
 
     ! Compute velocity u = m / rho
     call compute_velocity(N, rho_h, m_h, u_h)
