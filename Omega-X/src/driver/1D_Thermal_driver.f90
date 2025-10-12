@@ -15,6 +15,10 @@ program omega_x_driver_1d
   
   call initialize_mesh()
   call initialize_states()
+  u_h = 0.0d0
+  rhs_m = 0.0d0
+  rho_rhs = 0.0d0
+  rhs_sigma = 0.0d0  ! Explicitly initialize rhs_sigma here
 
   do while (t < t_end)
     call advance_one_step(dt, rhs_m, rho_rhs, rhs_sigma)
