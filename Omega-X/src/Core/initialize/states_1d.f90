@@ -33,7 +33,7 @@ contains
       rho_h(i) = 1.0d0 + 0.2d0 * exp(-100.0d0 * (x_nodes(i) - 0.5d0)**2)
       eta_h(i) = 1.0d0
       sigma_h(i) = rho_h(i) * eta_h(i)
-      m_h(i) = 0.0d0
+      m_h(i) = 0.5d0
       T_h(i) = (0.4d0) * eta_h(i)  ! Ideal gas ! Uses EOS
     end do
 
