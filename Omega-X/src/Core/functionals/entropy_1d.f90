@@ -23,6 +23,7 @@ contains
     end do
 
     ! Apply weak derivatives
+    call initialize_projection_matrix()
     call apply_weak_derivative(flux, rhs_sigma)
     call apply_weak_derivative(u_h, dx_u)
     call apply_weak_derivative(T_h, dx_T)
