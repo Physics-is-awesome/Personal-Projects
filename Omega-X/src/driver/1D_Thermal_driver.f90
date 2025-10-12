@@ -24,11 +24,18 @@ program omega_x_driver_1d
     call advance_one_step(dt, u_h, rhs_m, rho_rhs, rhs_sigma)
     t = t + dt
     print *, 't = ', t
+
+    if (mod(step, 100) == 0) then
+        write(fname, '(A,I4.4,A)') "output/state_", step, ".csv"
+        call write_state_to_csv(fname)
+    end if
+
+    step = step + 1
   end do
 
 
 
-  step = step + 1
-  call write_state_to_csv(filename)
+
+  
 
 end program omega_x_driver_1d
