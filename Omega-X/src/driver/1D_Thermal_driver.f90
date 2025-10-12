@@ -15,7 +15,6 @@ program omega_x_driver_1d
   
   call initialize_mesh()
   call initialize_states()
-  call initialize_projection_matrix()
   u_h = 0.0d0
   rhs_m = 0.0d0
   rho_rhs = 0.0d0
