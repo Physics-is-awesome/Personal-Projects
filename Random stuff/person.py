@@ -11,7 +11,7 @@ SCREEN_W, SCREEN_H = 1200, 720
 screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 clock = pygame.time.Clock()
 FONT = pygame.font.SysFont("Consolas", 18)
-
+global cam_x, cam_y
 # ----------------------
 # Utility / Vec2
 # ----------------------
@@ -634,7 +634,7 @@ def main():
                     player.on_ground = True
 
         # camera centered on player with up-scrolling (allow vertical follow upward)
-        global cam_x, cam_y
+        
         cam_x = player.pos.x - SCREEN_W/2
         cam_y = player.pos.y - SCREEN_H/2
         # clamp camera bounds horizontally
