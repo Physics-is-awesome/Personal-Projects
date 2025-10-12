@@ -1,6 +1,7 @@
 module momentum_1d
   use states_1d, only: Re
   use mesh_1d
+  use projection_matrix_1d
   implicit none
 contains
 
