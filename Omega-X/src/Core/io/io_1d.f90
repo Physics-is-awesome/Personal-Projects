@@ -2,6 +2,7 @@ module io_1d
   use mesh_1d
   use states_1d
   use velocity_1d
+  use time_integrator_1d
   implicit none
   private
   public :: write_state_to_csv
@@ -15,7 +16,7 @@ contains
     logical :: wait
     real(8) :: u_h(N)
     integer :: ierr
-
+    
     ! Ensure the output directory exists
     wait = .true.  ! Command should run synchronously
     call execute_command_line("mkdir -p output", wait, ierr)
