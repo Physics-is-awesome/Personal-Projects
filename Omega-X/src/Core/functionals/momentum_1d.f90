@@ -22,6 +22,7 @@ contains
     end do
 
     ! Apply weak derivatives
+    call initialize_projection_matrix()
     call apply_weak_derivative(u_h, du_proj)
     do i = 2, N-1
       mu(i) = m_h(i) * u_h(i)
