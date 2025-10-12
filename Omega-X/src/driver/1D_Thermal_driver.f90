@@ -11,7 +11,7 @@ program omega_x_driver_1d
   dt = 1.0d-3
   t_end = 1.0d0
   t = 0.0d0
-  real(8), dimension(N) :: u_h, rhs_m, rho_rhs, rhs_sigma, T_h, eta_h
+  real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N), T_h(N), eta_h(N)
   call initialize_mesh()
   call initialize_states()
 
