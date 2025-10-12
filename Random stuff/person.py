@@ -19,6 +19,8 @@ class Vec:
     __slots__ = ("x","y")
     def __init__(self,x=0.0,y=0.0):
         self.x=float(x); self.y=float(y)
+    def __neg__(self):
+        return Vec(-self.x, -self.y)
     def copy(self): return Vec(self.x,self.y)
     def tuple(self): return (self.x,self.y)
     def __add__(self,o): return Vec(self.x+o.x, self.y+o.y)
