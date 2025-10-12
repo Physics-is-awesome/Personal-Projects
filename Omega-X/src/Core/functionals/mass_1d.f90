@@ -1,5 +1,6 @@
 module mass_1d
   use mesh_1d
+  use projection_matrix_1d
   implicit none
 contains
 
