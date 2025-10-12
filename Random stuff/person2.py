@@ -100,20 +100,20 @@ class Ragdoll:
         def joint(a,b, rest, k=0.8):
             return [a,b,rest,k]
         self.joints = [
-            joint(self.pelvis, self.torso, 28*s, 0.9),
-            joint(self.torso, self.head, 38*s, 0.9),
+            joint(self.pelvis, self.torso, 28*s, 0.99),
+            joint(self.torso, self.head, 38*s, 0.99),
             # arms
-            joint(self.torso, self.l_u, 26*s, 0.9),
-            joint(self.l_u, self.l_l, 26*s, 0.9),
-            joint(self.torso, self.r_u, 26*s, 0.9),
-            joint(self.r_u, self.r_l, 26*s, 0.9),
+            joint(self.torso, self.l_u, 26*s, 0.99),
+            joint(self.l_u, self.l_l, 26*s, 0.99),
+            joint(self.torso, self.r_u, 26*s, 0.99),
+            joint(self.r_u, self.r_l, 26*s, 0.99),
             # legs
-            joint(self.pelvis, self.l_th, 36*s, 0.95),
-            joint(self.l_th, self.l_sh, 28*s, 0.95),
-            joint(self.pelvis, self.r_th, 36*s, 0.95),
-            joint(self.r_th, self.r_sh, 28*s, 0.95),
+            joint(self.pelvis, self.l_th, 36*s, 0.99),
+            joint(self.l_th, self.l_sh, 28*s, 0.99),
+            joint(self.pelvis, self.r_th, 36*s, 0.99),
+            joint(self.r_th, self.r_sh, 28*s, 0.99),
             # cross stabilizer (pelvis to head)
-            joint(self.pelvis, self.head, 74*s, 0.12)
+            joint(self.pelvis, self.head, 74*s, 0.40)
         ]
 
         # simple orient stabilization params
