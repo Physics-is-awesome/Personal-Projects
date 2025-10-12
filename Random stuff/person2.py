@@ -311,7 +311,7 @@ def main():
     while running:
         dt = clock.tick(60)/1000.0
         for ev in pygame.event.get():
-            if self.on_ground:
+            if player_rag.on_ground:
                 self.apply_balance()
             if ev.type == pygame.QUIT:
                 running = False
