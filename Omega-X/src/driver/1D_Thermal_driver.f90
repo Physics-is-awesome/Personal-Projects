@@ -21,7 +21,7 @@ program omega_x_driver_1d
   rhs_sigma = 0.0d0  ! Explicitly initialize rhs_sigma here
 
   do while (t < t_end)
-    call advance_one_step(dt, rhs_m, rho_rhs, rhs_sigma)
+    call advance_one_step(dt, u_h, rhs_m, rho_rhs, rhs_sigma)
     t = t + dt
     print *, 't = ', t
   end do
