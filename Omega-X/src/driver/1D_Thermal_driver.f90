@@ -11,12 +11,12 @@ program omega_x_driver_1d
   dt = 1.0d-3
   t_end = 1.0d0
   t = 0.0d0
-  real(8) :: u_h(N), rhs_m(N), rho_rhs(N), rhs_sigma(N), T_h(N), eta_h(N)
+  real(8), dimension(N) :: u_h, rhs_m, rho_rhs, rhs_sigma
   call initialize_mesh()
   call initialize_states()
 
   do while (t < t_end)
-    call advance_one_step(dt, u_h, rhs_m, rho_rhs, rhs_sigma, T_h, eta_h)
+    call advance_one_step(dt, rhs_m, rho_rhs, rhs_sigma)
     t = t + dt
     print *, 't = ', t
   end do
