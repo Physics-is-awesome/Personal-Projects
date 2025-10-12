@@ -6,7 +6,7 @@ program omega_x_driver_1d
   implicit none
   real(8) :: dt, t, t_end
   integer :: step = 1
-  real(8), dimension(N) :: u_h, rhs_m, rho_rhs, rhs_sigma
+  real(8), dimension(N), public :: u_h, rhs_m, rho_rhs, rhs_sigma
   character(len=100) :: fname
   
   dt = 1.0d-3
