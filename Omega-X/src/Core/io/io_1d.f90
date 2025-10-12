@@ -12,10 +12,17 @@ contains
     implicit none
     character(len=*), intent(in) :: filename
     integer :: i
+    logical :: wait
     real(8) :: u_h(N)
     integer :: ierr
 
-    call execute_command_line("mkdir -p output", ierr)
+    ! Ensure the output directory exists
+    wait = .true.  ! Command should run synchronously
+    call execute_command_line("mkdir -p output", wait, ierr)
+    if (ierr /= 0) then
+        print *, "Error: Could not create output directory!"
+        stop
+    end if
 
     ! Compute velocity u = m / rho
     call compute_velocity(N, rho_h, m_h, u_h)
