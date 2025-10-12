@@ -9,6 +9,9 @@ contains
   subroutine initialize_projection_matrix()
     integer :: i
     real(8) :: dphi_dx
+    if (allocated(D)) then
+      deallocate(D)
+    end if
 
     allocate(D(N, N))
     D = 0.0d0
