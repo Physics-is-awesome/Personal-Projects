@@ -1,0 +1,66 @@
+\chapter{Axiom}
+\section{*Structure}
+
+\section{LaTeX}
+\subsection{Division of Structure}
+In this program I have used this structure to divide the book up:
+\begin{verbatim}
+    \part{}
+    \chapter{}
+    \section{}
+    \subsection{}
+    \subsubsection{}
+    \subsubsubsection{} % custom made
+    \paragraph
+    \subparagraph
+\end{verbatim}
+I may have to learn new ways to divide in the future, but I will try to aviod that.
+\subsection{Commands}
+Here are some commands that I will have here for reference:
+\begin{verbatim}
+    \begin{verbatim} writes things exactly, used mostly 
+    for writing LaTeX commands in this method
+    \label{} → Set a reference point
+    \ref{} → Refer to numbered items
+
+    \pageref{} → Refer to page number
+
+    \nameref{} (requires hyperref) → Refer to name/title 
+    of chapter/section
+
+    \autoref{} (requires hyperref) → Smart referencing 
+    (automatically adds “Chapter”, “Section”)
+    \begin{equation} ... \end{equation} → Numbered 
+    equations
+
+    \[ ... \] → Displayed, unnumbered equations
+
+    $ ... $ → Inline math
+
+    \frac{a}{b}, \sqrt{x}, \sum, \int → Standard 
+    math symbols
+
+    \begin{align} ... \end{align} (from amsmath) 
+    → Multi-line aligned equations
+
+    \begin{cases} ... \end{cases} → Piecewise functions
+
+    \bra{}, \ket{}, \braket{} → 
+    Use physics package for quantum notation
+
+    \tensor{} → Use tensor package 
+    for tensor indices
+
+    \dv{}, \pdv{} → Derivatives (from physics)
+    \begin{figure}[h!] ... \end{figure} → 
+    Insert figures
+
+    \includegraphics[width=0.8\textwidth]{file}
+    → Image inclusion (graphicx)
+
+    \caption{} / \label{} → Caption and reference
+
+    \begin{table}[h!] ... \end{table} → Tables
+\end{verbatim}
+
+I also have begin\{lstlisting\} to write both FORTRAN and make. I will likely add python and Julia
