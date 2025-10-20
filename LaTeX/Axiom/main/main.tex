@@ -2,8 +2,12 @@
 \usepackage[width=4.375in, height=7.0in, top=1.0in, papersize={5.5in,8.5in}]{geometry}
 \usepackage[pdftex]{graphicx}
 \usepackage{amsmath}
+\usepackage{epigraph}
 \usepackage{amssymb}
+\usepackage{setspace}
 \usepackage{tipa}
+\usepackage{tgbonum}
+\usepackage{dirtree}
 \usepackage[hidelinks]{hyperref}
 \usepackage{textcomp}
 \usepackage{amsthm}
@@ -19,6 +23,8 @@
 \usepackage{listings}
 \usepackage{xcolor}  % for syntax highlighting colors
 \usepackage{tcolorbox} % A more modern package for frame and background
+
+
 
 % Define the color palette based on the Vim "desert" scheme
 \definecolor{desertbackground}{HTML}{333333}
@@ -107,22 +113,42 @@
 \section*{\huge \center AJ Cason}
 \setcounter{secnumdepth}{8}
 \setcounter{tocdepth}{8}
+
+
 %
 %
 \tableofcontents
 %
 \mainmatter
-\input{Intro}
+\input{Into}
 % part 1
 \input{../text/part_1/part_1_intro}
+\input{../text/part_1/logic}
+\input{../test/part_1/metaphysics}
 \input{../text/part_1/Epistemology}
-\input{../text/part_1/metaphysics}
+\input{../text/part_1/science}
+\input{../text/part_1/phil_phys}
+\input{../text/part_1/physics}
+\input{../text/part_1/math}
+\input{../text/part_1/theology}
+\input{../text/part_1/ethics}
+\input{../text/part_1/social}
+\input{../text/part_1/personal}
 
-% Part 2
+% part 2
 \input{../text/part_2/intro}
-\input{../text/part_2/Omega-X}
-\input{../text/part_2/Axiom}
+\input{../text/part_2/textbook}
+\input{../text/part_2/coding}
 
-% part 3
+% Part 3
 \input{../text/part_3/intro}
+\input{../text/part_3/prev_work}
+\input{../text/part_3/Hamiltonian}
+\input{../text/part_3/Omega-X}
+\input{../text/part_3/Axiom}
+
+% part 4
+\input{../text/part_4/intro}
+\input{../text/part_4/plans}
+\input{../text/part_4/personal_analysis}
 \end{document}
