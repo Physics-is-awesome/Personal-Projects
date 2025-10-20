@@ -1,0 +1,320 @@
+\chapter{Previous Research}
+\par These are brief/lazy copies/explanations of things I have written previously made projects. Copied from my last book Logos
+\section{3D Modeling of Non-Equilibrium Dynamics in Compressed Plasma Using Lattice Boltzmann Method}
+\par The construction of a theoretical model, magnetohydrodynamic lattice boltzmann method(MHD-LBM) model for 3D compressed plasma, using a finite volume scheme is constructed. The hyperbolic Maxwell equations, which satisfy the elliptic constraints of Maxwell's equations and the constraint of charge conservation, are used to simulate the electromagnetic field. The flow field and electromagnetic field are coupled to simulate a compressible plasma through the electromagnetic force and magnetic induction equations. This model can further be applied to create a quantitative simulation to model complex nonequilibrium effects of compressed plasma to provide mesoscopic physical insights into the flow mechanism of a shock wave in a supersonic plasma.
+\par {Theoretical model, Finite volume scheme, hyperbolic maxwell equations, and nonequilibrium effects}
+
+\subsection{3D Modeling of Non-Equilibrium Dynamics in Compressed Plasma Using Lattice Boltzmann Method
+Introduction}
+\par The study of nonequilibrium dynamics in compressible plasma is a critical area of research in plasma physics, with significant implications for both theoretical understanding and practical applications. Compressible plasmas are found in a variety of contexts, such as astrophysical phenomena(1), industrial processes(2,3), and fusion. Understanding the complex interactions and behaviors of plasma under nonequilibrium conditions is essential for advancing these fields.
+\par Previous research has primarily focused on two-dimensional models(4) While these models have provided valuable insights, they often fall short in capturing the full complexity of three-dimensional plasma dynamics. The limitations of these models highlight the need for more advanced simulation techniques that can accurately represent the intricate behaviors of compressible plasma in three dimensions.
+\par The Lattice Boltzmann Method (LBM) offers a powerful tool for modeling fluid dynamics at the microscopic level.(4,5) Unlike traditional computational fluid dynamics methods, such as the Navier-Stokes equation, the LBM is particularly well-suited for simulating nonequilibrium effects and complex boundary conditions. Its ability to handle multiphase flows and incorporate microscopic interactions makes it an ideal choice for studying compressible plasma dynamics.(5)
+\par This paper aims to develop a comprehensive 3D model using the LBM to simulate nonequilibrium effects in compressible plasma. By leveraging the strengths of the LBM, we seek to overcome the limitations of previous models and provide a more accurate and detailed representation of plasma behavior. Our research focuses on the coupling of flow and electromagnetic fields, exploring the interactions and dynamics that arise under nonequilibrium conditions.
+\\
+\\
+\subsection{Physical Model}
+Kinetic Equation
+\par Li and Zhong(10) introduced the potential energy distribution function as well as a compressed DDF Lattice Boltzmann equation. A potential energy distribution function can be added so the Boltzmann BGK can obtain an adjustable specific heat ratio or Prandtl number(4)
+\par This new Boltzmann Kinetic equation can be written as followed:
+
+$$\frac{\partial f_k}{\partial t} + (\mathbf{e}_k \cdot \nabla) f_k + \mathbf{a} \cdot \nabla_e f_k = -\frac{1}{\tau_f} (f_k - f_k^{eq})$$
+
+$$\frac{\partial h_k}{\partial t} + (\mathbf{e}_k \cdot \nabla) h_k + \mathbf{a} \cdot \nabla_e h_k = -\frac{1}{\tau_h} (h_k - h_k^{eq}) + \frac{z_k}{\tau_{hf}} (f_k - f_k^{eq})$$
+
+Where $k$ is the direction of discrete velocity. $f_k$ is the density distribution function. $h_k$ is the potential energy distribution function, while $f_k^{eq}$ is the equilibrium distribution function. $\mathbf{e}_k$ is the discrete velocity component, and $\tau_f$ is the relaxation time of the density distribution function. $\tau_h$ is the relaxation time of the potential energy distribution function.
+
+This can also be defined as:
+
+$$\tau_{fh} = \frac{\tau_f}{\tau_h}$$
+
+The force term can be approximated as:
+
+$$\mathbf{a} \cdot \nabla_e f \approx \mathbf{a} \cdot \nabla_e f^{eq} = -\frac{a \cdot (\mathbf{e}_k - \mathbf{u})^2}{RT} f^{eq}$$
+
+\subsection{Density Distribution Function}
+$$f_k^{n+1}(x_i, y_j, z_l) = f_k^n(x_i, y_j, z_l) - \Delta t \left( \frac{F_{k,i+1/2,j,l} - F_{k,i-1/2,j,l}}{\Delta x} + \frac{F_{k,i,j+1/2,l} - F_{k,i,j-1/2,l}}{\Delta y} + \frac{F_{k,i,j,l+1/2} - F_{k,i,j,l-1/2}}{\Delta z} \right)$$
+$$- \Delta t \cdot \frac{1}{\tau} (f_k - f_k^{eq})$$
+
+\subsection{Potential Energy Distribution}
+$$h_k^{n+1}(x_i, y_j, z_l) = h_k^n(x_i, y_j, z_l) - \Delta t \left( \frac{G_{k,i+1/2,j,l} - G_{k,i-1/2,j,l}}{\Delta x} + \frac{G_{k,i,j+1/2,l} - G_{k,i,j-1/2,l}}{\Delta y} + \frac{G_{k,i,j,l+1/2} - G_{k,i,j,l-1/2}}{\Delta z} \right)$$
+$$- \Delta t \cdot \frac{1}{\tau_h} (h_k - h_k^{eq}) + \frac{z_k}{\tau_{hf}} (f_k - f_k^{eq})$$
+
+\subsection{Hyperbolic Maxwell Equations}
+The previously used Maxwell equations have been enhanced with Lagrange multipliers, $\Psi$ and $\Phi$, to combine with the evolution equation. These are the new Maxwell equations in derivative form:
+
+$$\frac{\partial \mathbf{B}}{\partial t} + \nabla \times \mathbf{E} + \gamma \nabla \psi = 0$$
+$$\frac{\partial \mathbf{E}}{\partial t} - c^2 \nabla \times \mathbf{B} + \chi c^2 \nabla \phi = - \frac{\mathbf{J}}{\epsilon_0}$$
+$$\frac{\partial \Psi}{\partial t} + \gamma c^2 \nabla \cdot \mathbf{B} = 0$$
+$$\frac{\partial \Phi}{\partial t} + \chi \nabla \cdot \mathbf{E} = 0$$
+
+Where $\mathbf{E}$ is the electric field, $\mathbf{B}$ is the magnetic field, $\Psi$ and $\Phi$ are introduced divergence variables, $\gamma$ and $\chi$ are divergence error propagation speeds, $c$ is the speed of light, and $\epsilon_0$ is the vacuum permittivity.
+
+\subsection{Kinetic Non-Equilibrium Method}
+The nonequilibrium effects on compressed plasma are observed through differences in molecular speed. Each non-equilibrium kinetic moment can be represented as the difference between the corresponding kinetic moment and the local equilibrium kinetic moment. The equations of kinetic moments may be used to find the nonequilibrium quantities.
+
+$$M_{f,m}^{neq} = M_{f,m} - M_{f,m}^{eq}$$
+$$M_{h,m}^{neq} = M_{h,m} - M_{h,m}^{eq}$$
+
+\subsection{Discussion}
+In this paper, a 3D MHD-LBM analytical model was constructed for compressed kinetic plasma. Future research must be done in developing a computer model and validating said computer model. A third-order finite volume MUSCL could be applied to this analytical model combined with a D3Qx density equilibrium distribution function to create an easily solvable numerical solution. While electromagnetic fluxes were evaluated through Steger-Warming flux vector splitting. MHD-LBM models have shown to have greater accuracy when it comes to plasma shockwaves, therefore MHD-LBM models have good reason for continual development.
+\section{A Hamiltonian Framework on ICF Implosions Rocket Equation Based on Rayleigh–Taylor Instabilities
+}
+\subsection{Background}
+\par Inertial Confinement Fusion (ICF) Implosions:
+One of the primary methods of heating fusion environments is through lasers. In this approach, high-energy lasers heat spherical fuel capsules, causing them to implode. This implosion leads to an increase in pressure and heat on the fuel, creating the necessary environments for fusion.
+
+\par Hamiltonian:
+A Hamiltonian is a function in classical mechanics that describes the total amount of energy in the system. From here, equations of motion are derived.
+
+\par Rayleigh--Taylor Instabilities:
+Rayleigh--Taylor instabilities are specific types of instabilities caused by forceful interactions between higher and lower density fluids. In the context of ICF Implosions, when the higher density outer shell interacts with the lower-density inside, it creates perturbations through finger-like structures and bubbles that interfere with the efficiency of the implosion.
+
+\par Mass Ablation (Rocket Effect):
+During the process of ICF Implosion, the interaction between the outer shell and the inner fuel causes mass to be sprayed off, giving a rocket-like effect.
+
+
+
+\subsection{Problem Statement}
+\par Achieving commercial fusion energy through inertial-confinement-fusion (ICF) remains one of the most significant scientific and engineering challenges of our day. One of the key obstacles is optimizing the interactions between high-energy lasers and fuel capsules, which are prone to Rayleigh-Taylor instabilities during implosions. These instabilities can lead to inefficient energy confinement and hinder the overall success of the fusion process. Traditional numerical simulations are computationally expensive and often lack the accuracy needed to address this issue. Therefore, there is a need for a robust analytical framework to model these instabilities and provide new insights for optimizing the interactions. This research aims to develop a Hamiltonian framework for ICF implosions, specifically focusing on Rayleigh--Taylor instability and mass ablation. By leveraging this theoretical approach, we seek to provide deeper insights and practical solutions for optimizing laser-capsule interactions in fusion experiments.
+
+\subsection{Assumptions}
+\par Thin-Shell Approximation:
+The thickness of the shell is assumed to be insignificant compared to the size of the imploding object. This approximation simplifies the creation of the model and the subsequent numerical analysis. It is valid given that the perturbations caused by the instabilities are much larger than the actual thickness of the shell.
+
+\par Deceleration:
+This model is specifically for an imploding spherical shell that decelerates as it converges onto the compressed fluid within its interior.
+
+\par Acceleration:
+This model does not consider the acceleration phase of an ICF capsule implosion at the beginning of the capsule-laser interaction.
+
+\subsection{Framework}
+In order to analyze the dynamics of the imploding shell, it must first be parameterized through two Lagrangian coordinates $\vartheta$ and $\phi$. Here, $\vartheta$ corresponds to the polar angle $\theta$, and $\phi$ corresponds to the azimuthal angle. The position vector is $\mathbf{X} = \mathbf{X}(t, \phi, \vartheta)$. Thus, the parameterization can be expressed as:
+
+$$\mathbf{X} = \mathbf{X}(t, \phi, \vartheta)$$
+
+The derivative of the surface is given by:
+
+$$\frac{d\mathbf{X}}{dt}$$
+
+\textit{Reference:} D. E. Ruiz; Degradation of performance in ICF implosions due to Rayleigh--Taylor instabilities: A Hamiltonian perspective. Phys. Plasmas 1 December 2024; 31 (12): 122701.
+
+\subsection{Shell Kinematics}
+The force differential can be described by:
+
+$$dF = p(t) \cdot \mathbf{dA} \times \mathbf{n}$$
+
+where $p(t)$ is the function of pressure with respect to time, and the cross product involves the vectors following the surface of the shell. This leads to the derivation of several important quantities, such as the velocity vector field, position vector, and centrifugal forces, which are relevant to the shape and dynamics of the shell.
+
+An example of the centrifugal force is:
+
+$$F_{\text{centrifugal}} = m \cdot \omega^2 \cdot r$$
+
+\subsection{Shell Areal Density}
+The change in density of the shell is critical to its dynamics. Given that total mass is not conserved in this equation, deriving it becomes more complex.
+
+$$\rho_{\text{areal}} = \frac{M(t)}{A}$$
+
+where $M(t)$ is the mass at time $t$, and $A$ is the area of the shell's surface.
+
+\subsection{Compressed-Fuel Pressure}
+The pressure that decelerates the shell can be described in several ways depending on the known information and boundary conditions. One example is:
+
+$$P = P_0 \left( \frac{V_0}{V} \right)^\gamma$$
+
+where $P_0$ is the initial pressure, $V_0$ is the initial volume, $\gamma$ is the adiabatic index, and $V$ is the current volume.
+
+\subsection{Variational Principles}
+To mathematically solve the Hamiltonian framework, given that the equation is asymptotic, variation principles are applied.
+
+\subsubsection{Phase-Space Lagrangian}
+This formulation describes the dynamics of a system by combining its configuration space (position variables) and momentum space into a single framework, called phase space.
+
+\subsubsection*{Euler--Lagrange Equations}
+Through the principle of least action, a set of differential equations are derived to provide an analytical solution to complex nonlinear functions. For example, for radial velocity:
+
+$$\frac{d}{dt} \left( \frac{\partial L}{\partial \dot{r}} \right) - \frac{\partial L}{\partial r} = 0$$
+
+where $L$ is the Lagrangian of the system.
+
+\subsubsection{Conservation Laws}
+Generally, conservation laws are employed to show that certain parts of the Euler-Lagrange or phase-space Lagrangian are conserved. However, due to mass ablation, parts of the fuel and capsule are lost, which complicates these conservation laws.
+
+\subsection{Conclusion}
+
+\par Summary: A Hamiltonian framework was developed to include both Rayleigh--Taylor Instabilities and mass ablation in an inertial confinement fusion implosion, leading to a set of variational principles for future work on optimizing ICF implosions in practical applications.
+
+\par Significance:
+Analytical analysis can provide future insights into optimizing ICF implosions in fusion reactors. Additionally, nonlinear numerical models can be developed based on these principles, leading to less computationally expensive models.
+
+\par Limitations:
+\begin{enumerate}
+    \item This model does not account for more complex laser-plasma interaction phenomena (e.g., bremsstrahlung x-ray losses, alpha heating).
+    \item This model does not consider the initial acceleration phase of the interaction.
+    \item This model uses the thin-shell approximation, which may not be accurate when perturbations caused by instabilities are smaller than the shell thickness.
+\end{enumerate}
+
+\par Future Works:
+\begin{enumerate}
+    \item Quasilinear Models
+To study additional insights from this model, a quasilinear model must be developed for analytical study.
+
+    \item Acceleration Phase
+Incorporating the initial acceleration phase into the model will increase its accuracy.
+
+    \item Nonlinear Growth Calculations
+Developing nonlinear numerical simulations will be useful in generating further insights and advancing current models.
+\end{enumerate}
+
+\section{Basic MHD}
+\subsection{MHD Module}
+\par The first section of it is initializing the values of things like magnetic field, pressure, and velocity. Future work will be done to have it so such values can be edited in a config file.
+\par Next is computing the current density. The analytical equation can be written as 
+$$J =\frac{1}{\mu} \nabla \times B$$
+Which in finite difference is:
+$$J_z(i,j)=\frac{1}{\mu_0}[\frac{B_y(i+1,j)-B_y(i-1,j)}{2\Delta x}-\frac{B_x(i+1,j)-B_x(i-1,j)}{2\Delta y}$$
+\\
+\\
+Next we have
+\\
+\\
+
+\par Update: I have advanced the MHD simulations time steps, magnetic field calculations, current, pressure calculations, and density calculations. Beyond that I have created animations based on magnetic field and made graphical outputs for heat, velocity, temperature, and magnetic field.
+\par I also created another one specifically made for Tokamak geometry.
+\subsection{Hamiltonain MHD}
+\par My next project was creating a Hamiltonian based MHD simulation also in FORTRAN. 
+\par I explicitly created simulation of plasma thrusters with it.
+%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{A Metriplectic Formulation of Reduced Magnetohydrodynamics with Resistivity}
+\subsection{Introduction}
+\par Here I will use the Strauss formulation of RMHD. Then I will incorporate resistivity. This resistivity typically breaks Hamiltonian structure, but I will use metriplectic to preserve the geometric identities through adding a separate antisymmetric bracket.
+\subsection{Defining the Hamiltonian}
+\par For Strauss MHD, a reduced MHD model that works for strongly magnetized Plasmas, we will formulate the Hamiltonian system.
+$$\mathcal{H}[\omega, \psi]=\frac{1}{2} \int(\phi \omega + \psi j)dxdy$$
+\par Here the $\phi \omega$ represents the kinetic energy with $\psi j$ represents the magnetic energy.
+\par Now onto the Noncannonical Poisson Structure for this ideal Hamiltonian.
+$$ \{ F,G \}=\int \omega[\frac{\delta F}{\delta \omega},\frac{\delta G}{\delta \omega}]dxdy+ \int \psi ([\frac{\delta F}{\delta \omega},\frac{\delta G}{\delta \psi}]-[\frac{\delta G}{\delta \omega},\frac{\delta F}{\delta \omega}])dxdy  $$
+\subsection{Entropy and Dissipation}
+\par Now to add dissipation. While generally adding this will break Hamiltonian structure, we will use a couple of tools. 
+\par Though first we must define our function we are using, or more accurately funcional. This is our functional for entropy:
+$$S[\psi]=\frac{1}2 \int \psi^2dxdy$$
+\subsection{Metric Bracket and Metriplectic Structure}
+\par To incorporate we define our symmetric bracket. We make sure to construct it so that it only affects the magnetic flux variable $\psi$, since resistivity only affects the magnetic field lines and not vorticity directly.
+$$(F,G)=\int 
+\frac{\delta F}{\delta \psi}\eta \nabla^2 \frac{\delta G}{\delta \psi}dxdy$$
+\par This has 
+\begin{itemize}
+    \item Symmetry $((F,G))=((G,F))$
+    \item Positive semi-definiteness: $((S,S))\leq0$
+    \item Energy Conservation: $((\mathcal{H}, F))=0$ for any $F$
+\end{itemize}
+\subsection{Combined Dynamics}
+\section{Death Star}
+\par Not to long ago(from when I wrote this section) I tried to simulate the death star using FLASH-X(which is really a testament to who I am as a person, getting my hands on government codes and the fist thing I do is play around with pop-culture based planetary destruction) anyways. It failed. The laser dynamics were based upon old code that was outdated and I couldn't figure it out. Though I did learn a lot about Flash-X as a system, which is good.
+\par So for it... what am I doing, this doesn't make sense if I am trying to teach myself through practical action of writing but I already did the most practical action of all, doing it. This is kinda useless.
+\\
+\\
+\par I later went back and ended up actually making the simulation.
+
+\section{Interstellar travel}
+\subsection{Speeds and forces}
+\par Before we can get to all of the more complex stuff about design and the effects of extreme environments of specific interstellar space travel we must first look at how forces effect speeds at at relativistic speeds. Here is the math stuff in simplified form: \\
+We all know that force is the derivative of the momentum over time:
+$$F=\frac{dp}{dt}$$
+Where momentum can be expand for relativistic momentum:
+$$p=\gamma mv$$
+You can then expand force to be(this is a constant mass, we will look at that in a second)
+$$F=m \frac{d(\gamma v)}{dt}$$
+One thing to keep in mind for future maths is that in simplifying $\dot \gamma$ is equal to $\frac{\gamma v}{c^2}\frac{dv}{dt}$
+With the force you can calculate acceleration with
+$$a=\frac{F}{m \gamma}\frac{1}{1+\frac{\gamma^2 v^2}{c^2}}$$
+Due to the fact most rockets use propulsion which lowers the mass, we must include mass variations:
+$$F=\frac{\gamma mv}{dt}$$
+Where you must use the product rule to expand
+$$F=\dot \gamma mv+\gamma \dot m v+ \gamma m \dot v$$
+Which can be further expanded to
+$$F=mv \frac{\gamma v}{c^2}\frac{dv}{dt}+\gamma v \frac{dm}{dt}+\gamma m \frac{dv}{dt}$$
+With $\dot m$ being the infinitesimal change in mass over time.\\ 
+To calculate acceleration you must find $\frac{dv}{dt}$. First subtract the middle equation without acceleration within it.
+$$F-\gamma v \frac{dm}{dt}=mv \frac{\gamma v}{c^2}\frac{dv}{dt}+\gamma m \frac{dv}{dt}$$
+Then factor for acceleration
+$$F- \gamma v \frac{dm}{dt}= \frac{dv}{dt}(mv \frac{\gamma v}{c^2}+\gamma m)$$
+Then divide the parentheses:
+$$(F- \gamma v \frac{dm}{dt}) \frac{1}{mv \frac{\gamma v}{c^2}+\gamma m}=a$$
+Now, this is all well and good, now let us find the position. To take position from acceleration you must take a double integral, but this integral can only be solved numerically(maybe it could be approximated) \\
+ \\
+Another possible way to solve this is through Hamiltonians/Lagrangians (I will choose Hamiltonians) \\
+Let us first start with the Hamiltonian expressed for relativistic speeds in covariant form \\
+First the Lagrangian must be calculated:
+The four-momentum is
+$$P^\mu=m \gamma (c,v)$$
+Energy:
+$$E= \gamma mc^2$$
+Therefore the Lagrandian is:
+$$L=-mc^2\sqrt{1-\frac{v^2}{c^2}}$$
+Now to find generalized momentum:
+$$p=\frac{\partial L}{\partial \boldsymbol{v}}$$
+$$p=\gamma m v$$
+Now the Hamiltonian
+$$H=p \cdot v - L$$
+Therefore a relativistic Hamiltonain can be represented as
+$$H=\sqrt{(pc)^2+(mc^2)^2}$$
+Now to include acceleration
+$$H(r,p)=\sqrt{(pc)^2+(mc^2)^2}+V(r)$$
+Now to make mass variable for the rockets:
+$$H(r,p,t)=\sqrt{(p(t)c)^2+(m(t)c^2)^2}+H_{thrust}$$
+Now to incorporate with equations of motion:
+$$\frac{dr}{dt}=\frac{pc^2}{\sqrt{(p(t)c)^2+(m(t)c^2)^2}}$$
+Now, this works for the time for most people, now let us look at proper time
+$$H(r,p,\tau)=\sqrt{(p(\tau)c)^2+(m(\tau)c^2)^2}+H_{thrust}$$
+For specific cases, these equations will be evolved to include them, but this is the general theoretical framework.
+\\ 
+\\
+\par One thing I will add, is the force will likely be variable, a couple of days of 2-3 g, most of the time in g then reversing after the half-way point.
+\subsection{Magnetic Fusion Plasma Drive}
+\subsubsection{Theoretical Basis}
+\par Magnetic Fusion Plasma Drive is a type of propulsion system specifically for interstellar travel.
+\par The basis of this concept is that there is a fusion reactor undergoing Thermal Nuclear fusion:
+$$D+T \xrightarrow{}^4He+n+17.6MeV$$
+\par The spent fuel then being shot out the nozzle as propulsion.
+\subsection{*Optimization}
+\subsection{*Special Circumstances}
+\subsubsection{*Strong Magnetic Fields}
+\subsubsection{*Gravitational Fields}
+
+
+\section{Kerr Black hole stuff}
+\subsection{Energy (finish)}
+\par Kerr Black holes, or spinning black holes are a great source of energy. They have extreme amounts of radial kinetic energy that we are actually capable of 'bleeding' off through several methods.
+\par First, we must ask why we are able to do this. Well, because a rotating object with a strong gravitational field 'drags' spacetime, that spacetime can affect the direction, speed, and even waves in a way that can amplify them.
+\par First, Penrose(really like that dude) found that if you break apart an object rotating a Kerr black hole, the object that escapes gains energy. This process is challenging given that the object that escapes must have a velocity of $v>\frac{c}{2}$. There is a whole lot of math involved in proving this, but I will skip ahead.
+\par The next that is found is that electromagnetic waves can be amplified. That if they are reflected around the black hole, they will gain energy and be amplified(this process is different from the Doppler shift and does not change the frequency.
+\par After a lot, and I mean a lot of very complected mathematics you can find the amplification factor as
+$$Z = 8r^2_+T_{H(^{2l+1)}) }(r_+-r_-)^{2l}[\frac{\Gamma(1+l-s)\Gamma(1+l+s)}{2l+1)!!\Gamma(l+1)\Gamma(2l+1)}]^2 \times, $$
+$$\sinh(\frac{m \Omega_H}{r_+ T_H})\Gamma(l-\frac{im\Omega_H}{\pi r_+ T_H}+1)\Gamma(l+\frac{im\Omega_H}{\pi r_+ T_H}+1)$$
+
+\par For more information visit 
+\href{https://arxiv.org/pdf/1501.06570}{here}
+
+\par Now the point of this is to take strange theoretical and apply it, so I will apply it for actual application. For this I will assume the average mass of 10 $M_\odot $ or ten solar masses. A spin of 0.98(if 1 refers to an extremal Kerr black hole)
+
+\par First we must find out what a spin 0.98 really means for a $10 M_\odot$ black hole. We can find this with a simple equation with a being the spin parameter, r being the radius, and M being the mass
+$$\Omega=\frac{ac^3}{2GMr_h}$$
+Though, for a kerr black hole the is slightly different to the swarzchild radius.
+$$r_H=\frac{GM}{c^2}(1+\sqrt{1-\frac{ac}{GM}}$$
+\par You know, I wanted to optimize the black hole engine, but I don't want to do that anymore, so I choice to move on.
+
+\subsection{*Multiversal Travel}
+\subsection{*Other effects}
+\section{*Extreme Theoretical Work}
+\section{Astroid Game}
+\subsection{Introduction}
+\par I have recently created a Python game based on the Atari game Asteroid.
+\subsection{Classical}
+\par Just like the regular game, nothing special.
+\subsection{Newtonian Gravity}
+\par This adds that the asteroids and UFO's mass, so they attract each other and add more challenges.
+\subsection{Dark Matter}
+\par Add the challenge of invisible mass attractors, though when you are close by they light up.
+\subsection{Relativistic}
+\par This adds time dilatation(time skips or slow downs), length contractions(changing shapes of objects), black holes, and even doopler effect. 
