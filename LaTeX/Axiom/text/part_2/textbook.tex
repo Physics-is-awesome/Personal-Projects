@@ -1,0 +1,86 @@
+\chapter{Textbooks}
+\section{Introduction}
+Here I will write my notes from books I have read or am reading.
+\section{Theoretical Physics by Georg Joos}
+\par The vector analysis portion is intresting due to the fact that it takes something as simple as vector analysis and brings rigorous ideas to it like that $\oint ds=0 $ for close surfaces. 
+\par I also never really thought about using vector analysis instead of tensors. 
+\par The rest of curl, gauss, and such is very simple. Though, now it is getting into tensors though vectors.
+$$dv_x=ds\nabla v_x$$
+$$dv_y=ds\nabla v_y$$
+$$dv_z=ds\nabla v_z$$
+\par So therefore $dv=ds \nabla v$
+\par To calculate v, three vectors or nine scaler must be known.
+\par Another interesting addition is the fact that in physics, symmetric tensors can be represented as a surface to the second degree.
+\par One thing I have noticed is I need a more intuitive grasp into the relationships between curl, div, laplance, and grad. They use it a lot to simplify the calculations. 
+$$\nabla^2 f = \nabla \cdot (\nabla f)$$
+The Laplace operator is equal to the divergence of the gradient.
+$$\nabla \times (\nabla f) = 0$$
+For smooth scaler fields. The curl of the gradient is zero.
+$$\nabla \cdot (\nabla \times \mathbf{F}) = 0$$
+The same is true for the divergence of the curl.
+$\nabla^2 \mathbf{F} = \nabla(\nabla \cdot \mathbf{F}) - \nabla \times (\nabla \times \mathbf{F})$
+For vector fields, the Laplace operator has different relations.
+\\
+\par Next, onto calculus of variations. I will derive Euler-Lagrange differential equation.
+\par Let: $\tilde{y}$ be a neighboring function to $y$. Where $\in$ be a small quantity and $\eta(x)$ be a arbitrary function of x. so if $\tilde{y}=y+\epsilon \eta$ then $\tilde{y'}=y'+ \epsilon \eta'$. Here we stipulate that the two functions $\tilde{y}$ and $y$ converge at the beginning and end. Thus, $\eta$ must vanish at the ends. So if we substitute an integral $I$,, we find that it becomes a function of $\epsilon$. Then we require that $I(\epsilon)$ must have an extreme value of $\epsilon=0$. Here it is in mathematical terms:
+$$I(\epsilon)=\int^{x_1}_{x_0}F(x,y+\epsilon \eta, y'+\epsilon\eta')dx=extremum \ for \ \epsilon=0$$
+\par This gives us a simple way of determining the extreme value for a given integral. The condition is:
+$$(\frac{dI}{D\epsilon})_{\epsilon=0}=0$$
+\par We can then expand the integrad function $F$ in Taylor's series, according to the powers of $\epsilon$.
+\par The differentiate with respect to $\epsilon$.
+\par This expression then vanishes for $\epsilon=0$. Thus then simply remains the condition for the extremum.
+\par Integrate this to get the Euler-Lagrange differential equation:
+$$\frac{d}{dx}\frac{\partial F(x, y, y')}{\partial y'}-\frac{\partial F(x, y, y')}{\partial y}=0$$
+\\
+\par For writing constraining forces, we find it to be 
+$$Z=\lambda \ grad \ G$$
+\par Where $G(x,y,z)$ is the equation of the surface
+\\
+
+\section{On Sympathetic Reduction in Classical Mechanics}
+\section{Magnetic Fields and Magnetic Diagnostics for Tokamak Plasmas by Alan Wooton}
+\section{Advanced MHD with Applications to Laboratory and Astrophysical Plasmas by Cambridge }
+\par For wide variety of MHD instabilities operating in tokamaks, represented by normal modes of the form(assuming that  cylindrical approximation and the toroidal representation may be ignored):
+$$f(\psi,\vartheta, \varphi, t)=\sum\nolimits_m \tilde{f}(\psi) e^{i(m\vartheta + \eta \varphi - \omega t)} $$
+\par Is only unstable for perpendicular wave vectors.
+\par The reason is the enormous field line bending energy of the Alfven waves
+
+\section{Hamiltonian description of the ideal Fuid by P.J.Morrison}
+ \section{Classical Dynamics a Modern Perspective}
+ \subsection{Chapter 6}
+ A lot more importation stuff I forgot to write down, well I will start in chapter 6:
+ If multiple canonical transformations, directly transforming would be canonical. $w \to w' \to w''$ then $w \to w''$. This is the group Composition Law.
+ 
+ Next is the Associativity of Composition Law: 
+ if $w’= \phi(w)$, $w” = \Phi(w’)$, and $w’'' = \xi(w")$
+ so no matter what order of transformation they will be the same, whether ($T_3(T_2T_2)$ or $(T_3T_2)T_1$ or anything of the such.
+ 
+ Identity: The identity transformation w’ = w obviously obeys the conditions for being canonical.
+
+Inverses: If $\omega \to \omega’$ is canonical, then so is the transformation 
+id $\omega’ \to \omega$. 
+
+"Thus all the properties needed to define a group are trivially obeyed. (In 
+Chapter 12 we discuss group structure in a little more detail). "
+
+The canonical group is characterized by the dimension, 2k, 
+of the phase space. 
+
+The subgroups of such a phasespace is very large, though three can be easily defined.
+
+Another subgroup is the contact transformations.(when a poission bracket can be formed)
+
+Note: changing coordinate systems can satisfy phasespace rules, but isn't generally considered to be a transformation
+
+"Intuitively speaking, a finite canonical transformation that can be 
+connected continuously to the identity should be built up as a succession of 
+infinitesimal transformations."
+
+To express the relation between Poission Brackets and canonical transformations through differential equations:
+$$\frac{d \omega}{d \theta}= \{\omega^\mu, \phi(\omega)\}_\omega= \epsilon^{\mu v}\frac{\partial \phi(\omega)}{\partial \omega^v}$$
+
+Let us first clarify the meaning of this equation. We look upon the $w^\mu$ as 
+functions of $\theta$; $\phi$ is a function with a fixed functional form, and $w^\mu$ are the unknowns in the differential equation. Thus on the right-hand side of this equation, the arguments of $\phi$ are just the quantities we are trying to solve for. From the theory of differential equations, we know that there is a unique solution for $w^\mu$ if we are given the values of $w^\mu$ at $\theta = 0$. Calling these boundary values of $w^\mu$ as $w^\mu_0$, the solution of the equation can be written as: 
+$$\omega^\mu= \varphi^\mu(\omega_0; \theta), \space \space \space \varphi^\mu(\omega_0; 0) = \omega^\mu_0$$
+
+\subsection{Chapter 7}
