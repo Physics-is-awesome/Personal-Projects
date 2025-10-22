@@ -1,0 +1,164 @@
+\chapter{Video classes}
+\section{Differential Geometry - Robert Davie}
+\subsection{1-forms}
+These are linear functionals that map tangent vectors at a point on a manifold to real numbers. In local coordinates on a manifold $M$, a 1-form can be written as $\omega = \omega_i dx^i$, where $\omega_i$ are smooth functions and $dx^i$ are basis 1-forms (dual to coordinate basis vectors). For example, the differential of a function $df = \frac{\partial f}{\partial x^i} dx^i$ is a 1-form. They are used to measure vectors, like gradients or line integrals.
+\subsection{2-forms}
+These are antisymmetric bilinear maps that take two tangent vectors and produce a real number. In coordinates, a 2-form looks like $\omega = \omega_{ij} dx^i \wedge dx^j$, where $\wedge$ denotes the wedge product (ensuring antisymmetry: $dx^i \wedge dx^j = -dx^j \wedge dx^i$). 2-forms are used to measure oriented areas, such as in surface integrals or the electromagnetic field tensor in physics.
+\subsection{3-forms}
+These are antisymmetric trilinear maps, taking three tangent vectors to a real number. In coordinates, a 3-form is $\omega = \omega_{ijk} dx^i \wedge dx^j \wedge dx^k$, with antisymmetry in all indices. They measure oriented volumes and are used in integrals over 3-dimensional submanifolds, like in fluid dynamics or general relativity.
+\subsection{k-form}
+This can then be made general as
+$$\omega=\Sigma_{i_1..i_k}\omega_{i_1...i_k} dx^{i_1}... \wedge dx^{i_k}$$
+
+\subsection{Introduction to Exterior calculus}
+An exterior derivative maps k-forms into k+1-forms.
+$$d: \wedge^k(M) \to \wedge^{k+1}(M)$$
+and must follow these rules
+Linearity: $d(\alpha + \beta) =d\alpha + d\beta$
+Leibniz(product rule): $\wedge(\alpha + \beta)= d\alpha \wedge \beta + (-1)^k \alpha \wedge d\beta $
+Nilpotency: $d(d\alpha)=0$
+$$\therefore d \omega=\Sigma_{i<j} (\frac{\partial \omega_i}{\partial x_j} - \frac{\partial \omega_j}{\partial x_i})dx^i \wedge dx^j$$
+In 3D, the exterior derivative of the 2-form correspondence to the divergence in vector field.
+
+Allows for integration of manifolds. Shows that the integral of the exterior derivative of a differential form over a manifold of the integral of the form itself over the boundary of the manifold: 
+$$\int_M d \omega = \int_{\partial M} \omega$$
+This unifies vector calculus in areas like divergence or green's theorem.
+
+It also show vector flow
+
+Lie derivatives measure the change of forms
+\subsection{Exterior calculus-2}
+The exterior for a k-form is
+$$d \omega=\sum  (\sum_{n=1} \frac{\partial x_{i.....k}}{\partial x^{i_n}}dx^{i_n})\wedge dx^{i_1} \wedge .... \wedge  dx^{i_k}$$
+
+4-form is the highest form
+
+Back to to integration of manifolds with stokes theorem.
+While $\int_M d \omega = \int_{\partial M} \omega$ is true $\int dx \wedge dy$ and $\int dxdy$ represent slightly different mathematical concepts. In diff forms, it is the integral of an oriental area. In Multi-variable calculus it is the integral of over a region in the xy-plane
+\subsection{Wedge Product-2}
+Properties of the wedge product:
+Anti-symmetry: $\omega \wedge \eta= (-1)^{pq} \eta \wedge \omega$. Where p \& q are the dimensionality of $\omega, \eta$
+
+Symmetric group: $S_{p+q}$ is the group of all possible permutations. 
+
+Permutation and sign of permutations: $\sigma$ is essentially a specific way of ordering a set of elements. The sign of permutation $sign(\sigma)$ tells us if the permutation can be achieved in an even or odd number of swaps.
+Where odd is negative and even is positive
+
+Role of these two things: The sign tells us the sign of a wedge product given a permutation. $dx^1 \wedge dx^2\to -dx^2 \wedge dx^1$. The symmetric groups tells us all possible permutations. 
+\begin{align*}
+    \therefore (\omega \wedge \eta)(X_1..., X_{p+q})=\frac{1}{p!q!}\sum_{\sigma \in S_{p+q}}sign(\sigma)\omega(X_{\sigma(1)}..., X_{\sigma(p)}), \\ \eta(X_{\sigma(p+1)}...X_{\sigma(p+q)})
+\end{align*}
+This $\frac{1}{p!q!}$ ensures correct normalization.
+\subsection{Introduction to the Hodge Star Operation}
+This operator allows us to relate manifolds. Crucial in formulating coordinate free theories. It transforms k-forms into (n-k)-forms.
+Specifically it is an isomorphism between the spaces of k-forms and (n-k)-forms on an n-dimensional Riemannian(M,g). Where g is the metric tensor.
+It is denoted as:
+$$\star: \wedge^k(T^*M)\to \wedge^{n-k}(T^*M)$$
+
+The way it works is hard to write out, so just remember it.
+To construct a hodge star
+$$\omega \wedge \star \eta = \langle \omega, \eta \rangle vol_M$$
+Where $\langle .,. \rangle$ is the inner product
+and Vol is the volume form of M. Defined as $vol_M=\sqrt{|g|} dx^1 \wedge .. \wedge dx^n$ Where $|g|$ is the determinate of the Metric Tensor.
+
+The equation is long, so just look it up, it is simple but long.
+
+\subsection{Hodge star 2}
+Hodge star establishes duality between geometric theories.
+Involution: Doing it twice returns it to the original 
+Linear transformations: You know what this means
+Interacts like multiplication with exterior derivative: $\star(d \omega) = d(\star \omega)$
+The co-differential is defined using the Hodge Star.
+\subsection{The push forward of vectors on manifolds}
+A pushforward is a way to map a vecotr on a tangent space onto another manifold's tangent space.
+
+Properties:
+
+Linearity: The pushforward $ \phi_*: T_p M \to T_{\phi(p)} N $ is a linear map. For vectors $ v, w \in T_p M $ and scalars $ a, b $,
+
+$$\phi_*(a v + b w) = a \phi_* v + b \phi_* w$$
+
+Chain rule: If you have another smooth map $ \psi: N \to P $, the pushforward satisfies the composition rule:
+
+$$(\psi \circ \phi)_* = \psi_* \circ \phi_*$$
+
+This follows from the chain rule for derivatives.
+
+Action on curves: If you think of a vector $ v \in T_p M $ as the tangent to a curve $ \gamma: (-\epsilon, \epsilon) \to M $ with $ \gamma(0) = p $, then $ \phi_* v $ is the tangent vector to the curve $ \phi \circ \gamma $ at $ \phi(p) $.
+
+The pushforward $ \phi_* v \in T_{\phi(p)} N $ is given by:
+$$\phi_* v = v^i \frac{\partial \phi^j}{\partial x^i} \frac{\partial}{\partial y^j}$$
+Here, $ v^i $ are the components of $ v $, and $ \frac{\partial \phi^j}{\partial x^i} $ are the Jacobian entries. The result is a vector in $ T_{\phi(p)} N $, expressed in the basis $ \left\{ \frac{\partial}{\partial y^1}, \dots, \frac{\partial}{\partial y^n} \right\} $.
+
+\subsection{Pull-Back in k-forms}
+Given a smooth map $ \phi: M \to N $ between manifolds $ M $ (dimension $ m $) and $ N $ (dimension $ n $), and a $ k $-form $ \omega \in \Omega^k(N) $ on $ N $, the pullback $ \phi^* \omega \in \Omega^k(M) $ is a $ k $-form on $ M $. The pullback essentially "transfers" $ \omega $ from $ N $ to $ M $ by composing it with the map $ \phi $.
+The pullback is defined pointwise. For a point $ p \in M $, and $ k $ tangent vectors $ v_1, \dots, v_k \in T_p M $, the pullback $ \phi^* \omega $ at $ p $ is:
+$$(\phi^* \omega)_p (v_1, \dots, v_k) = \omega_{\phi(p)} (\phi_* v_1, \dots, \phi_* v_k)$$
+Here:
+
+$ \phi_*: T_p M \to T_{\phi(p)} N $ is the pushforward (differential) of $ \phi $, which maps each tangent vector $ v_i $ to $ \phi_* v_i $.
+$ \omega_{\phi(p)} \in \wedge^k T_{\phi(p)}^* N $ is the $ k $-form $ \omega $ evaluated at $ \phi(p) $, acting on the pushed-forward vectors.
+
+This definition ensures that $ \phi^* \omega $ is a $ k $-form on $ M $, as it takes $ k $ vectors in $ T_p M $ and produces a number.
+
+Key Properties of the Pullback
+
+Linearity: The pullback $ \phi^*: \Omega^k(N) \to \Omega^k(M) $ is a linear map.
+
+Preserves degree: The pullback of a $ k $-form is a $ k $-form.
+
+Functoriality: For maps $ \phi: M \to N $ and $ \psi: N \to P $,
+$$(\psi \circ \phi)^* = \phi^* \circ \psi^*$$
+
+Commutes with exterior derivative: For any $ k $-form $ \omega $,
+$$d (\phi^* \omega) = \phi^* (d \omega)$$
+This is a powerful property, making pullbacks compatible with the exterior calculus.
+
+Wedge product: The pullback respects the wedge product:
+$$\phi^* (\omega \wedge \eta) = (\phi^* \omega) \wedge (\phi^* \eta)$$
+
+
+
+Computing the Pullback in Coordinates
+To compute $ \phi^* \omega $ in practice, we typically use local coordinates. Here’s the step-by-step process:
+
+Choose coordinates:
+
+On $ M $, use coordinates $ (x^1, \dots, x^m) $ around $ p $.
+
+On $ N $, use coordinates $ (y^1, \dots, y^n) $ around $ \phi(p) $.
+
+The map $ \phi $ is expressed as $ y^i = \phi^i(x^1, \dots, x^m) $.
+
+Express the k-form:
+
+Let $ \omega \in \Omega^k(N) $ be written in coordinates as:
+$$\omega = \sum_{I} a_I(y) \, dy^{i_1} \wedge \dots \wedge dy^{i_k}$$
+where $ I = (i_1, \dots, i_k) $ is a multi-index with $ 1 \leq i_1 < \dots < i_k \leq n $, and $ a_I(y) $ are smooth functions on $ N $.
+
+
+Pull back the form:
+
+The pullback is:
+$$\phi^* \omega = \sum_{I} (a_I \circ \phi) \, \phi^* (dy^{i_1} \wedge \dots \wedge dy^{i_k})$$
+
+Compute $ a_I \circ \phi $: Replace $ y $ with $ \phi(x) $, so $ a_I(y) = a_I(\phi(x)) $.
+
+Compute the pullback of the basis $ k $-form:
+$$\phi^* (dy^{i_1} \wedge \dots \wedge dy^{i_k}) = \phi^* (dy^{i_1}) \wedge \dots \wedge \phi^* (dy^{i_k})$$
+
+For a 1-form $ dy^j $, the pullback is:
+$$\phi^* (dy^j) = d (y^j \circ \phi) = d (\phi^j(x)) = \frac{\partial \phi^j}{\partial x^\ell} dx^\ell$$
+(using the chain rule, summing over $ \ell $).
+Thus:
+$$\phi^* (dy^{i_1} \wedge \dots \wedge dy^{i_k}) = \left( \frac{\partial \phi^{i_1}}{\partial x^{\ell_1}} dx^{\ell_1} \right) \wedge \dots \wedge \left( \frac{\partial \phi^{i_k}}{\partial x^{\ell_k}} dx^{\ell_k} \right)$$
+
+This is a $ k $-form on $ M $, expressed in the $ dx^\ell $ basis.
+
+
+Simplify:
+
+Expand the wedge products and collect terms.
+The result is a sum of terms involving $ dx^{\ell_1} \wedge \dots \wedge dx^{\ell_k} $, with coefficients that depend on the Jacobian $ \frac{\partial \phi^j}{\partial x^\ell} $ and $ a_I(\phi(x)) $.
+
+\subsection{Pull-Back of volume forms}
