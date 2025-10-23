@@ -162,3 +162,48 @@ Expand the wedge products and collect terms.
 The result is a sum of terms involving $ dx^{\ell_1} \wedge \dots \wedge dx^{\ell_k} $, with coefficients that depend on the Jacobian $ \frac{\partial \phi^j}{\partial x^\ell} $ and $ a_I(\phi(x)) $.
 
 \subsection{Pull-Back of volume forms}
+The pullback of a volume form $ \omega = f(y) \, dy^1 \wedge \dots \wedge dy^n $ on $ N $ under a map $ \phi: M \to N $ is an $ n $-form on $ M $, computed as:
+$$\phi^* \omega = (f \circ \phi) \cdot \det \left( \frac{\partial \phi^i}{\partial x^{j_k}} \right) \, dx^{j_1} \wedge \dots \wedge dx^{j_n}$$
+If $ \dim M = \dim N $, and $ \phi $ is a local diffeomorphism, $ \phi^* \omega $ is a volume form on $ M $. If $ \dim M < \dim N $, the pullback is zero. The Jacobian determinant captures the volume scaling, making this operation central to integration and geometric transformations.
+\subsection{Integration on Manifolds Using the Pullback of Volume Forms}
+The pullback of volume forms allows for integration of manifolds. Which is useful in the integration of curved coordinate systems.
+
+volumes generalize "dx" or "dxdy."
+
+The steps in integration of manifolds using volume forms is:
+
+\textbf{Step 1:} $   M   $: The domain of integration (often $   \mathbb{R}^n   $ or a simpler manifold).
+$   N   $: The target manifold with a volume form $   \omega   $.
+$   \phi: M \to N   $: A smooth map, typically a parametrization or diffeomorphism.
+$   f: N \to \mathbb{R}   $: The function to integrate (if $   f = 1   $, we’re computing the volume).
+
+
+\textbf{Express the volume form:}
+
+Write $   \omega = f_\omega(y) \, dy^1 \wedge \dots \wedge dy^n   $ in coordinates on $   N   $.
+
+
+\textbf{Compute the pullback:}
+
+\textbf{Compute $   \phi^* \omega   $, which involves:}
+
+Substituting $   y = \phi(x)   $ into $   f_\omega(y)   $.
+Computing the Jacobian determinant of $   \phi   $.
+Forming $   \phi^* \omega = (f_\omega \circ \phi) \cdot \det \left( \frac{\partial \phi^i}{\partial x^j} \right) \, dx^1 \wedge \dots \wedge dx^n   $ (if $   m = n   $).
+
+
+
+
+\textbf{Set up the integral:}
+
+The integral becomes:
+$$\int_{\phi(M)} f \, \omega = \int_M (f \circ \phi) \cdot \phi^* \omega$$
+
+In coordinates, if $   \phi^* \omega = g(x) \, dx^1 \wedge \dots \wedge dx^n   $, and $   M   $ corresponds to a region $   U \subset \mathbb{R}^n   $:
+$$\int_U (f \circ \phi)(x) \cdot g(x) \, dx^1 \dots dx^n$$
+
+
+
+\textbf{Evaluate the integral:}
+
+Perform the integral over $   U   $ using standard multivariable calculus techniques, accounting for the Jacobian determinant and any orientation changes.
