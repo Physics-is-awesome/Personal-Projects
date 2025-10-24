@@ -758,5 +758,22 @@ Add more physics
 
 Though, the main thing I need to work on is module registry + driver pattern. 
 \section{part 3}
+\subsection{Notes on module FORTRAN}
+I should have a main driver like:
+\begin{lstlisting}[style=FORTRAN, caption=Omegax.f90]
+program Omegax
+	use Driver_module
+	implicit none
 
+	call Driver_init()
+	call Driver_evolve()
+	call Driver_finalize()
+
+end program Omegaz
+\end{lstlisting}
+
+There should also be a a config file, saying which modules should be used, and a python script capable of parsing this registery file.
+Config would also be where parameters would be stored.
+
+\subsection{New Structure}
 
