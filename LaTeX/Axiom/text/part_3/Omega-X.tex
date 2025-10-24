@@ -758,7 +758,8 @@ Add more physics
 
 Though, the main thing I need to work on is module registry + driver pattern. 
 \section{part 3}
-\subsection{Notes on module FORTRAN}
+\subsection{Notes}
+\subsubsection{Notes on module FORTRAN}
 I should have a main driver like:
 \begin{lstlisting}[style=FORTRAN, caption=Omegax.f90]
 program Omegax
@@ -774,6 +775,30 @@ end program Omegaz
 
 There should also be a a config file, saying which modules should be used, and a python script capable of parsing this registery file.
 Config would also be where parameters would be stored.
+\subsubsection{Diminsionaless programing}
+In the config file I can have a section to input the diminsions.
 
+Then have all variable allocatable based upon the diminsions
+
+then have an allocation based upon such diminsions(either preprocessor or generic shape handling)
+
+Instead of hardcoding loops, create cases for different diminsions.
+
+
+Generaliz derivatives and fluxes.
+
+Also, while physics sections should be generalized, initializing between 3D, would be beneficial.
+\subsubsection{Generalize}
+Due to Metriplectics dyanmics complex mathematics, a fully generalized system, like FLASH-X, is impossible. This is because it is a dynamical theory based upon Hamiltonian Mechanics, rather than forces in Newtonian.
+
+I am thinking the way to fix this is to create a symbolic python code to be able to generate the function I need.
+
+Also, since these would be in py
+\subsection{Plan}
+
+I think the steps I am going to take are:
+
+1: Develop a python code that can generate the math I need
 \subsection{New Structure}
+
 
