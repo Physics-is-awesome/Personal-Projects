@@ -13,7 +13,7 @@ m_h = sp.Function('m_h')(x, t)
 rho_h = sp.Function('rho_h')(x, t)
 sigma_h = sp.Function('sigma_h')(x, t)
 u_h = sp.Function('u_h')(x, t)
-T_h = sp.Function('T_h')(x, t)  # temperature
+T_h = sp.Function('T_h')(x, t)  # placeholder for temperature
 
 # Test functions for L2 projection
 phi_m = sp.Function('phi_m')(x)
@@ -31,9 +31,16 @@ N = sp.Function('N')(x)
 # -----------------------------
 # 4. Internal energy and temperature
 # -----------------------------
-s_expr = sigma_h / rho_h  # entropy per mass
-U_expr = Cv * sp.exp(s_expr / Cv) * rho_h**(gamma - 1) / (gamma - 1)
-T_expr = sp.diff(U_expr, s_expr)  # T = dU/ds
+# Introduce symbolic placeholder s for differentiation
+s = sp.Symbol('s')
+U_expr = Cv * sp.exp(s / Cv) * rho_h**(gamma - 1) / (gamma - 1)
+
+# Temperature T = dU/ds
+T_expr = sp.diff(U_expr, s)
+
+# Substitute s = sigma_h / rho_h (entropy per mass)
+s_expr = sigma_h / rho_h
+T_expr = T_expr.subs(s, s_expr)
 
 # -----------------------------
 # 5. Symbolic L2 projection
@@ -101,3 +108,4 @@ sp.pprint(evol_eq_rho)
 
 print("\nFull evolution equation dsigma/dt:")
 sp.pprint(evol_eq_sigma)
+
