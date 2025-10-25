@@ -65,6 +65,8 @@ def derive_evolution(full_bracket, observables, test_funcs):
         # Set all other test functions to zero
         subs_dict = {tf: 0 for key, tf in test_funcs.items() if key != obs_name}
         rhs = full_bracket.subs(subs_dict)
+        rhs = sp.expand(rhs)                   
+        rhs = sp.cancel(rhs)                    
         rhs = sp.simplify(rhs)
         # Time derivative
         obs_dot = sp.diff(obs_func, t)
