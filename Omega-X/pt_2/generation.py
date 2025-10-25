@@ -68,6 +68,7 @@ def derive_evolution(full_bracket, observables, test_funcs):
         rhs = sp.expand(rhs)                   
         rhs = sp.cancel(rhs)                    
         rhs = sp.simplify(rhs)
+        rhs = rhs.replace(lambda expr: expr==0, lambda expr: 0)
         # Time derivative
         obs_dot = sp.diff(obs_func, t)
         obs_dot = sp.simplify(obs_dot)
