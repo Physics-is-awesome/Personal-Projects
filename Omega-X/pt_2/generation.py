@@ -66,7 +66,9 @@ dH_drho = sp.simplify(sp.diff(h_sub, rho))       # full chain-rule result
 # Temperature and pressure (explicit)
 # T = ∂U/∂s evaluated at s_expr
 if SUBSTITUTE_U_WITH_IDEAL:
-    T_expr = sp.simplify(sp.diff(U_expr, s).subs(s, s_expr))
+    T_expr = sp.simplify(sp.diff(U_expr, s))
+    T_expr = T_expr.subs(s, s_expr)
+
     p_expr = sp.simplify(rho**2 * sp.diff(U_expr, rho).subs(s, s_expr))
 else:
     T_expr = sp.simplify(sp.diff(U(rho, s), s).subs(s, s_expr))
