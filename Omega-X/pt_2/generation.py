@@ -27,6 +27,7 @@ G = sp.Function('G')(x)
 N = sp.Function('N')(x)
 T_h = sp.Function('T_h')(x, t)
 u_h = sp.Function('u_h')(x, t)
+eta_h = sp.Function('eta_h')(x, t)
 # -----------------------------
 # 2. Internal energy and temperature
 # -----------------------------
@@ -68,7 +69,7 @@ full_bracket = (
     # Poisson part
     -L2(observables['m_h'] * sp.diff(u_h, x), test_funcs['phi_m'])
     + L2(observables['m_h'] * u_h, sp.diff(test_funcs['phi_m'], x))
-    -L2(observables['rho_h'] * sp.diff(observables['eta_h'], x), test_funcs['phi_m'])
+    -L2(observables['rho_h'] * sp.diff(eta_h, x), test_funcs['phi_m'])
     + L2(observables['rho_h'] * observables['u_h'], sp.diff(test_funcs['phi_rho'], x))
     -L2(observables['sigma_h'] * sp.diff(T_h, x), test_funcs['phi_m'])
     + L2(observables['sigma_h'] * u_h, sp.diff(test_funcs['phi_sigma'], x))
