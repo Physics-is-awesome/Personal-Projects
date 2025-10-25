@@ -120,6 +120,15 @@ sp.init_printing()
 print("Temperature expression T_expr:")
 sp.pprint(T_expr)
 
+# ----------------------------
+# 8. Create new code 
+# ----------------------------
+from sympy import fcode
+for obs_name, eq in evol_eqs.items():
+    rhs_fcode = fcode(eq.rhs, assign_to=f'd{obs_name}_dt')
+    with open(f'rhs_{obs_name}.f90', 'w') as f:
+        f.write(rhs_fcode)
+
 for obs_name, eq in evol_eqs.items():
     print(f"\nEvolution equation for {obs_name}:")
     sp.pprint(eq)
