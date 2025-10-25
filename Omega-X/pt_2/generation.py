@@ -67,6 +67,7 @@ def derive_evolution(full_bracket, observables, test_funcs):
         rhs = full_bracket.subs(subs_dict)
         # Time derivative
         obs_dot = sp.diff(obs_func, t)
+        obs_dot = simplify(obs_dot)
         evol_eqs[obs_name] = sp.Eq(obs_dot, rhs)
     return evol_eqs
 
