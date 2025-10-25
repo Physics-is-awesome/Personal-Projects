@@ -25,7 +25,7 @@ F = sp.Function('F')(x)
 K = sp.Function('K')(x)
 G = sp.Function('G')(x)
 N = sp.Function('N')(x)
-T_h = sp.Function('T_h')(x, t)  # temperature placeholder
+T_h = sp.Function('T_h')(x, t)
 
 # -----------------------------
 # 2. Internal energy and temperature
@@ -45,7 +45,7 @@ def L2(f, g):
 # -----------------------------
 # 4. Full bracket input
 # -----------------------------
-# Replace this with the full Poisson + metriplectic 4-bracket symbolic expression
+# Replace this with the actual Poisson + metriplectic 4-bracket
 full_bracket = (
     -L2(observables['m_h']*sp.diff(observables['m_h'], x), test_funcs['m_h'])
     + L2(observables['m_h']*observables['m_h'], sp.diff(test_funcs['m_h'], x))
@@ -56,33 +56,45 @@ full_bracket = (
 )
 
 # -----------------------------
-# 5. Function to automatically derive evolution equations
+# 5. Recursive zero propagation
+# -----------------------------
+def remove_zero_terms(expr, zero_funcs):
+    """
+    Recursively replace any expression that depends on zero_funcs with 0
+    """
+    if expr in zero_funcs:
+        return 0
+    if expr.is_Atom:
+        return expr
+    new_args = [remove_zero_terms(a, zero_funcs) for a in expr.args]
+    # If any argument became 0 and the function is linear in that argument, it may reduce
+    return expr.func(*new_args)
+
+# -----------------------------
+# 6. Derive evolution equations
 # -----------------------------
 def derive_evolution(full_bracket, observables, test_funcs):
     evol_eqs = {}
     for obs_name, obs_func in observables.items():
         rhs = full_bracket
-        # Set all other test functions to 0
-        for key, tf in test_funcs.items():
-            if key != obs_name:
-                rhs = rhs.subs(tf, 0)
-        # Expand and simplify so zero terms vanish
-        rhs = sp.expand(rhs)
-        rhs = sp.cancel(rhs)
-        rhs = sp.simplify(rhs)
+        # Identify zero test functions
+        zero_funcs = [tf for key, tf in test_funcs.items() if key != obs_name]
+        # Recursively remove all terms that depend on zero test functions
+        rhs_clean = remove_zero_terms(rhs, zero_funcs)
+        # Expand, cancel, and simplify
+        rhs_clean = sp.expand(rhs_clean)
+        rhs_clean = sp.cancel(rhs_clean)
+        rhs_clean = sp.simplify(rhs_clean)
         # Time derivative
         obs_dot = sp.diff(obs_func, t)
-        evol_eqs[obs_name] = sp.Eq(obs_dot, rhs)
+        evol_eqs[obs_name] = sp.Eq(obs_dot, rhs_clean)
     return evol_eqs
 
 # -----------------------------
-# 6. Compute evolution equations
+# 7. Compute and display
 # -----------------------------
 evol_eqs = derive_evolution(full_bracket, observables, test_funcs)
 
-# -----------------------------
-# 7. Display results
-# -----------------------------
 sp.init_printing()
 print("Temperature expression T_expr:")
 sp.pprint(T_expr)
