@@ -25,7 +25,7 @@ F = sp.Function('F')(x)
 K = sp.Function('K')(x)
 G = sp.Function('G')(x)
 N = sp.Function('N')(x)
-T_h = sp.Function('T_h')(x, t)  # placeholder temperature
+T_h = sp.Function('T_h')(x, t)  # temperature placeholder
 
 # -----------------------------
 # 2. Internal energy and temperature
@@ -40,13 +40,12 @@ T_expr = sp.diff(U_expr, s).subs(s, sigma_h / rho_h)
 # 3. L2 projection placeholder
 # -----------------------------
 def L2(f, g):
-    return sp.Function('L2')(f, g)  # symbolic inner product placeholder
+    return sp.Function('L2')(f, g)
 
 # -----------------------------
 # 4. Full bracket input
 # -----------------------------
-# User inputs the full bracket (Poisson + metriplectic) symbolically
-# Example placeholder: you can replace this with the actual bracket
+# Replace this with the full Poisson + metriplectic 4-bracket symbolic expression
 full_bracket = (
     -L2(observables['m_h']*sp.diff(observables['m_h'], x), test_funcs['m_h'])
     + L2(observables['m_h']*observables['m_h'], sp.diff(test_funcs['m_h'], x))
@@ -57,21 +56,22 @@ full_bracket = (
 )
 
 # -----------------------------
-# 5. Function to automatically extract evolution for each observable
+# 5. Function to automatically derive evolution equations
 # -----------------------------
 def derive_evolution(full_bracket, observables, test_funcs):
     evol_eqs = {}
     for obs_name, obs_func in observables.items():
-        # Set all other test functions to zero
-        subs_dict = {tf: 0 for key, tf in test_funcs.items() if key != obs_name}
-        rhs = full_bracket.subs(subs_dict)
-        rhs = sp.expand(rhs)                   
-        rhs = sp.cancel(rhs)                    
+        rhs = full_bracket
+        # Set all other test functions to 0
+        for key, tf in test_funcs.items():
+            if key != obs_name:
+                rhs = rhs.subs(tf, 0)
+        # Expand and simplify so zero terms vanish
+        rhs = sp.expand(rhs)
+        rhs = sp.cancel(rhs)
         rhs = sp.simplify(rhs)
-        rhs = rhs.replace(lambda expr: expr==0, lambda expr: 0)
         # Time derivative
         obs_dot = sp.diff(obs_func, t)
-        obs_dot = sp.simplify(obs_dot)
         evol_eqs[obs_name] = sp.Eq(obs_dot, rhs)
     return evol_eqs
 
@@ -81,9 +81,12 @@ def derive_evolution(full_bracket, observables, test_funcs):
 evol_eqs = derive_evolution(full_bracket, observables, test_funcs)
 
 # -----------------------------
-# 7. Display
+# 7. Display results
 # -----------------------------
 sp.init_printing()
+print("Temperature expression T_expr:")
+sp.pprint(T_expr)
+
 for obs_name, eq in evol_eqs.items():
     print(f"\nEvolution equation for {obs_name}:")
     sp.pprint(eq)
