@@ -26,7 +26,7 @@ K = sp.Function('K')(x)
 G = sp.Function('G')(x)
 N = sp.Function('N')(x)
 T_h = sp.Function('T_h')(x, t)
-
+u_h = sp.Function('u_h')(x, t)
 # -----------------------------
 # 2. Internal energy and temperature
 # -----------------------------
