@@ -70,7 +70,7 @@ full_bracket = (
     -L2(observables['m_h'] * sp.diff(u_h, x), test_funcs['phi_m'])
     + L2(observables['m_h'] * u_h, sp.diff(test_funcs['phi_m'], x))
     -L2(observables['rho_h'] * sp.diff(eta_h, x), test_funcs['phi_m'])
-    + L2(observables['rho_h'] * observables['u_h'], sp.diff(test_funcs['phi_rho'], x))
+    + L2(observables['rho_h'] * u_h, sp.diff(test_funcs['phi_rho'], x))
     -L2(observables['sigma_h'] * sp.diff(T_h, x), test_funcs['phi_m'])
     + L2(observables['sigma_h'] * u_h, sp.diff(test_funcs['phi_sigma'], x))
     # Metriplectic dissipative part
