@@ -12,8 +12,9 @@ H_expr = parse_latex(r"\frac{1}{2} \rho (v_x^2 + v_y^2 + v_z^2) + \frac{1}{2}(B_
 
 
 dH_drho = diff(H_expr, rho)
-dH_dvx  = diff(H_expr, vx)
-
+dH_dvx = diff(H_expr, vx)
+dH_dvy = diff(H_expr, vy)
+dH_dvz = diff(H_expr, vz)
 
 # Prepare list of (name, expression) pairs
 expressions = [
