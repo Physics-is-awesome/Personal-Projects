@@ -125,22 +125,35 @@ sp.pprint(T_expr)
 # ----------------------------
 
 def replace_L2(expr):
-    """Recursively replace L2Linear and IntegralLinear with plain multiplication or identity"""
+    """Replace L2Linear and IntegralLinear wrappers with direct algebraic equivalents."""
     if expr.func == L2Linear:
         f, g = expr.args
-        return f * g  # Replace L2(f,g) with f*g for code generation
+        return f * g
     if expr.func == IntegralLinear:
         (arg,) = expr.args
-        return arg  # Just remove the Integral wrapper
+        return arg
     if expr.is_Atom:
         return expr
     new_args = [replace_L2(a) for a in expr.args]
     return expr.func(*new_args)
 
+def replace_functions_with_symbols(expr):
+    """Replace all function calls like m_h(x,t) → Symbol('m_h')."""
+    replacements = {}
+    for obs_name in observables:
+        replacements[observables[obs_name]] = sp.Symbol(obs_name)
+    replacements.update({
+        u_h: sp.Symbol('u_h'),
+        T_h: sp.Symbol('T_h'),
+        eta_h: sp.Symbol('eta_h')
+    })
+    return expr.xreplace(replacements)
+
 print("\nGenerated Fortran code:\n")
 for obs_name, eq in evol_eqs.items():
-    rhs_fortran_expr = replace_L2(eq.rhs)
-    rhs_fcode = fcode(rhs_fortran_expr, assign_to=f'd{obs_name}_dt')
-    print(f"! Fortran for {obs_name}")
+    rhs_clean = replace_L2(eq.rhs)
+    rhs_final = replace_functions_with_symbols(rhs_clean)
+    rhs_fcode = fcode(rhs_final, assign_to=f'd{obs_name}_dt', source_format='free', standard=95)
+    print(f"! Fortran code for {obs_name}")
     print(rhs_fcode)
     print()
