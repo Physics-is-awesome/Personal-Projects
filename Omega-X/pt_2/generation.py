@@ -125,21 +125,22 @@ sp.pprint(T_expr)
 # ----------------------------
 
 def replace_L2(expr):
-    """Recursively replace L2Linear with multiplication for code gen"""
+    """Recursively replace L2Linear and IntegralLinear with plain multiplication or identity"""
     if expr.func == L2Linear:
         f, g = expr.args
-        return f * g  # Or your discrete L2 formula
+        return f * g  # Replace L2(f,g) with f*g for code generation
+    if expr.func == IntegralLinear:
+        (arg,) = expr.args
+        return arg  # Just remove the Integral wrapper
     if expr.is_Atom:
         return expr
     new_args = [replace_L2(a) for a in expr.args]
     return expr.func(*new_args)
 
-rhs_fortran_expr = replace_L2(eq.rhs)
+print("\nGenerated Fortran code:\n")
 for obs_name, eq in evol_eqs.items():
-    rhs_fcode = fcode(eq.rhs, assign_to=f'd{obs_name}_dt')
-    with open(f'rhs_{obs_name}.f90', 'w') as f:
-        f.write(rhs_fcode)
-
-for obs_name, eq in evol_eqs.items():
-    print(f"\nEvolution equation for {obs_name}:")
-    sp.pprint(eq)
+    rhs_fortran_expr = replace_L2(eq.rhs)
+    rhs_fcode = fcode(rhs_fortran_expr, assign_to=f'd{obs_name}_dt')
+    print(f"! Fortran for {obs_name}")
+    print(rhs_fcode)
+    print()
