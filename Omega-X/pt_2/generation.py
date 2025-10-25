@@ -149,10 +149,27 @@ def replace_functions_with_symbols(expr):
     })
     return expr.xreplace(replacements)
 
+def replace_derivatives(expr):
+    """Replace Derivative(f(x,t), x) → Symbol('df_dx'), etc."""
+    derivs = {}
+    for d in expr.atoms(sp.Derivative):
+        func = d.expr
+        vars_ = d.variables
+        # Only handle first derivatives (common case)
+        if len(vars_) == 1:
+            var = vars_[0]
+            func_name = func.func.__name__
+            var_name = str(var)
+            sym_name = f'd{func_name}_d{var_name}'
+            derivs[d] = sp.Symbol(sym_name)
+        else:
+            derivs[d] = sp.Symbol("unsupported_deriv")
+    return expr.xreplace(derivs)
+
 print("\nGenerated Fortran code:\n")
 for obs_name, eq in evol_eqs.items():
     rhs_clean = replace_L2(eq.rhs)
-    rhs_final = replace_functions_with_symbols(rhs_clean)
+    rhs_final = replace_derivatives(replace_functions_with_symbols(rhs_clean))
     rhs_fcode = fcode(rhs_final, assign_to=f'd{obs_name}_dt', source_format='free', standard=95)
     print(f"! Fortran code for {obs_name}")
     print(rhs_fcode)
