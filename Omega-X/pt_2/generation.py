@@ -76,7 +76,7 @@ full_bracket = (
     # Metriplectic dissipative part
     -1/Re * L2(sp.diff(u_h, x), test_funcs['phi_m'])
     - L2(((sp.diff(u_h, x))**2)/(T_h), test_funcs['phi_sigma'])
-    + 1/Pr * gamma/(gamma - 1) ( L2( sp.diff(T_h, x)/ T_h, sp.diff(test_funcs['phi_sigma'], x))
+    + 1/Pr * (gamma/(gamma - 1)) * ( L2( sp.diff(T_h, x)/ T_h, sp.diff(test_funcs['phi_sigma'], x))
     - L2( (sp.diff(T_h, x))**2/ T_h**2, test_funcs['phi_sigma']))
     )
 
