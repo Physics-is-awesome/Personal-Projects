@@ -1,5 +1,5 @@
 import sympy as sp
-
+from sympy import fcode
 # -----------------------------
 # 1. Symbols
 # -----------------------------
@@ -123,7 +123,18 @@ sp.pprint(T_expr)
 # ----------------------------
 # 8. Create new code 
 # ----------------------------
-from sympy import fcode
+
+def replace_L2(expr):
+    """Recursively replace L2Linear with multiplication for code gen"""
+    if expr.func == L2Linear:
+        f, g = expr.args
+        return f * g  # Or your discrete L2 formula
+    if expr.is_Atom:
+        return expr
+    new_args = [replace_L2(a) for a in expr.args]
+    return expr.func(*new_args)
+
+rhs_fortran_expr = replace_L2(eq.rhs)
 for obs_name, eq in evol_eqs.items():
     rhs_fcode = fcode(eq.rhs, assign_to=f'd{obs_name}_dt')
     with open(f'rhs_{obs_name}.f90', 'w') as f:
