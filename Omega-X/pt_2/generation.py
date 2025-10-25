@@ -16,7 +16,7 @@ observables = {
 # Test functions (variations)
 test_funcs = {
     'phi_m': sp.Function('phi_m')(x),
-    'phi_rh': sp.Function('phi_rho')(x),
+    'phi_rho': sp.Function('phi_rho')(x),
     'phi_sigma': sp.Function('phi_sigma')(x)
 }
 
