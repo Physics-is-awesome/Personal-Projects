@@ -35,5 +35,45 @@ An astute observer can find that these mean the same thing, my is more of an exp
 \begin{definition}
     Axiom: a statement accepted as true as the basis for argument or inference.
 \end{definition}
-\section{Defining our Axioms}
-So, let us define the axioms used in our system.
+\section{Formal Logic}
+Let us start with formal logic, a system of symbols to be able to represent logic. Then build from there.
+\subsection{Classical logic}
+The most basic form of logic is classical logic, the examination of simple singular objects.
+\subsubsection{Propositional logic}
+The most basic form of classical logic, but instead of telling you now, I will develop it.
+\subsubsection{Truth Tables}
+Negation is the first an simplest form. The symbol is $\neg$, so $\neg A$ is the negation of A.
+
+so the table can be constructed
+$$A \quad \neg A$$
+$$T \quad F$$
+$$F \quad T$$
+Where T, represents true, and F represents false.
+
+A further complication is the conjunction operator $\land $ or "and." It combines to functions into a greater set.(a union of function)
+\begin{align*}
+    A \quad B \quad A\land B \\
+    T \quad T \quad \quad T \quad \\
+    T \quad F \quad \quad F \quad \\
+    F \quad T \quad \quad F \quad \\
+    F \quad F \quad \quad F \quad
+\end{align*}
+$A \land B$ is only true when both "A" and "B" are true.
+
+$\lor$ is the inverse, only one of the functions must be true. It is called a disjunction. 
+\begin{align*}
+    A \quad B \quad A\lor B \\
+    T \quad T \quad \quad T \quad \\
+    T \quad F \quad \quad T \quad \\
+    F \quad T \quad \quad T \quad \\
+    F \quad F \quad \quad F \quad
+\end{align*}
+
+$A \implies B$ means "if A, then B" meaning that A needs to happen for B or that A causes B.
+\begin{align*}
+    A \quad B \quad A\implies B \\
+    T \quad T \quad \quad \quad T \quad \quad  \\
+    T \quad F \quad \quad \quad T\quad \quad \\
+    F \quad T \quad \quad \quad  F \quad \quad \\
+    F \quad F \quad \quad \quad  T \quad \quad
+\end{align*}
