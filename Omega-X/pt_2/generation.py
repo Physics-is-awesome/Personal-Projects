@@ -66,15 +66,15 @@ def Integral(expr):
 # Replace this with the full Poisson + metriplectic 4-bracket
 full_bracket = (
     # Poisson part
-    -L2(observables['m_h'] * sp.diff(observables['u_h'], x), test_funcs['phi_m'])
-    + L2(observables['m_h'] * observables['u_h'], sp.diff(test_funcs['phi_m'], x))
+    -L2(observables['m_h'] * sp.diff(u_h, x), test_funcs['phi_m'])
+    + L2(observables['m_h'] * u_h, sp.diff(test_funcs['phi_m'], x))
     -L2(observables['rho_h'] * sp.diff(observables['eta_h'], x), test_funcs['phi_m'])
     + L2(observables['rho_h'] * observables['u_h'], sp.diff(test_funcs['phi_rho'], x))
     -L2(observables['sigma_h'] * sp.diff(T_h, x), test_funcs['phi_m'])
-    + L2(observables['sigma_h'] * observables['u_h'], sp.diff(test_funcs['phi_sigma'], x))
+    + L2(observables['sigma_h'] * u_h, sp.diff(test_funcs['phi_sigma'], x))
     # Metriplectic dissipative part
-    -1/Re * L2(sp.diff(observables['u_h'], x), test_funcs['phi_m'])
-    - L2(((sp.diff(observables['u_h'], x))**2)/(T_h), test_funcs['phi_sigma'])
+    -1/Re * L2(sp.diff(u_h, x), test_funcs['phi_m'])
+    - L2(((sp.diff(u_h, x))**2)/(T_h), test_funcs['phi_sigma'])
     + 1/Pr * gamma/(gamma - 1) ( L2( sp.diff(T_h, x)/ T_h, sp.diff(test_funcs['phi_sigma'], x))
     - L2( (sp.diff(T_h, x))**2/ T_h**2, test_funcs['phi_sigma']))
     )
