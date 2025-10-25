@@ -66,14 +66,17 @@ def Integral(expr):
 # Replace this with the full Poisson + metriplectic 4-bracket
 full_bracket = (
     # Poisson part
-    -L2(m_h * sp.diff(m_h, x), phi_m) + L2(m_h * m_h, sp.diff(phi_m, x))
-    -L2(rho_h * sp.diff(sigma_h, x), phi_rho) + L2(rho_h * m_h, sp.diff(phi_rho, x))
-    -L2(sigma_h * sp.diff(T_h, x), phi_sigma) + L2(sigma_h * m_h, sp.diff(phi_sigma, x))
+    -L2(observables['m_h'] * sp.diff(observables['m_h'], x), test_funcs['m_h'])
+    + L2(observables['m_h'] * observables['m_h'], sp.diff(test_funcs['m_h'], x))
+    -L2(observables['rho_h'] * sp.diff(observables['sigma_h'], x), test_funcs['rho_h'])
+    + L2(observables['rho_h'] * observables['m_h'], sp.diff(test_funcs['rho_h'], x))
+    -L2(observables['sigma_h'] * sp.diff(T_h, x), test_funcs['sigma_h'])
+    + L2(observables['sigma_h'] * observables['m_h'], sp.diff(test_funcs['sigma_h'], x))
     # Metriplectic dissipative part
     -1/Re * Integral(1/T_h * (K.diff(x)*F.diff(x) - F.diff(x)*K.diff(x)) *
                      (N.diff(x)*G.diff(x) - G.diff(x)*N.diff(x)))
-    +1/( (Pr*(gamma-1)) ) * Integral(1/T_h * (K.diff(x)*F.diff(x) - F.diff(x)*K.diff(x)) *
-                                     (N.diff(x)*G.diff(x) - G.diff(x)*N.diff(x)))
+    +1/(Pr*(gamma-1)) * Integral(1/T_h * (K.diff(x)*F.diff(x) - F.diff(x)*K.diff(x)) *
+                                  (N.diff(x)*G.diff(x) - G.diff(x)*N.diff(x)))
 )
 
 # -----------------------------
