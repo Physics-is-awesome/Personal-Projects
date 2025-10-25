@@ -37,37 +37,52 @@ U_expr = Cv * sp.exp(s / Cv) * rho_h**(gamma - 1) / (gamma - 1)
 T_expr = sp.diff(U_expr, s).subs(s, sigma_h / rho_h)
 
 # -----------------------------
-# 3. L2 projection placeholder
+# 3. Linear symbolic wrappers for automatic zero propagation
 # -----------------------------
+class L2Linear(sp.Function):
+    nargs = 2
+    @classmethod
+    def eval(cls, f, g):
+        if g == 0 or f == 0:
+            return sp.S(0)
+
+class IntegralLinear(sp.Function):
+    nargs = 1
+    @classmethod
+    def eval(cls, integrand):
+        if integrand == 0:
+            return sp.S(0)
+
+# Redefine L2 and Integral to use linear wrappers
 def L2(f, g):
-    return sp.Function('L2')(f, g)
+    return L2Linear(f, g)
+
+def Integral(expr):
+    return IntegralLinear(expr)
 
 # -----------------------------
 # 4. Full bracket input
 # -----------------------------
-# Replace this with the actual Poisson + metriplectic 4-bracket
+# Replace this with the full Poisson + metriplectic 4-bracket
 full_bracket = (
     -L2(observables['m_h']*sp.diff(observables['m_h'], x), test_funcs['m_h'])
     + L2(observables['m_h']*observables['m_h'], sp.diff(test_funcs['m_h'], x))
-    -1/Re * sp.Function('Integral')(
+    -1/Re * Integral(
         1/T_h * (K.diff(x)*F.diff(x)-F.diff(x)*K.diff(x)) *
         (N.diff(x)*G.diff(x)-G.diff(x)*N.diff(x))
     )
 )
 
 # -----------------------------
-# 5. Recursive zero propagation
+# 5. Recursive zero removal
 # -----------------------------
 def remove_zero_terms(expr, zero_funcs):
-    """
-    Recursively replace any expression that depends on zero_funcs with 0
-    """
+    """Recursively replace any expression depending on zero test functions with 0"""
     if expr in zero_funcs:
-        return 0
+        return sp.S(0)
     if expr.is_Atom:
         return expr
     new_args = [remove_zero_terms(a, zero_funcs) for a in expr.args]
-    # If any argument became 0 and the function is linear in that argument, it may reduce
     return expr.func(*new_args)
 
 # -----------------------------
@@ -77,11 +92,9 @@ def derive_evolution(full_bracket, observables, test_funcs):
     evol_eqs = {}
     for obs_name, obs_func in observables.items():
         rhs = full_bracket
-        # Identify zero test functions
+        # Zero all other test functions
         zero_funcs = [tf for key, tf in test_funcs.items() if key != obs_name]
-        # Recursively remove all terms that depend on zero test functions
         rhs_clean = remove_zero_terms(rhs, zero_funcs)
-        # Expand, cancel, and simplify
         rhs_clean = sp.expand(rhs_clean)
         rhs_clean = sp.cancel(rhs_clean)
         rhs_clean = sp.simplify(rhs_clean)
