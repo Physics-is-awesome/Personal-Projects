@@ -131,7 +131,7 @@ def derive_evolution(full_bracket, observables, test_funcs):
 
         rhs = full_bracket
         # zero all test functions except the one paired with obs_name
-        zero_map = {tf: 0 for key, tf in test_funcs.items() if key != obs_name}
+        zero_map = {phi: 0 for key, phi in test_funcs.items() if key != obs_name}
         # substitute zeros first (will eliminate many terms)
         rhs_sub = rhs.subs(zero_map)
         # recursive removal of any nested occurrences
