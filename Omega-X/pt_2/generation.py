@@ -123,7 +123,20 @@ sp.pprint(T_expr)
 # ----------------------------
 # 8. Create new code 
 # ----------------------------
+def replace_basis():
+    subs_dict = {
+    phi_m: sp.Symbol("phi_m(i)"),
+    phi_rho: sp.Symbol("phi_rho(i)"),
+    phi_sigma: sp.Symbol("phi_sigma(i)"),
+    u_h: sp.Symbol("u_h(i)"),
+    m_h: sp.Symbol("m_h(i)"),
+    rho_h: sp.Symbol("rho_h(i)"),
+    sigma_h: sp.Symbol("sigma_h(i)"),
+    T_h: sp.Symbol("T_h(i)"),
+}
 
+rhs_expr = eqs[0].rhs.subs(subs_dict)
+rhs_fortran_expr = replace_L2(rhs_expr)
 def replace_L2(expr):
     """Replace L2Linear and IntegralLinear wrappers with direct algebraic equivalents."""
     if expr.func == L2Linear:
@@ -168,6 +181,7 @@ def replace_derivatives(expr):
 
 print("\nGenerated Fortran code:\n")
 for obs_name, eq in evol_eqs.items():
+    replace_basis()
     rhs_clean = replace_L2(eq.rhs)
     rhs_final = replace_derivatives(replace_functions_with_symbols(rhs_clean))
     rhs_fcode = fcode(rhs_final, assign_to=f'd{obs_name}_dt', source_format='free', standard=95)
