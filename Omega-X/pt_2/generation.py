@@ -3,7 +3,7 @@ from sympy import fcode
 import os
 
 # -----------------------------
-# 1. Symbols
+# 1. Symbols and observables
 # -----------------------------
 x, t = sp.symbols('x t')
 gamma, Cv, Re, Pr = sp.symbols('gamma Cv Re Pr', positive=True)
@@ -31,7 +31,7 @@ U_expr = Cv * sp.exp(s / Cv) * rho_h**(gamma - 1) / (gamma - 1)
 T_expr = sp.diff(U_expr, s).subs(s, sigma_h / rho_h)
 
 # -----------------------------
-# 2. L2 / Integral wrappers
+# 2. L2 wrapper
 # -----------------------------
 class L2Linear(sp.Function):
     nargs = 2
@@ -69,8 +69,7 @@ def remove_zero_terms(expr, zero_funcs):
         return sp.S(0)
     if expr.is_Atom:
         return expr
-    new_args = [remove_zero_terms(a, zero_funcs) for a in expr.args]
-    return expr.func(*new_args)
+    return expr.func(*[remove_zero_terms(a, zero_funcs) for a in expr.args])
 
 def derive_evolution(full_bracket, observables, basis):
     evol_eqs = {}
@@ -85,7 +84,7 @@ def derive_evolution(full_bracket, observables, basis):
 evol_eqs = derive_evolution(full_bracket, observables, basis)
 
 # -----------------------------
-# 5. Code generation helpers
+# 5. Code replacements
 # -----------------------------
 def replace_L2(expr):
     if expr.func == L2Linear:
@@ -117,9 +116,9 @@ def replace_basis(expr):
     return expr.xreplace(basis_symbols)
 
 # -----------------------------
-# 6. Write Fortran files
+# 6. Write Fortran module files
 # -----------------------------
-output_dir = 'fortran_code'
+output_dir = 'fortran_modules'
 os.makedirs(output_dir, exist_ok=True)
 
 for obs_name, eq in evol_eqs.items():
@@ -128,11 +127,26 @@ for obs_name, eq in evol_eqs.items():
     rhs = replace_derivatives(rhs)
     rhs = replace_observables(rhs)
     rhs = replace_basis(rhs)
+
     code_str = fcode(rhs, assign_to=f'd{obs_name}_dt', source_format='free', standard=95)
 
-    file_path = os.path.join(output_dir, f'{obs_name}_evolution.f90')
+    file_path = os.path.join(output_dir, f'{obs_name}_module.f90')
     with open(file_path, 'w') as f:
-        f.write(f'! Automatically generated Fortran code for {obs_name}\n')
-        f.write(code_str)
+        f.write(f"! Automatically generated module for {obs_name}\n")
+        f.write(f"module {obs_name}_module\n")
+        f.write("  implicit none\n")
+        f.write("contains\n")
+        f.write(f"  subroutine compute_{obs_name}(phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, eta_h, d{obs_name}_dt)\n")
+        f.write("    implicit none\n")
+        f.write("    ! Declare inputs and outputs as real\n")
+        f.write("    real, intent(in) :: phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, eta_h\n")
+        f.write(f"    real, intent(out) :: d{obs_name}_dt\n")
+        f.write("\n")
+        f.write("    ! Evolution equation\n")
+        f.write("    ")
+        f.write(code_str.replace('\n', '\n    '))
+        f.write("\n")
+        f.write(f"  end subroutine compute_{obs_name}\n")
+        f.write("end module\n")
 
-    print(f'File created: {file_path}')
+    print(f"Module created: {file_path}")
