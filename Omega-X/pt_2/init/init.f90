@@ -79,13 +79,13 @@ program init
     end do
   end function get_bol
   ! Get real
-  function get_real(search_key, keys, values, n) result(real)
+  function get_real(search_key, keys, values, n) result(reals)
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
     integer, intent(in) :: n
     integer :: i
-    real(8) :: real
-    bol = 0.0
+    real(8) :: reals
+    reals = 0.0
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
           read(values(i),*) real
