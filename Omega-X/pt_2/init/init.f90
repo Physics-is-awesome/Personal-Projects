@@ -31,16 +31,23 @@ program init
     close(10)
 
     ! Now you can look up any key you want:
-    ny = get_int("ny", keys, values, count)
+    ! getting dimensions
+    dim = get_int("dim", keys, values, count)
     nx = get_int("nx", keys, values, count)
-    mass = get_bol("mass", keys, values, count)
-    print *, "ny =", ny
-    print *, "nx =", nx
-    print *, ny + nx
-    print *, mass
-    if (mass) then
-      print*, "mass is true"
+    if dim >= 2 then
+      ny = get_int("ny", keys, values, count)
     end if
+    if dim >= 3 then
+      nz = get_int("nz", keys, values, count)
+    end if
+    # dynamics allowed
+    mass = get_bol("mass", keys, values, count)
+    momentum = get_bol("momentum", keys, values, count)
+    entropy = get_bol("entropy", keys, values, count)
+    ! testing
+    print*, get_real("pi", keys, values, count)
+    print*, get_string("hi", keys, values, count)
+    
   end subroutine read_config
   ! getting integers
   function get_int(search_key, keys, values, n) result(val)
@@ -56,7 +63,7 @@ program init
        end if
     end do
   end function get_int
-  ! getting bolean 
+  ! Get bolean 
   function get_bol(search_key, keys, values, n) result(bol)
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
@@ -67,6 +74,35 @@ program init
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
           read(values(i),*) bol
+          return
+       end if
+    end do
+  end function get_bol
+  ! Get real
+  function get_real(search_key, keys, values, n) result(real)
+    character(len=*), intent(in) :: search_key
+    character(len=*), intent(in) :: keys(:), values(:)
+    integer, intent(in) :: n
+    integer :: i
+    real(8) :: real
+    bol = 0.0
+    do i = 1, n
+       if (trim(keys(i)) == trim(search_key)) then
+          read(values(i),*) real
+          return
+       end if
+    end do
+  end function get_real
+  ! get string
+  function get_string(search_key, keys, values, n) result(string)
+    character(len=*), intent(in) :: search_key
+    character(len=*), intent(in) :: keys(:), values(:)
+    integer, intent(in) :: n
+    character(len=*) :: string
+    string = ""
+    do i = 1, n
+       if (trim(keys(i)) == trim(search_key)) then
+          read(values(i),*) string
           return
        end if
     end do
