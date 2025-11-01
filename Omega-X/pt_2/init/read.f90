@@ -1,11 +1,10 @@
-program init
+module read_config
   implicit none
-  call read_config
 
   contains
   ! -------------------------------------------------------------------------------------------------
-  ! Read dimensions, form mesh, and ...
-  !
+  ! Read dimensions, sizes, dynamics, etc
+  ! -------------------------------------------------------------------------------------------------
   subroutine read_config
     implicit none
     integer, parameter :: max_entries = 100
@@ -108,4 +107,4 @@ program init
        end if
     end do
   end function get_string
-end program init
+end module read_config
