@@ -12,6 +12,7 @@ program init
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
     integer :: count, ios, nx, ny
+    logical :: mass
     character(len=256) :: line, key, eqsign, value
 
     count = 0
@@ -38,7 +39,7 @@ program init
     print *, ny + nx
     print *, mass
   end subroutine read_config
-  # getting integers
+  ! getting integers
   function get_int(search_key, keys, values, n) result(val)
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
@@ -52,7 +53,7 @@ program init
        end if
     end do
   end function get_int
-  # getting bolean 
+  ! getting bolean 
   function get_bol(search_key, keys, values, n) result(bol)
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
