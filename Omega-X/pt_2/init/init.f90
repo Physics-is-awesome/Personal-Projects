@@ -11,8 +11,8 @@ program init
     integer, parameter :: max_entries = 100
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
-    integer :: count, ios, nx, ny
-    logical :: mass
+    integer :: count, ios, nx, ny, nz, dim
+    logical :: mass, entropy, momentum
     character(len=256) :: line, key, eqsign, value
 
     count = 0
@@ -98,6 +98,7 @@ program init
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
     integer, intent(in) :: n
+    integer :: i
     character(len=*) :: string
     string = ""
     do i = 1, n
