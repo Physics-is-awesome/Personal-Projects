@@ -32,3 +32,4 @@ program init
     ! Now you can look up any key you want:
     print *, "ny =", get_int("ny", keys, values, count)
     print *, "nx =", get_int("nx", keys, values, count)
+  end subroutine read_config
