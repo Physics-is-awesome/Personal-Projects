@@ -15,7 +15,7 @@ program init
     character(len=256) :: line, key, value
 
     count = 0
-    open(unit=10, file="input.cfg", status="old", action="read")
+    open(unit=10, file="../config.cfg", status="old", action="read")
 
     do
       read(10,'(A)',iostat=ios) line
