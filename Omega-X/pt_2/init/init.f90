@@ -34,13 +34,13 @@ program init
     ! getting dimensions
     dim = get_int("dim", keys, values, count)
     nx = get_int("nx", keys, values, count)
-    if dim >= 2 then
+    if (dim >= 2) then
       ny = get_int("ny", keys, values, count)
     end if
-    if dim >= 3 then
+    if (dim >= 3) then
       nz = get_int("nz", keys, values, count)
     end if
-    # dynamics allowed
+    ! dynamics allowed
     mass = get_bol("mass", keys, values, count)
     momentum = get_bol("momentum", keys, values, count)
     entropy = get_bol("entropy", keys, values, count)
@@ -106,5 +106,5 @@ program init
           return
        end if
     end do
-  end function get_bol
+  end function get_string
 end program init
