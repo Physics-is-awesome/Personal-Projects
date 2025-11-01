@@ -88,7 +88,7 @@ program init
     reals = 0.0
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
-          read(values(i),*) real
+          read(values(i),*) reals
           return
        end if
     end do
@@ -99,7 +99,7 @@ program init
     character(len=*), intent(in) :: keys(:), values(:)
     integer, intent(in) :: n
     integer :: i
-    character(len=*) :: string
+    character(len=20) :: string
     string = ""
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
