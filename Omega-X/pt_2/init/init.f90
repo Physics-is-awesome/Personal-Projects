@@ -30,8 +30,12 @@ program init
     close(10)
 
     ! Now you can look up any key you want:
-    print *, "ny =", get_int("ny", keys, values, count)
-    print *, "nx =", get_int("nx", keys, values, count)
+    ny = get_int("ny", keys, values, count)
+    nx = get_int("nx", keys, values, count)
+    
+    print *, "ny =", ny
+    print *, "nx =", nx
+    print *, ny + nx
   end subroutine read_config
   function get_int(search_key, keys, values, n) result(val)
     character(len=*), intent(in) :: search_key
