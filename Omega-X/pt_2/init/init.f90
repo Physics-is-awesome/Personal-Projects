@@ -38,6 +38,9 @@ program init
     print *, "nx =", nx
     print *, ny + nx
     print *, mass
+    if (mass) then
+      print*, "mass is true"
+    end if
   end subroutine read_config
   ! getting integers
   function get_int(search_key, keys, values, n) result(val)
