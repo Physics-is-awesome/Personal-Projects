@@ -65,5 +65,5 @@ program init
           return
        end if
     end do
-  end function get_int
+  end function get_bol
 end program init
