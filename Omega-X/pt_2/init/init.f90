@@ -35,7 +35,7 @@ program init
   end subroutine read_config
   function get_int(search_key, keys, values, n) result(val)
     character(len=*), intent(in) :: search_key
-    character(len=*), intent(in) :: keys(:), values(:), eqsign(:)
+    character(len=*), intent(in) :: keys(:), values(:)
     integer, intent(in) :: n
     integer :: val, i
     val = -1
