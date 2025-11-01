@@ -2,7 +2,7 @@ program init
   implicit none
 
 
-
+  contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, form mesh, and ...
   !
@@ -33,3 +33,4 @@ program init
     print *, "ny =", get_int("ny", keys, values, count)
     print *, "nx =", get_int("nx", keys, values, count)
   end subroutine read_config
+end program init
