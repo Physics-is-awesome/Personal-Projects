@@ -12,7 +12,7 @@ program init
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
     integer :: count, ios
-    character(len=256) :: line, key, value
+    character(len=256) :: line, key, eqsign, value
 
     count = 0
     open(unit=10, file="../config.cfg", status="old", action="read")
@@ -22,7 +22,7 @@ program init
       if (ios /= 0) exit
       if (line(1:1) == "#" .or. trim(line) == "") cycle
 
-      read(line,*) key, value
+      read(line,*) key, eqsign, value
       count = count + 1
       keys(count)   = trim(key)
       values(count) = trim(value)
@@ -35,7 +35,7 @@ program init
   end subroutine read_config
   function get_int(search_key, keys, values, n) result(val)
     character(len=*), intent(in) :: search_key
-    character(len=*), intent(in) :: keys(:), values(:)
+    character(len=*), intent(in) :: keys(:), values(:), eqsign(:)
     integer, intent(in) :: n
     integer :: val, i
     val = -1
