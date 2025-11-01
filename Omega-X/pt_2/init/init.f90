@@ -1,4 +1,4 @@
-module init
+program init
   implicit none
 
 
