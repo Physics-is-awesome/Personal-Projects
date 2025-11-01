@@ -33,4 +33,17 @@ program init
     print *, "ny =", get_int("ny", keys, values, count)
     print *, "nx =", get_int("nx", keys, values, count)
   end subroutine read_config
+  function get_int(search_key, keys, values, n) result(val)
+    character(len=*), intent(in) :: search_key
+    character(len=*), intent(in) :: keys(:), values(:)
+    integer, intent(in) :: n
+    integer :: val, i
+    val = -1
+    do i = 1, n
+       if (trim(keys(i)) == trim(search_key)) then
+          read(values(i),*) val
+          return
+       end if
+    end do
+  end function get_int
 end program init
