@@ -58,7 +58,8 @@ program init
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
     integer, intent(in) :: n
-    integer :: bol, i
+    integer :: i
+    logical :: bol
     bol = .false.
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
