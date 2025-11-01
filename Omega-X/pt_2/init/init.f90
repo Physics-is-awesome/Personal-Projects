@@ -32,11 +32,13 @@ program init
     ! Now you can look up any key you want:
     ny = get_int("ny", keys, values, count)
     nx = get_int("nx", keys, values, count)
-    
+    mass = get_bol("mass", keys, values, count)
     print *, "ny =", ny
     print *, "nx =", nx
     print *, ny + nx
+    print *, mass
   end subroutine read_config
+  # getting integers
   function get_int(search_key, keys, values, n) result(val)
     character(len=*), intent(in) :: search_key
     character(len=*), intent(in) :: keys(:), values(:)
@@ -46,6 +48,20 @@ program init
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
           read(values(i),*) val
+          return
+       end if
+    end do
+  end function get_int
+  # getting bolean 
+  function get_bol(search_key, keys, values, n) result(bol)
+    character(len=*), intent(in) :: search_key
+    character(len=*), intent(in) :: keys(:), values(:)
+    integer, intent(in) :: n
+    integer :: bol, i
+    bol = .false.
+    do i = 1, n
+       if (trim(keys(i)) == trim(search_key)) then
+          read(values(i),*) bol
           return
        end if
     end do
