@@ -20,33 +20,33 @@ contains
     
   subroutine init_temp()
     integer :: i, j, k
-    if (dim == 1) then
-      if (trim(temp_dist) == "gaussian") then 
-        do i=1, nx
-          temp(i) = normal(temp_mean, temp_var)
-        end do
-      end if
+#if (dim == 1) then
+    if (trim(temp_dist) == "gaussian") then 
+      do i=1, nx
+        temp(i) = normal(temp_mean, temp_var)
+      end do
+    end if
 
-    else if (dim == 2) then 
-      if (trim(temp_dist) == "gaussian") then 
+#elif (dim == 2) then 
+    if (trim(temp_dist) == "gaussian") then 
+      do j=1, ny
+        do i=1, nx
+          temp(i,j) = normal(temp_mean, temp_var)
+        end do
+      end do
+    end if
+
+#elif (dim == 3) then
+    if (trim(temp_dist) == "gaussian") then 
+      do k=1, nz
         do j=1, ny
           do i=1, nx
-            temp(i,j) = normal(temp_mean, temp_var)
+            temp(i,j, k) = normal(temp_mean, temp_var)
           end do
         end do
-      end if
-
-    else if (dim == 3) then
-      if (trim(temp_dist) == "gaussian") then 
-        do k=1, nz
-          do j=1, ny
-            do i=1, nx
-              temp(i,j, k) = normal(temp_mean, temp_var)
-            end do
-          end do
-        end do
-      end if
+      end do
     end if
+#end if
   end subroutine init_temp
       
   
