@@ -5,11 +5,13 @@ program states
 #include "../config/dim_config.h"
 #if dim == 1
   real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
-      
+  real, allocate :: mass(nx), temp(nx), entropy(nx), momentum(nx)
 #elif dim == 2
   real, allocatable :: mass(:,:), temp(:,:), entropy(:,:), momentum(:,:)
+  real, allocate :: mass(nx, ny), temp(nx, ny), entropy(nx, ny), momentum(nx, ny)
 #elif dim == 3
   real, allocatable :: mass(:,:,:), temp(:,:,:), entropy(:,:,:), momentum(:,:,:)
+  real, allocate :: mass(nx, ny, nz), temp(nx, ny, nz), entropy(nx, ny, nz), momentum(nx, ny, nz)
 #endif
   call read_file()
   call init_temp()
@@ -31,6 +33,7 @@ contains
     if (trim(temp_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
+          
           temp(i,j) = normal(temp_mean, temp_var)
         end do
       end do
