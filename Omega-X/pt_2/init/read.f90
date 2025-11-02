@@ -2,6 +2,7 @@ module read_config
   implicit none
   integer :: nx, ny, nz, dim
   real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var
+  character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
 contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
@@ -13,7 +14,7 @@ contains
     character(len=128) :: values(max_entries)
     integer :: count, ios
     logical :: mass, entropy, momentum
-    character(len=256) :: line, key, eqsign, value, mass_dist, temp_dist, momentum_dist, entropy_dist
+    character(len=256) :: line, key, eqsign, value
 
     count = 0
     open(unit=10, file="../config/config.cfg", status="old", action="read")
