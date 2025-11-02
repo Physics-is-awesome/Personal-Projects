@@ -30,6 +30,10 @@ $(EXE): $(OBJ)
 # Compile step for .F90 (preprocessed)
 %.o: %.F90
 	$(FC) $(FFLAGS) -c $< -o $@
+# Run
+
+run: $(EXE)
+	./$(EXE)
 
 # Clean up
 clean:
