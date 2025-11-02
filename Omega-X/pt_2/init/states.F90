@@ -15,7 +15,7 @@ program states
 #endif
   call read_file()
   call init_temp()
-  print*, temp(1, 2, 3)
+  print*, temp
 contains 
 
   
