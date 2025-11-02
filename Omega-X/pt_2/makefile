@@ -35,6 +35,12 @@ $(EXE): $(OBJ)
 run: $(EXE)
 	./$(EXE)
 
+# All: clean, run, run python(not yet), clean temporary files(not yet)
+all: $(EXE)
+	./$(EXE)
+	rm -f $(OBJ) $(EXE) *.mod
+	#add pythin run ($(PYTHON) evolution/generation.py)
+	# delete temp files (rm -f evolution/fortran_modules/*.f90
 # Clean up
 clean:
 	rm -f $(OBJ) $(EXE) *.mod
