@@ -1,4 +1,4 @@
-program states
+module states
   use read_config
   implicit none
   
@@ -11,9 +11,7 @@ program states
 #elif dim == 3
   real, allocatable :: mass(:, :, :), temp(:, :, :), entropy(:, :, :), momentum(:, :, :)
 #endif
-  call read_file()
-  call init_temp()
-  print*, temp
+
 contains 
 
  
@@ -187,4 +185,4 @@ contains
 
     val = mu + sigma * r * cos(theta)
   end function normal
-end program states
+end module states
