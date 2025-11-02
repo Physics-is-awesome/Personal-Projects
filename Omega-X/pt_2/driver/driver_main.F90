@@ -2,6 +2,6 @@ program driver
   use driver_init
   implicit none
   call init()
-  print*, hi
+  print*, "hi"
 
 end program driver
