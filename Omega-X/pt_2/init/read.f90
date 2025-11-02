@@ -12,7 +12,7 @@ contains
     integer, parameter :: max_entries = 100
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
-    integer :: count, ios
+    integer :: count, ios, pos
     logical :: mass, entropy, momentum
     character(len=256) :: line, key, eqsign, value
 
@@ -20,14 +20,23 @@ contains
     open(unit=10, file="../config/config.cfg", status="old", action="read")
 
     do
-      read(10,'(A)',iostat=ios) line
-      if (ios /= 0) exit
-      if (line(1:1) == "#" .or. trim(line) == "") cycle
+      !read(10,'(A)',iostat=ios) line
+      !if (ios /= 0) exit
+      !if (line(1:1) == "#" .or. trim(line) == "") cycle
 
-      read(line,*) key, eqsign, value
-      count = count + 1
-      keys(count)   = trim(key)
-      values(count) = trim(value)
+      !read(line,*) key, eqsign, value
+      !count = count + 1
+      !keys(count)   = trim(key)
+      !values(count) = trim(value)
+      pos = index(line,"=")
+      if (pos > 0) then
+       key   = adjustl(trim(line(:pos-1)))
+       value = adjustl(trim(line(pos+1:)))
+       count = count + 1
+       keys(count)   = key
+       values(count) = value
+end if
+      
     end do
     close(10)
 
