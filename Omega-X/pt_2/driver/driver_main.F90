@@ -1,4 +1,5 @@
 program driver
+  use driver_init
   implicit none
   init()
 
