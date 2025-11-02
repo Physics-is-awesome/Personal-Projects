@@ -40,7 +40,9 @@ contains
     end if
 
 #elif dim == 3
+    print*, "dim is equal to 3"
     if (trim(temp_dist) == "gaussian") then 
+      print*, "it is gaussian"
       do k=1, nz
         do j=1, ny
           do i=1, nx
