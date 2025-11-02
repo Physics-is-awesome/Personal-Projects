@@ -4,12 +4,12 @@ module states
   
 #include "../config/dim_config.h"
 #if dim == 1
-  real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
+  real(8), allocatable :: mass(:), temp(:), entropy(:), momentum(:)
 
 #elif dim == 2
-  real, allocatable :: mass(:, :), temp(:, :), entropy(:, :), momentum(:, :)
+  real(8), allocatable :: mass(:, :), temp(:, :), entropy(:, :), momentum(:, :)
 #elif dim == 3
-  real, allocatable :: mass(:, :, :), temp(:, :, :), entropy(:, :, :), momentum(:, :, :)
+  real(8), allocatable :: mass(:, :, :), temp(:, :, :), entropy(:, :, :), momentum(:, :, :)
 #endif
 
 contains 
