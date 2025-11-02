@@ -1,6 +1,6 @@
 program driver
   use driver_init
   implicit none
-  init()
+  call init()
 
 end program driver
