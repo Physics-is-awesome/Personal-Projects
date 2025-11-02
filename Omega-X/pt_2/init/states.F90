@@ -4,12 +4,12 @@ program states
   
 #include "../config/dim_config.h"
 #if dim == 1
-  real(8) :: mass(nx), temp(nx), entropy(nx), momentum(nx)
+  real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
 
 #elif dim == 2
-  real(8) :: mass(nx, ny), temp(nx, ny), entropy(nx, ny), momentum(nx, ny)
+  real, allocatable :: mass(:, :), temp(:, :), entropy(:, :), momentum(:, :)
 #elif dim == 3
-  real(8) :: mass(nx, ny, nz), temp(nx, ny, nz), entropy(nx, ny, nz), momentum(nx, ny, nz)
+  real, allocatable :: mass(:, :, :), temp(:, :, :), entropy(:, :, :), momentum(:, :, :)
 #endif
   call read_file()
   call init_temp()
@@ -38,6 +38,7 @@ contains
     end if
 
 #elif dim == 3
+    allocate(temp(nx, ny, nz))
     print*, "dim is equal to 3"
     if (trim(temp_dist) == "gaussian") then 
       print*, "it is gaussian"
