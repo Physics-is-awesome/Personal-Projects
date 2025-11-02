@@ -58,7 +58,7 @@ contains
   ! ----------------------------------------
   ! mass 
   ! ----------------------------------------
-  subroutine init_temp()
+  subroutine init_mass()
     integer :: i, j, k
 #if dim == 1
     allocate(mass(nx))
