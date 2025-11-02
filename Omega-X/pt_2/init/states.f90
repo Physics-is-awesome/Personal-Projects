@@ -1,5 +1,6 @@
 program states
   implicit none
+  use read_config
     #include "../config/dim_config.h"
     #if dim == 1
       real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
@@ -9,7 +10,7 @@ program states
     #elif dim == 3
       real, allocatable :: mass(:,:,:), temp(:,:,:), entropy(:,:,:), momentum(:,:,:)
     #endif
-    call read_config()
+    call read_file()
     call init_temp()
     print*, temp(i, j, k)
 contains 
