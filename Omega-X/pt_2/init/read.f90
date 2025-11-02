@@ -49,12 +49,12 @@ end if
     close(10)
 
     ! getting dimensions
-    dim = get_int("dim", keys, values, count)
+    dim_run = get_int("dim_run", keys, values, count)
     nx = get_int("nx", keys, values, count)
-    if (dim >= 2) then
+    if (dim_run >= 2) then
       ny = get_int("ny", keys, values, count)
     end if
-    if (dim >= 3) then
+    if (dim_run >= 3) then
       nz = get_int("nz", keys, values, count)
     end if
     
