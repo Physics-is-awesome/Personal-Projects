@@ -1,6 +1,7 @@
 program states
-  implicit none
   use read_config
+  implicit none
+  
     #include "../config/dim_config.h"
     #if dim == 1
       real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
@@ -42,6 +43,7 @@ contains
             do i=1, nx
               temp(i,j, k) = normal(temp_mean, temp_var)
             end do
+          end do
         end do
       end if
     end if
