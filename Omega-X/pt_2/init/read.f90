@@ -5,7 +5,7 @@ module read_config
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
   ! -------------------------------------------------------------------------------------------------
-  subroutine read_config
+  subroutine read_config()
     implicit none
     integer, parameter :: max_entries = 100
     character(len=32) :: keys(max_entries)
@@ -28,8 +28,7 @@ module read_config
       values(count) = trim(value)
     end do
     close(10)
-
-    ! Now you can look up any key you want:
+:
     ! getting dimensions
     dim = get_int("dim", keys, values, count)
     nx = get_int("nx", keys, values, count)
@@ -39,13 +38,31 @@ module read_config
     if (dim >= 3) then
       nz = get_int("nz", keys, values, count)
     end if
+    
     ! dynamics allowed
     mass = get_bol("mass", keys, values, count)
     momentum = get_bol("momentum", keys, values, count)
     entropy = get_bol("entropy", keys, values, count)
-    ! testing
-    print*, get_real("pi", keys, values, count)
-    print*, get_string("hi", keys, values, count)
+    
+    ! temp
+    temp_dis = get_string("temp_dist", keys, values, count)
+    temp_mean = get_real("temp_mean", keys, values, count)
+    temp_var = get_real("temp_var", keys, values, count)
+
+    ! mass
+    mass_dis = get_string("mass_dist", keys, values, count)
+    mass_mean = get_real("mass_mean", keys, values, count)
+    mass_var = get_real("mass_var", keys, values, count)
+
+    ! momentum
+    momentum_dis = get_string("momentum_dist", keys, values, count)
+    momentum_mean = get_real("momentum_mean", keys, values, count)
+    momentum_var = get_real("moemntum_var", keys, values, count)
+
+    ! entropy
+    entropy_dis = get_string("entropy_dist", keys, values, count)
+    entropy_mean = get_real("entropy_mean", keys, values, count)
+    entropy_var = get_real("entropy_var", keys, values, count)
     
   end subroutine read_config
   ! getting integers
