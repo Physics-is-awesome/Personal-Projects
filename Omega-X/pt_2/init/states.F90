@@ -21,6 +21,7 @@ contains
   subroutine init_temp()
     integer :: i, j, k
 #if dim == 1
+    allocate(temp(nx))
     if (trim(temp_dist) == "gaussian") then 
       do i=1, nx
         temp(i) = normal(temp_mean, temp_var)
@@ -28,6 +29,7 @@ contains
     end if
 
 #elif dim == 2 
+    allocate(temp(nx, ny)
     if (trim(temp_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
@@ -39,14 +41,11 @@ contains
 
 #elif dim == 3
     allocate(temp(nx, ny, nz))
-    print*, "dim is equal to 3"
     if (trim(temp_dist) == "gaussian") then 
-      print*, "it is gaussian"
       do k=1, nz
         do j=1, ny
           do i=1, nx
             temp(i,j, k) = normal(temp_mean, temp_var)
-            print*, "it did it"
           end do
         end do
       end do
