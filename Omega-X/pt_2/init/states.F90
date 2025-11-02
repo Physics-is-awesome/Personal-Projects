@@ -45,6 +45,7 @@ contains
         do j=1, ny
           do i=1, nx
             temp(i,j, k) = normal(temp_mean, temp_var)
+            print*, it did it
           end do
         end do
       end do
