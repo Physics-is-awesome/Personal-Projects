@@ -28,6 +28,14 @@ contains
       !count = count + 1
       !keys(count)   = trim(key)
       !values(count) = trim(value)
+      read(10,'(A)',iostat=ios) line
+      if (ios < 0) exit        ! end of file
+      if (ios > 0) then
+        print *, "Read error"
+        exit
+      end if
+
+      if (line(1:1) == "#" .or. trim(line) == "") cycle
       pos = index(line,"=")
       if (pos > 0) then
        key   = adjustl(trim(line(:pos-1)))
