@@ -5,8 +5,8 @@ contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
   ! -------------------------------------------------------------------------------------------------
-  subroutine read_config()
-    implicit none
+  subroutine read_file()
+
     integer, parameter :: max_entries = 100
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
@@ -64,7 +64,7 @@ contains
     entropy_mean = get_real("entropy_mean", keys, values, count)
     entropy_var = get_real("entropy_var", keys, values, count)
     
-  end subroutine read_config
+  end subroutine read_file
   ! getting integers
   function get_int(search_key, keys, values, n) result(val)
     character(len=*), intent(in) :: search_key
