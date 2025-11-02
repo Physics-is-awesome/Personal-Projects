@@ -21,16 +21,16 @@ all: $(EXE)
 
 # Link step
 $(EXE): $(OBJ)
-    $(FC) $(OBJ) -o $(EXE)
+	$(FC) $(OBJ) -o $(EXE)
 
 # Compile step for .f90
 %.o: %.f90
-    $(FC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 # Compile step for .F90 (preprocessed)
 %.o: %.F90
-    $(FC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 # Clean up
 clean:
-    rm -f $(OBJ) $(EXE) *.mod
+	rm -f $(OBJ) $(EXE) *.mod
