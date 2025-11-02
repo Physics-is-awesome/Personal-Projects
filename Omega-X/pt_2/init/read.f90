@@ -21,8 +21,7 @@ contains
 
     do
       read(10,'(A)',iostat=ios) line
-      if (ios /= 0) then
-        exit
+      if (ios /= 0) exit
       if (line(1:1) == "#" .or. trim(line) == "") cycle
 
       read(line,*) key, eqsign, value
