@@ -14,7 +14,7 @@ OBJ = $(SRC:.f90=.o)
 OBJ := $(OBJ:.F90=.o)
 
 # Executable name
-EXE = states
+EXE = program
 
 # Default target
 all: $(EXE)
