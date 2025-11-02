@@ -1,1 +1,1 @@
-#define NDIM 3
+#define dim 3
