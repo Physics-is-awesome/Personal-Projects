@@ -13,7 +13,7 @@ program states
 #endif
   call read_file()
   call init_temp()
-  print*, temp(i, j, k)
+  print*, temp(1, 2, 3)
 contains 
 
   
