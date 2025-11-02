@@ -2,18 +2,18 @@ program states
   use read_config
   implicit none
   
-    #include "../config/dim_config.h"
-    #if dim == 1
-      real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
+  #include "../config/dim_config.h"
+  #if dim == 1
+    real, allocatable :: mass(:), temp(:), entropy(:), momentum(:)
       
-    #elif dim == 2
-      real, allocatable :: mass(:,:), temp(:,:), entropy(:,:), momentum(:,:)
-    #elif dim == 3
-      real, allocatable :: mass(:,:,:), temp(:,:,:), entropy(:,:,:), momentum(:,:,:)
-    #endif
-    call read_file()
-    call init_temp()
-    print*, temp(i, j, k)
+  #elif dim == 2
+    real, allocatable :: mass(:,:), temp(:,:), entropy(:,:), momentum(:,:)
+  #elif dim == 3
+    real, allocatable :: mass(:,:,:), temp(:,:,:), entropy(:,:,:), momentum(:,:,:)
+  #endif
+  call read_file()
+  call init_temp()
+  print*, temp(i, j, k)
 contains 
 
   
