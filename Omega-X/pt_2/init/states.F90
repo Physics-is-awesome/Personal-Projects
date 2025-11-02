@@ -20,14 +20,14 @@ contains
     
   subroutine init_temp()
     integer :: i, j, k
-#if (dim == 1) then
+#if dim == 1
     if (trim(temp_dist) == "gaussian") then 
       do i=1, nx
         temp(i) = normal(temp_mean, temp_var)
       end do
     end if
 
-#elif (dim == 2) then 
+#elif dim == 2 
     if (trim(temp_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
@@ -36,7 +36,7 @@ contains
       end do
     end if
 
-#elif (dim == 3) then
+#elif dim == 3
     if (trim(temp_dist) == "gaussian") then 
       do k=1, nz
         do j=1, ny
