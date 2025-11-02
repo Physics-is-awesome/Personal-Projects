@@ -1,6 +1,6 @@
 module read_config
   implicit none
-  integer :: nx, ny, nz, dim
+  integer :: nx, ny, nz, dim_run
   real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var
   character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
 contains
