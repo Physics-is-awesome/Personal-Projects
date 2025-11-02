@@ -28,7 +28,7 @@ contains
       values(count) = trim(value)
     end do
     close(10)
-:
+
     ! getting dimensions
     dim = get_int("dim", keys, values, count)
     nx = get_int("nx", keys, values, count)
@@ -45,22 +45,22 @@ contains
     entropy = get_bol("entropy", keys, values, count)
     
     ! temp
-    temp_dis = get_string("temp_dist", keys, values, count)
+    temp_dist = get_string("temp_dist", keys, values, count)
     temp_mean = get_real("temp_mean", keys, values, count)
     temp_var = get_real("temp_var", keys, values, count)
 
     ! mass
-    mass_dis = get_string("mass_dist", keys, values, count)
+    mass_dist = get_string("mass_dist", keys, values, count)
     mass_mean = get_real("mass_mean", keys, values, count)
     mass_var = get_real("mass_var", keys, values, count)
 
     ! momentum
-    momentum_dis = get_string("momentum_dist", keys, values, count)
+    momentum_dist = get_string("momentum_dist", keys, values, count)
     momentum_mean = get_real("momentum_mean", keys, values, count)
     momentum_var = get_real("moemntum_var", keys, values, count)
 
     ! entropy
-    entropy_dis = get_string("entropy_dist", keys, values, count)
+    entropy_dist = get_string("entropy_dist", keys, values, count)
     entropy_mean = get_real("entropy_mean", keys, values, count)
     entropy_var = get_real("entropy_var", keys, values, count)
     
