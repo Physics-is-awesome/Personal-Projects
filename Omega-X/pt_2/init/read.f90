@@ -17,7 +17,7 @@ contains
     character(len=256) :: line, key, eqsign, value
 
     count = 0
-    open(unit=10, file="../config/config.cfg", status="old", action="read")
+    open(unit=10, file="config/config.cfg", status="old", action="read")
 
     do
       !read(10,'(A)',iostat=ios) line
