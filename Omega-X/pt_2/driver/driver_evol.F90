@@ -12,7 +12,6 @@ contains
     
 
   ! calculate mass matrix
-    real(8) :: M(p+1, p+1)
     call compute_mass_matrix(p, a, b, M)
     print*, M
 
