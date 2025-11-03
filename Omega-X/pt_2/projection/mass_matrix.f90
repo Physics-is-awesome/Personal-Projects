@@ -47,7 +47,7 @@ contains
 !===========================================================
   subroutine lagrange_basis(nodes, xi, phi)
     ! Compute Lagrange basis functions at given xi
-    real(8), intent(in) :: nodes(:), xi(:)
+    real(8), intent(in), allocatable :: nodes(:), xi(:)
     real(8), intent(out) :: phi(size(nodes), size(xi))
     integer :: i, j, k, n
     real(8) :: num
@@ -71,7 +71,7 @@ contains
     real(8), intent(in) :: a, b
     real(8), intent(out) :: M(p+1, p+1)
     integer :: nq, i, j, q
-    real(8) :: J_s, xq(:), wq(:), nodes(:), phi(:,:)
+    real(8), allocatable :: J_s, xq(:), wq(:), nodes(:), phi(:,:)
 
     nq = p + 2
     allocate(xq(nq), wq(nq))
