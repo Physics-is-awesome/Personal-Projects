@@ -92,4 +92,4 @@ contains
   end subroutine compute_mass_matrix
 !===========================================================
 
-end module mass_matrix
+end program mass_matrix
