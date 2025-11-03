@@ -1,6 +1,7 @@
 module evol
   use mass_matrix
   use read_config
+  use m_h_module
   implicit none
 contains
   subroutine driver_evolution()
