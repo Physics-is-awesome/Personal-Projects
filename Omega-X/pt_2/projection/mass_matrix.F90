@@ -10,11 +10,11 @@ contains
     ! Generate n-point Gauss-Legendre nodes (x) and weights (w)
     integer, intent(in) :: n
     real(8), intent(out) :: x(n), w(n)
-    integer :: i, j, m
+    integer :: i, j, not_sure_what_this_is
     real(8) :: z, z1, p1, p2, p3, pp, pi
     pi = 4.0d0 * atan(1.0d0)
-    m = (n + 1)/2
-    do i = 1, m
+    not_sure_what_this_is = (n + 1)/2
+    do i = 1, not_sure_what_this_is
        z = cos(pi * (i - 0.25d0) / (n + 0.5d0))
        do
           p1 = 1.0d0
