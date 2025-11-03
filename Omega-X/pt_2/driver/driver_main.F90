@@ -1,6 +1,6 @@
 program driver
   use driver_init
-  use driver_evol
+  use evol
   implicit none
   call init()
   call driver_evolution()
