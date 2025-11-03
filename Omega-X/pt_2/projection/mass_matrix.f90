@@ -64,7 +64,7 @@ contains
     real(8), intent(in) :: a, b
     real(8), intent(out) :: M(p+1, p+1)
     integer :: nq, i, j, q
-    real(8) :: J, xq(:), wq(:), nodes(:), phi(:,:)
+    real(8) :: J_s, xq(:), wq(:), nodes(:), phi(:,:)
 
     nq = p + 2
     allocate(xq(nq), wq(nq))
@@ -77,13 +77,13 @@ contains
     allocate(phi(p+1, nq))
     call lagrange_basis(nodes, xq, phi)
 
-    J = (b - a) / 2.0d0
+    J_s = (b - a) / 2.0d0
     M = 0.0d0
 
     do i = 1, p+1
        do j = 1, p+1
           do q = 1, nq
-             M(i,j) = M(i,j) + wq(q) * phi(i,q) * phi(j,q) * J
+             M(i,j) = M(i,j) + wq(q) * phi(i,q) * phi(j,q) * J_s
           end do
        end do
     end do
