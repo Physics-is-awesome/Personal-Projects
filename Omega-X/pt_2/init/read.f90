@@ -1,7 +1,7 @@
 module read_config
   implicit none
-  integer :: nx, ny, nz, dim_run
-  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var
+  integer :: nx, ny, nz, dim_run, p
+  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, a, b
   character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
 contains
   ! -------------------------------------------------------------------------------------------------
@@ -57,7 +57,9 @@ end if
     if (dim_run >= 3) then
       nz = get_int("nz", keys, values, count)
     end if
-    
+    p = get_int("p", keys, values, count)
+    a = get_real("a", keys, values, count)
+    b = get_real("b", keys, values, count)
     ! dynamics allowed
     mass = get_bol("mass", keys, values, count)
     momentum = get_bol("momentum", keys, values, count)
