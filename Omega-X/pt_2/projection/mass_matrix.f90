@@ -4,6 +4,8 @@
 !===========================================================
 program mass_matrix
   implicit none
+    integer, intent(in) :: p = 1
+    real(8), intent(in) :: a = 2.8, b = 9.7    
   call compute_mass_matrix(p, a, b, M)
   print*, M
 contains
