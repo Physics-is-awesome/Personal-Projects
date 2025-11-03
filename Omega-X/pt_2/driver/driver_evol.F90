@@ -11,7 +11,7 @@ contains
   ! get numbers from config 
     call read_file()
   ! run evolution in each program
-    F_m_h = call compute_m_h(Re, m_h, phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h, eta_h, deta_h_dx, rho_h, dphi_m_dx, dphi_m_i, du_h_dx, F_m_h)
+    call compute_m_h(Re, m_h, phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h, eta_h, deta_h_dx, rho_h, dphi_m_dx, dphi_m_i, du_h_dx, F_m_h)
     print*, F_m_h
 
   ! calculate mass matrix
