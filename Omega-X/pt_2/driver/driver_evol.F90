@@ -18,7 +18,7 @@ contains
     call compute_mass_matrix(p, a, b, M)
     print*, M
 
-  ! multiplly evolution and mass matrix
+  ! multiplly evolution and the inverse of the mass matrix
 
   
   ! Time integrator 
