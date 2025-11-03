@@ -136,9 +136,10 @@ for obs_name, eq in evol_eqs.items():
         f.write(f"module {obs_name}_module\n")
         f.write("  implicit none\n")
         f.write("contains\n")
-        f.write(f"  subroutine compute_{obs_name}(m_h phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h, eta_h, deta_h_dx, rho_h, dphi_m_dx, dphi_m_i, du_h_dx, F_{obs_name})\n")
+        f.write(f"  subroutine compute_{obs_name}(Re, m_h, phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h, eta_h, deta_h_dx, rho_h, dphi_m_dx, dphi_m_i, du_h_dx, F_{obs_name})\n")
         f.write("    implicit none\n")
         f.write("    ! Declare inputs and outputs as real\n")
+        f.write("    int, intent(in) :: Re
         f.write("    real, intent(in) :: m_h, phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h, eta_h, deta_h_dx, rho_h, dphi_m_dx, dphi_m_i, du_h_dx\n")
         f.write(f"    real, intent(out) :: F_{obs_name}\n")
         f.write("\n")
