@@ -2,8 +2,10 @@
 ! mass_matrix.f90
 ! Compute 1D L2 mass matrix for Lagrange basis on [-1,1]
 !===========================================================
-module quad_mod
+program mass_matrix
   implicit none
+  call compute_mass_matrix(p, a, b, M)
+  print*, M
 contains
   subroutine gauss_legendre(n, x, w)
     ! Generate n-point Gauss-Legendre nodes (x) and weights (w)
@@ -34,12 +36,8 @@ contains
        w(n+1-i) =  w(i)
     end do
   end subroutine gauss_legendre
-end module quad_mod
-!===========================================================
 
-module basis_mod
-  implicit none
-contains
+!===========================================================
   subroutine lagrange_basis(nodes, xi, phi)
     ! Compute Lagrange basis functions at given xi
     real(8), intent(in) :: nodes(:), xi(:)
@@ -58,14 +56,8 @@ contains
        end do
     end do
   end subroutine lagrange_basis
-end module basis_mod
-!===========================================================
 
-module mass_matrix_mod
-  use quad_mod
-  use basis_mod
-  implicit none
-contains
+!===========================================================
   subroutine compute_mass_matrix(p, a, b, M)
     ! Compute element mass matrix for Lagrange basis of degree p on [a,b]
     integer, intent(in) :: p
@@ -98,25 +90,6 @@ contains
 
     deallocate(xq, wq, nodes, phi)
   end subroutine compute_mass_matrix
-end module mass_matrix_mod
 !===========================================================
 
-program main
-  use mass_matrix_mod
-  implicit none
-  integer, parameter :: p = 3
-  real(8) :: M(p+1, p+1)
-  real(8) :: a, b
-  integer :: i, j
-
-  a = 0.0d0
-  b = 1.0d0
-
-  call compute_mass_matrix(p, a, b, M)
-
-  print *, "Mass matrix M for degree ", p, " on [", a, ",", b, "]:"
-  do i = 1, p+1
-     write(*,'(100(f10.6,1x))') (M(i,j), j=1,p+1)
-  end do
-end program main
-!===========================================================
+end module mass_matrix
