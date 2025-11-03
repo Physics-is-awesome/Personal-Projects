@@ -128,7 +128,7 @@ for obs_name, eq in evol_eqs.items():
     rhs = replace_observables(rhs)
     rhs = replace_basis(rhs)
 
-    code_str = fcode(rhs, assign_to=f'd{obs_name}_dt', source_format='free', standard=95)
+    code_str = fcode(rhs, assign_to=f'F_{obs_name}', source_format='free', standard=95)
 
     file_path = os.path.join(output_dir, f'{obs_name}_module.f90')
     with open(file_path, 'w') as f:
