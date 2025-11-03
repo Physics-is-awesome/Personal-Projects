@@ -9,7 +9,7 @@ contains
     real, intent(out) :: dm_h_dt
 
     ! Evolution equation
-    dm_h_dt = -dT_h_dx*phi_m_i*sigma_h - deta_h_dx*phi_m_i*rho_h + dphi_m_dx &
-          *m_h*u_h - du_h_dx*m_h*phi_m_i - du_h_dx*phi_m_i/Re
+    F_m_h = -dT_h_dx*phi_m_i*sigma_h - deta_h_dx*phi_m_i*rho_h + dphi_m_dx* &
+          m_h*u_h - du_h_dx*m_h*phi_m_i - du_h_dx*phi_m_i/Re
   end subroutine compute_m_h
 end module

@@ -9,6 +9,6 @@ contains
     real, intent(out) :: drho_h_dt
 
     ! Evolution equation
-    drho_h_dt = dphi_rho_dx*rho_h*u_h
+    F_rho_h = dphi_rho_dx*rho_h*u_h
   end subroutine compute_rho_h
 end module
