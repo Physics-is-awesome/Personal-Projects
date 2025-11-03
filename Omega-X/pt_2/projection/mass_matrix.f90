@@ -2,17 +2,9 @@
 ! mass_matrix.f90
 ! Compute 1D L2 mass matrix for Lagrange basis on [-1,1]
 !===========================================================
-program mass_matrix
+module mass_matrix
   implicit none
-  integer, parameter :: p = 3
-  real(8) :: M(p+1, p+1)
-  real(8) :: a, b
-  integer :: i, j
 
-  a = 0.0d0
-  b = 1.0d0
-  call compute_mass_matrix(p, a, b, M)
-  print*, M
 contains
   subroutine gauss_legendre(n, x, w)
     ! Generate n-point Gauss-Legendre nodes (x) and weights (w)
@@ -99,4 +91,4 @@ contains
   end subroutine compute_mass_matrix
 !===========================================================
 
-end program mass_matrix
+end module mass_matrix
