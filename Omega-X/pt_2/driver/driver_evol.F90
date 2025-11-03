@@ -4,8 +4,9 @@ module evol
   implicit none
 contains
   subroutine driver_evolution()
+    real(8) :: M(p+1, p+1)
   ! get numbers from config 
-  call read_file()
+    call read_file()
   ! run evolution in each program
 
     
