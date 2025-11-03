@@ -82,7 +82,7 @@ def derive_evolution(full_bracket, observables, basis):
     return evol_eqs
 
 evol_eqs = derive_evolution(full_bracket, observables, basis)
-
+print(evol_eqs)
 # -----------------------------
 # 5. Code replacements
 # -----------------------------
@@ -136,7 +136,7 @@ for obs_name, eq in evol_eqs.items():
         f.write(f"module {obs_name}_module\n")
         f.write("  implicit none\n")
         f.write("contains\n")
-        f.write(f"  subroutine compute_{obs_name}(phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, eta_h, F_{obs_name})\n")
+        f.write(f"  subroutine compute_{obs_name}(phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h,  eta_h, F_{obs_name})\n")
         f.write("    implicit none\n")
         f.write("    ! Declare inputs and outputs as real\n")
         f.write("    real, intent(in) :: phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, eta_h\n")
