@@ -5,7 +5,7 @@
 
 const int NX = 100; // Number of grid points in x-direction
 const int NY = 100; // Number of grid points in y-direction
-double density[NX][NY], velocityX[NX][NY], velocityY[NX][NY], pressure[NX][NY], magneticFieldX[NX][NY], magneticFieldY[NX][NY];
+double density[NX][NY], velocityX[NX][NY], velocityY[NX][NY], pressure[NX][NY], magneticFieldX[NX][NY], magneticFieldY[NX][NY];  // declaring as real(8)
 
 
 void initialize() {
