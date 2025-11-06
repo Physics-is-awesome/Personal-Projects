@@ -20,3 +20,28 @@ void initialize() {
         }
     }
 }
+
+void update(double dt) {
+    for (int i = 1; i < NX - 1; ++i) {
+        for (int j = 1; j < NY - 1; ++j) {
+            // Example: simple finite difference update for density
+            density[i][j] += -dt * (velocityX[i][j] * (density[i+1][j] - density[i-1][j]) / 2.0);
+            // Add updates for momentum, energy, and magnetic field here
+        }
+    }
+}
+
+int main() {
+    initialize();
+    double dt = 0.01; // Time step
+    int steps = 1000; // Number of time steps
+
+    for (int t = 0; t < steps; ++t) {
+        update(dt);
+        if (t % 100 == 0) {
+            std::cout << "Step " << t << " completed.\n";
+        }
+    }
+
+    return 0;
+}
