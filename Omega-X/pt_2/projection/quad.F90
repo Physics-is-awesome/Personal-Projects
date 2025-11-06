@@ -10,9 +10,7 @@ contains
     real(8), INTENT(IN) :: x_L, x_R               ! Element bounds 
     integer :: q
 
-    ! Define physical element bounds
-    x_L = 1.0d0
-    x_R = 3.0d0
+
     J = (x_R - x_L) / 2.0d0              ! Jacobian for mapping
 
     ! Gauss–Legendre quadrature points and weights on [-1, 1]
