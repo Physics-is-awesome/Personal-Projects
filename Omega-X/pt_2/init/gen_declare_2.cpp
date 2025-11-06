@@ -1,5 +1,11 @@
 #include <iostream>
 #include <fstream>
+#include <cstring>
+
+extern "C" void c_function(const char* fstring, int length) {
+    std::string cpp_string(string, length); // Convert to C++ string
+    std::cout << "Received string: " << cpp_string << std::endl;
+}
 
 int main() {
     // Open a file to write the Fortran code
@@ -11,16 +17,11 @@ int main() {
     }
 
     // Write Fortran 90 code to the file
-    fortranFile << "PROGRAM GeneratedCode\n";
+    fortranFile << "Module declare_2\n";
     fortranFile << "  IMPLICIT NONE\n";
-    fortranFile << "  INTEGER :: i\n";
+    fortranFile << "  real(8) :: " + a + "\n";
     fortranFile << "\n";
-    fortranFile << "  PRINT *, 'This is a generated Fortran program.'\n";
-    fortranFile << "  DO i = 1, 10\n";
-    fortranFile << "    PRINT *, 'Iteration:', i\n";
-    fortranFile << "  END DO\n";
-    fortranFile << "\n";
-    fortranFile << "END PROGRAM GeneratedCode\n";
+    fortranFile << "END Moduel declare_2\n";
 
     // Close the file
     fortranFile.close();
