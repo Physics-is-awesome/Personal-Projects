@@ -5,7 +5,7 @@ module evol
   use basis
   use mass_matrix
   implicit none
-  real(8) :: x_L, x_R, phi(:,:), w_q(:), m(:,:)
+
 contains
   subroutine driver_evolution()
     !real(8) :: M(p+1, p+1)
