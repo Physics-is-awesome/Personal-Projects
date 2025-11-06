@@ -1,5 +1,5 @@
 module quad
-  use driver_evol
+  use declare
   implicit none
 contains
 
