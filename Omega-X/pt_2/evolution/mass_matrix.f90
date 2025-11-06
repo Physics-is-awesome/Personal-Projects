@@ -17,4 +17,6 @@ contains
       end do
     end do
   end subroutine mass_matrix
+  
+end module mass_matrix
 
