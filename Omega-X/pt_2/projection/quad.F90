@@ -1,4 +1,4 @@
-module RHS
+module quad
   implicit none
 contains
 
