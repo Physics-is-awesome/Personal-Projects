@@ -4,7 +4,7 @@ module mass_matrix
 
 contains 
 
-  subroutine mass_matrix()
+  subroutine compute_mass_matrix()
     real(8), allocatable :: M(:, :) ! update to be dynamically 
     integer :: i, j, q
     allocate(M(3, 3))
