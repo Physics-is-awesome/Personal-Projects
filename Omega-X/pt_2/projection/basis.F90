@@ -1,6 +1,6 @@
 module basis
   use quad
-  use driver_evol
+  use declare
   implicit none
 
 contains
