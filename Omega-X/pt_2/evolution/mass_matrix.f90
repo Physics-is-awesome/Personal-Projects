@@ -1,7 +1,7 @@
 module mass_matrix
   use quad
   use basis
-
+  implicit none
 contains 
 
   subroutine compute_mass_matrix()
