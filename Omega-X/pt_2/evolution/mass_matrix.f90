@@ -5,6 +5,8 @@ module mass_matrix
 contains 
 
   subroutine compute_mass_matrix()
+    use quad
+    use basis 
     real(8), allocatable :: M(:, :) ! update to be dynamically 
     integer :: i, j, q
     allocate(M(3, 3))
