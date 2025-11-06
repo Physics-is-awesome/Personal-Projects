@@ -3,11 +3,11 @@ module quad
 contains
 
 ! this is only 1d and using 3-point Guass-Legendre
-  subroutine quadrature_points()
-    integer, parameter :: Nq = 3         ! Number of quadrature points
-    real(8) :: xi_q(Nq), w_q(Nq)         ! Reference points and weights
-    real(8) :: x_q(Nq)                   ! Mapped physical points
-    real(8) :: x_L, x_R, J               ! Element bounds and Jacobian
+  subroutine quadrature_points(x_L, X_R, x_q, w_q)
+    integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
+    real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
+    real(8), INTENT(OUT) :: x_q(Nq), w_q(Nq)                 ! Mapped physical points and weights
+    real(8), INTENT(IN) :: x_L, x_R               ! Element bounds 
     integer :: q
 
     ! Define physical element bounds
