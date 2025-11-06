@@ -3,4 +3,4 @@ module declare
   
   real(8), allocatable :: x_q(:), w_q(:), phi(:,:), M(:,:) 
 
-end declare
+end module declare
