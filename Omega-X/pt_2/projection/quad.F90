@@ -35,3 +35,5 @@ contains
       print '(A,F12.6,A,F12.6)', "x_q(", q, ") = ", x_q(q), "   w_q(", q, ") = ", w_q(q) * J
     end do
   end subroutine quadrature_points
+
+end module quad
