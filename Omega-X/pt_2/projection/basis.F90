@@ -4,8 +4,9 @@ module basis
 
 contains
 
-  subroutine basis_functions()
-    real(8) :: xi_q(3), phi(3,3)
+  subroutine basis_functions(x_q, phi)
+    real(8), INTENT(IN) :: xi_q(3)
+    real(8), INTENT(OUT) :: phi(3,3)
     integer :: q
     do q = 1, 3
       phi(1,q) = 0.5d0 * xi_q(q) * (xi_q(q) - 1.0d0)
