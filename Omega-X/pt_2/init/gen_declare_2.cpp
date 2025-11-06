@@ -19,7 +19,7 @@ int main() {
     // Write Fortran 90 code to the file
     fortranFile << "Module declare_2\n";
     fortranFile << "  IMPLICIT NONE\n";
-    fortranFile << "  real(8) :: " + a + "\n";
+    fortranFile << "  real(8) :: " + string + "\n";
     fortranFile << "\n";
     fortranFile << "END Moduel declare_2\n";
 
