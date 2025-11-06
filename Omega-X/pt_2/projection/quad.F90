@@ -9,7 +9,7 @@ contains
     real(8), INTENT(OUT), allocatable :: x_q(:), w_q(:)                 ! Mapped physical points and weights
     real(8), INTENT(IN) :: x_L, x_R               ! Element bounds 
     integer :: q
-    allocate(x_q(Nq), w_q(Nq)
+    allocate(x_q(Nq), w_q(Nq))
 
     J = (x_R - x_L) / 2.0d0              ! Jacobian for mapping
 
