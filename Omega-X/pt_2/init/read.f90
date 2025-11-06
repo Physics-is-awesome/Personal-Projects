@@ -3,7 +3,8 @@ module read_config
   implicit none
   integer :: nx, ny, nz, dim_run, p
   real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, a, b
-  character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist, string
+  character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
+  character(len=20), target :: string
 contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
