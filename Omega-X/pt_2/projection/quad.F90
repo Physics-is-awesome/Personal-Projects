@@ -27,11 +27,6 @@ contains
       x_q(q) = J * xi_q(q) + (x_R + x_L) / 2.0d0
     end do
 
-    ! Output results
-    print *, "Quadrature points x_q and weights w_q:"
-    do q = 1, Nq
-      print '(A,F12.6,A,F12.6)', "x_q(", q, ") = ", x_q(q), "   w_q(", q, ") = ", w_q(q) * J
-    end do
   end subroutine quadrature_points
 
 end module quad
