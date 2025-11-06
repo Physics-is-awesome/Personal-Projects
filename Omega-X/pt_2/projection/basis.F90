@@ -4,7 +4,7 @@ module basis
 
 contains
 
-  subroutine basis_functions(x_q, phi)
+  subroutine basis_functions(xi_q, phi)
     real(8), INTENT(IN) :: xi_q(3)
     real(8), INTENT(OUT) :: phi(3,3)
     integer :: q
