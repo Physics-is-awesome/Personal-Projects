@@ -4,8 +4,9 @@ module evol
   use quad
   use basis
   use mass_matrix
+  use declare
   implicit none
-  real(8), allocatable :: x_q(:), w_q(:), phi(:,:), M(:,:) 
+  
 contains
   subroutine driver_evolution()
     !real(8) :: M(p+1, p+1)
