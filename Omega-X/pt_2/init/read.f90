@@ -3,7 +3,7 @@ module read_config
   implicit none
   integer :: nx, ny, nz, dim_run, p
   real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, a, b
-  character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
+  character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist, string
 contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
@@ -89,6 +89,7 @@ end if
 
     ! test
     string = get_string("string", keys, values, count)
+    call c_function(c_loc(string), len(string))
   end subroutine read_file
   ! getting integers
   function get_int(search_key, keys, values, n) result(val)
