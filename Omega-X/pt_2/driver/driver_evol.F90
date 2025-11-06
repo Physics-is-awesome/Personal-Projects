@@ -18,18 +18,18 @@ contains
     call read_file()
 
     ! call quadrature weights and nodes
-    quadrature_points(x_L, X_R, x_q, w_q)
+    call quadrature_points(x_L, X_R, x_q, w_q)
 
     ! call basis functions
-    basis_functions(x_q, phi)
+    call basis_functions(x_q, phi)
     ! run evolution in each program, to get week form
     ! ##call compute_m_h(Re, m_h, phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, dT_h_dx, sigma_h, eta_h, deta_h_dx, rho_h, dphi_m_dx, dphi_m_i, du_h_dx, F_m_h)
   
     
-  ! multiply by week form and sum for all nodes
+    ! multiply by week form and sum for all nodes
 
 
-  ! calculate mass matrix
+    ! calculate mass matrix
     call compute_mass_matrix(w_q, phi, M)
 
 
