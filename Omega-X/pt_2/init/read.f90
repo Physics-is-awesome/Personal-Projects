@@ -1,4 +1,5 @@
 module read_config
+  use iso_c_binding
   implicit none
   integer :: nx, ny, nz, dim_run, p
   real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, a, b
@@ -84,7 +85,10 @@ end if
     entropy_dist = get_string("entropy_dist", keys, values, count)
     entropy_mean = get_real("entropy_mean", keys, values, count)
     entropy_var = get_real("entropy_var", keys, values, count)
-    
+
+
+    ! test
+    string = get_string("string", keys, values, count)
   end subroutine read_file
   ! getting integers
   function get_int(search_key, keys, values, n) result(val)
