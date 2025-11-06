@@ -12,4 +12,4 @@ contains
       phi(3,q) = 0.5d0 * xi_q(q) * (xi_q(q) + 1.0d0)
     end do
   end subroutine basis_functions
-end subroutine basis
+end module basis
