@@ -26,7 +26,7 @@ contains
 
 
   ! calculate mass matrix
-    call mass_matrix()
+    call compute_mass_matrix()
 
 
   ! multiplly evolution and the inverse of the mass matrix
