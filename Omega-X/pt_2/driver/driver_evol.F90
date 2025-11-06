@@ -1,9 +1,9 @@
 module evol
-  use mass_matrix
   use read_config
   use m_h_module
   use quad
   use basis
+  use mass_matrix
   implicit none
 contains
   subroutine driver_evolution()
