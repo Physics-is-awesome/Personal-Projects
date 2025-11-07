@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <cstring>
+#include <string>
 
 extern "C" void c_function(const char* fstring, int length) {
     std::string cpp_string(string, length); // Convert to C++ string
