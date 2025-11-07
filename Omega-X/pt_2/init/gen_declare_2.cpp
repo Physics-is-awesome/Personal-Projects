@@ -3,6 +3,7 @@
 #include <string>
 
 extern "C" void c_function(const char* fstring, int length) {
+    std::string cpp_string(string, length); // declare string
     std::string cpp_string(string, length); // Convert to C++ string
     std::cout << "Received string: " << cpp_string << std::endl;
 }
@@ -10,7 +11,7 @@ extern "C" void c_function(const char* fstring, int length) {
 int main() {
     // Open a file to write the Fortran code
     std::ofstream fortranFile("generated_code.F90");
-
+    std::string cpp_string(string, length); // declare string
     if (!fortranFile) {
         std::cerr << "Error: Could not create the file!" << std::endl;
         return 1;
