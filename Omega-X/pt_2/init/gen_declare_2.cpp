@@ -20,4 +20,3 @@ extern "C" void c_function(const char* fstring, int length) {
 
     std::cout << "Fortran code has been generated in 'generated_code.F90'!" << std::endl;
 }
-}
