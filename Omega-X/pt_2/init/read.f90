@@ -90,7 +90,8 @@ end if
 
     ! test
     string = get_string("string", keys, values, count)
-    call c_function(c_loc(string), len(string))
+    call call_cpp(string)
+    
   end subroutine read_file
   ! getting integers
   function get_int(search_key, keys, values, n) result(val)
@@ -151,4 +152,7 @@ end if
        end if
     end do
   end function get_string
+  subroutine call_cpp(str) bind(C, name="c_function")
+    character(len=*), intent(in) :: str
+  end subroutine call_cpp
 end module read_config
