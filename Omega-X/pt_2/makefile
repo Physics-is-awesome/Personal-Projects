@@ -25,8 +25,8 @@ EXE = program
 all: $(EXE)
 
 # Link step
-$(EXE): $(OBJ)
-	$(FC) $(OBJ) -o $(EXE)
+$(EXE): $(FORTRAN_OBJ) $(CPP_OBJ)
+	$(CXX) $(FC) $(OBJ) -o $(EXE)
 
 # Compile step for .f90
 %.o: %.f90
@@ -35,6 +35,9 @@ $(EXE): $(OBJ)
 # Compile step for .F90 (preprocessed)
 %.o: %.F90
 	$(FC) $(FFLAGS) -c $< -o $@
+# compile steps for C++
+%.o: %.CPP
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 # Run
 
 run: $(EXE)
