@@ -6,13 +6,17 @@ BIN_DIR := bin
 EXEC := $(BIN_DIR)/run
 
 FC := gfortran
-#CXX = g++
+CXX = g++
+
 FFLAGS := -O2 -Wall -fimplicit-none
-#CXXFLAGS = -O2 -Wall
+CXXFLAGS = -O2 -Wall
 # Source files and objects
-SRC = init/read.f90 init/declare_vars.f90 init/states.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.f90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
-OBJ = $(SRC:.f90=.o)
-OBJ := $(OBJ:.F90=.o)
+CPP_SRC = init/gen_declare_2.cpp
+FORTRAN_SRC = init/read.f90 init/declare_vars.f90 init/states.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.f90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
+
+FORTRAN_OBJ = $(SRC:.f90=.o)
+FORTRAM_OBJ := $(OBJ:.F90=.o)
+CPP_OBJ = $(CPP_SRC:.cpp=.o)
 
 # Executable name
 EXE = program
