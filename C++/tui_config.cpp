@@ -57,8 +57,8 @@ int main() {
             char buffer[100];
             mvprintw(keys.size() + 4, 2, "New value for %s: ", keys[highlight].c_str());
             move(keys.size() + 4, 22);
-            clrtoeol(); // Clear line before input
-            getnstr(buffer, 99);
+            clrtoeol();
+            getnstr(buffer, sizeof(buffer) - 1);
             values[highlight] = std::string(buffer);
             noecho();
             curs_set(0);
