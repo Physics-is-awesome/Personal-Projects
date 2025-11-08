@@ -26,7 +26,7 @@ all: $(EXE)
 
 # Link step
 $(EXE): $(FORTRAN_OBJ) $(CPP_OBJ)
-	$(FC) $(CPP_OBJ) $(FORTRAN_OBJ) -lgfortran -o $(EXE)
+	$(FC) $(CPP_OBJ) $(FORTRAN_OBJ) -lstdc++ -o $(EXE)
 
 # Compile step for .f90
 %.o: %.f90
