@@ -91,9 +91,8 @@ end if
 
     ! test
     fstring = get_string("string", keys, values, count)
-    call call_cpp(fstring)
-    print*, fstring
-    print*, "It works!!, maybe?"
+    call pass_string(fstring, len(fstring))
+
     
   end subroutine read_file
   ! getting integers
