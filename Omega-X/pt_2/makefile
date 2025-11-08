@@ -15,7 +15,7 @@ FORTRAN_SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states
 CPP_SRC = init/gen_declare_2.cpp
 
 FORTRAN_OBJ = $(FORTRAN_SRC:.F90=.o) 
-FORTRAN_OBJ += $(FORTRAN_SRC:.f90=.o) 
+
 CPP_OBJ = $(CPP_SRC:.cpp=.o)
 
 OBJ = $(FORTRAN_OBJ) $(CPP_OBJ)
@@ -30,9 +30,9 @@ all: $(EXE)
 $(EXE): $(OBJ)
 	$(FC) $(OBJ) -lstdc++ -o $(EXE)
 
-# Compile step for .f90
-%.o: %.f90
-	$(FC) $(FFLAGS) -c $< -o $@
+# Compile step for .f90(not using currently)
+#%.o: %.f90
+	#$(FC) $(FFLAGS) -c $< -o $@
 
 # Compile step for .F90 (preprocessed)
 %.o: %.F90
