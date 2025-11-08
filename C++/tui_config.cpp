@@ -1,69 +1,77 @@
 #include <ncurses.h>
+#include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
-void print_menu(WINDOW* menu_win, int highlight, const std::vector<std::string>& choices) {
-    box(menu_win, 0, 0);
-    for (size_t i = 0; i < choices.size(); ++i) {
-        if (highlight == i + 1)
-            wattron(menu_win, A_REVERSE);
-        mvwprintw(menu_win, i + 1, 2, choices[i].c_str());
-        wattroff(menu_win, A_REVERSE);
+void load_config(const std::string& filename, std::vector<std::string>& keys, std::vector<std::string>& values) {
+    std::ifstream infile(filename);
+    std::string line, key, value;
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        if (iss >> key >> value) {
+            keys.push_back(key);
+            values.push_back(value);
+        }
     }
-    wrefresh(menu_win);
+}
+
+void save_config(const std::string& filename, const std::vector<std::string>& keys, const std::vector<std::string>& values) {
+    std::ofstream outfile(filename);
+    for (size_t i = 0; i < keys.size(); ++i) {
+        outfile << keys[i] << " " << values[i] << "\n";
+    }
 }
 
 int main() {
-    initscr();              // Start ncurses mode
-    clear();
+    std::vector<std::string> keys, values;
+    load_config("config.txt", keys, values);
+
+    initscr();
     noecho();
-    cbreak();               // Disable line buffering
-    curs_set(0);            // Hide cursor
-    keypad(stdscr, TRUE);   // Enable arrow keys
+    cbreak();
+    keypad(stdscr, TRUE);
+    curs_set(0);
 
-    int height = 10, width = 40, starty = 4, startx = 10;
-    WINDOW* menu_win = newwin(height, width, starty, startx);
-    keypad(menu_win, TRUE);
-
-    std::vector<std::string> choices = {
-        "Run Simulation",
-        "Generate Fortran Code",
-        "View Results",
-        "Exit"
-    };
-
-    int choice = 0;
-    int highlight = 1;
+    int highlight = 0;
+    int ch;
 
     while (true) {
-        mvprintw(1, 10, "Use arrow keys to navigate. Press Enter to select.");
-        refresh();
-        print_menu(menu_win, highlight, choices);
+        clear();
+        mvprintw(0, 2, "Edit Config File (Enter to edit, F2 to save, ESC to exit)");
 
-        int c = wgetch(menu_win);
-        switch (c) {
-            case KEY_UP:
-                if (highlight > 1) --highlight;
-                break;
-            case KEY_DOWN:
-                if (highlight < choices.size()) ++highlight;
-                break;
-            case 10: // Enter key
-                choice = highlight;
-                break;
+        for (size_t i = 0; i < keys.size(); ++i) {
+            if (highlight == i)
+                attron(A_REVERSE);
+            mvprintw(i + 2, 4, "%s = %s", keys[i].c_str(), values[i].c_str());
+            if (highlight == i)
+                attroff(A_REVERSE);
         }
 
-        if (choice != 0) {
-            clear();
-            mvprintw(5, 10, "You selected: %s", choices[choice - 1].c_str());
-            refresh();
-            if (choices[choice - 1] == "Exit") break;
-            choice = 0;
+        ch = getch();
+        if (ch == KEY_UP && highlight > 0) highlight--;
+        else if (ch == KEY_DOWN && highlight < keys.size() - 1) highlight++;
+        else if (ch == 10) { // Enter key
+            echo();
+            curs_set(1);
+            char buffer[100];
+            mvprintw(keys.size() + 4, 2, "New value for %s: ", keys[highlight].c_str());
+            move(keys.size() + 4, 22);
+            wgetnstr(stdscr, buffer, 99);
+            values[highlight] = std::string(buffer);
+            noecho();
+            curs_set(0);
+        }
+        else if (ch == KEY_F(2)) {
+            save_config("config.txt", keys, values);
+            mvprintw(keys.size() + 6, 2, "Config saved! Press any key...");
+            getch();
+        }
+        else if (ch == 27) { // ESC key
+            break;
         }
     }
 
-    delwin(menu_win);
-    endwin();               // End ncurses mode
+    endwin();
     return 0;
 }
-
