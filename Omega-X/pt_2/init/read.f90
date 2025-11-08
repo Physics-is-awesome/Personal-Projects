@@ -1,5 +1,6 @@
 module read_config
   use iso_c_binding
+  use c_interface
   implicit none
   integer :: nx, ny, nz, dim_run, p
   real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, a, b
