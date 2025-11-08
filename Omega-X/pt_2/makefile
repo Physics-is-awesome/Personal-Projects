@@ -13,8 +13,8 @@ CXXFLAGS = -O2 -Wall
 # Source files and objects
 SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/gen_declare_2.cpp init/states.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.f90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
 
-OBJ = $(SRC:.f90=.o) 
-OBJ += $(SRC:.F90=.o) 
+OBJ = $(SRC:.F90=.o) 
+OBJ += $(SRC:.f90=.o) 
 OBJ += $(SRC:.cpp=.o)
 
 
