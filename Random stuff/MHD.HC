@@ -1,0 +1,69 @@
+U0 "MHD Simulation in HolyC";
+
+#define N 100
+#define DX 0.01
+#define DT 0.001
+#define STEPS 1000
+
+struct MHDState {
+  F64 rho;     // Density
+  F64 vx;      // Velocity in x
+  F64 Bx;      // Magnetic field in x
+  F64 P;       // Pressure
+};
+
+MHDState grid[N];
+MHDState new_grid[N];
+
+F64 gamma = 1.4;
+
+F64 compute_pressure(F64 rho, F64 vx, F64 Bx) {
+  return (gamma - 1.0) * (0.5 * rho * vx * vx + 0.5 * Bx * Bx);
+}
+
+void initialize_grid() {
+  I64 i;
+  for (i = 0; i < N; ++i) {
+    grid[i].rho = 1.0;
+    grid[i].vx = 0.0;
+    grid[i].Bx = 1.0;
+    grid[i].P = compute_pressure(grid[i].rho, grid[i].vx, grid[i].Bx);
+  }
+  // Add a perturbation
+  grid[N/2].vx = 1.0;
+}
+
+void update_grid() {
+  I64 i;
+  for (i = 1; i < N - 1; ++i) {
+    F64 drho = -(grid[i+1].rho * grid[i+1].vx - grid[i-1].rho * grid[i-1].vx) / (2.0 * DX);
+    F64 dvx = -(grid[i+1].vx * grid[i+1].vx + grid[i+1].P - grid[i-1].vx * grid[i-1].vx - grid[i-1].P) / (2.0 * DX);
+    F64 dBx = 0.0; // Assume constant Bx for simplicity
+    F64 dP = -(grid[i+1].vx * grid[i+1].P - grid[i-1].vx * grid[i-1].P) / (2.0 * DX);
+
+    new_grid[i].rho = grid[i].rho + DT * drho;
+    new_grid[i].vx  = grid[i].vx  + DT * dvx;
+    new_grid[i].Bx  = grid[i].Bx  + DT * dBx;
+    new_grid[i].P   = grid[i].P   + DT * dP;
+  }
+
+  // Boundary conditions
+  new_grid[0] = grid[0];
+  new_grid[N-1] = grid[N-1];
+
+  // Swap grids
+  for (i = 0; i < N; ++i)
+    grid[i] = new_grid[i];
+}
+
+void run_simulation() {
+  I64 step;
+  initialize_grid();
+  for (step = 0; step < STEPS; ++step) {
+    update_grid();
+    if (step % 100 == 0)
+      "Step %d\n", step;
+  }
+}
+
+run_simulation();
