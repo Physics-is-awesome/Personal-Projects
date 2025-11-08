@@ -90,8 +90,8 @@ end if
 
 
     ! test
-    string = get_string("string", keys, values, count)
-    call call_cpp(string)
+    fstring = get_string("string", keys, values, count)
+    call call_cpp(fstring)
     
   end subroutine read_file
   ! getting integers
