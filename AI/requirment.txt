@@ -1,9 +1,0 @@
-click>=8.1.7
-chromadb>=0.5.3
-openai>=1.51.0
-sympy>=1.13.3
-numpy>=1.26.4
-scipy>=1.12.0
-pdfplumber>=0.11.0
-pyyaml>=6.0.1
-python-dotenv>=1.0.1

@@ -1,4 +1,0 @@
-llm:
-  model: "gpt-4"
-memory:
-  db_path: "data/memory/chromadb"
