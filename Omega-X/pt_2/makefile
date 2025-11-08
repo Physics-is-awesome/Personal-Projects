@@ -11,12 +11,11 @@ CXX = g++
 FFLAGS := -O2 -Wall -fimplicit-none
 CXXFLAGS = -O2 -Wall
 # Source files and objects
-CPP_SRC = init/gen_declare_2.cpp
-FORTRAN_SRC = init/read.f90 init/declare_vars.f90 init/states.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.f90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
+SRC = init/read.f90 init/declare_vars.f90 init/gen_declare_2.cpp init/states.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.f90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
 
 OBJ = $(SRC:.f90=.o)
 OBJ := $(OBJ:.F90=.o)
-OBJ := $(CPP_SRC:.cpp=.o)
+OBJ := $(SRC:.cpp=.o)
 
 # Executable name
 EXE = program
