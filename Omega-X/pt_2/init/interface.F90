@@ -1,11 +1,11 @@
 module c_interface
-  use iso_c_binding
 
   interface
-    subroutine call_cpp(str) bind(C, name="c_function")
-      import :: C_CHAR
-      character(kind=C_CHAR), dimension(*), intent(in) :: str
-    end subroutine call_cpp
+    subroutine c_function(fstring, length) bind(C)
+        use iso_c_binding
+        character(kind=c_char), dimension(*) :: fstring
+        integer(c_int), value :: length
+    end subroutine
   end interface
 
 end module c_interface
