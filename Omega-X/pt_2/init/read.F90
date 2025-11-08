@@ -91,7 +91,7 @@ end if
 
     ! test
     fstring = get_string("string", keys, values, count)
-    call pass_string(fstring, len(fstring))
+    call c_function(fstring, len(fstring))
 
     
   end subroutine read_file
