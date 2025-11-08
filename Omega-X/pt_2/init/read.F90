@@ -93,6 +93,7 @@ end if
     fstring = get_string("string", keys, values, count)
     call call_cpp(fstring)
     print*, fstring
+    print*, "It works!!, maybe?"
     
   end subroutine read_file
   ! getting integers
