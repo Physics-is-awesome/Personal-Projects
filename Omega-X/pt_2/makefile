@@ -51,4 +51,4 @@ all: $(EXE)
 	# delete temp files (rm -f evolution/fortran_modules/*.f90
 # Clean up
 clean:
-	rm -f *.mod *.o
+	rm -f *.mod *.o */*.o */*/*.o */*.mod
