@@ -14,9 +14,9 @@ CXXFLAGS = -O2 -Wall
 CPP_SRC = init/gen_declare_2.cpp
 FORTRAN_SRC = init/read.f90 init/declare_vars.f90 init/states.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.f90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
 
-FORTRAN_OBJ = $(SRC:.f90=.o)
-FORTRAM_OBJ := $(OBJ:.F90=.o)
-CPP_OBJ = $(CPP_SRC:.cpp=.o)
+OBJ = $(SRC:.f90=.o)
+OBJ := $(OBJ:.F90=.o)
+OBJ := $(CPP_SRC:.cpp=.o)
 
 # Executable name
 EXE = program
@@ -25,8 +25,8 @@ EXE = program
 all: $(EXE)
 
 # Link step
-$(EXE): $(FORTRAN_OBJ) $(CPP_OBJ)
-	$(FC) $(CPP_OBJ) $(FORTRAN_OBJ) -lstdc++ -o $(EXE)
+$(EXE): $(OBJ)
+	$(FC) $(OBJ) -lstdc++ -o $(EXE)
 
 # Compile step for .f90
 %.o: %.f90
