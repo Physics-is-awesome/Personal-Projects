@@ -162,7 +162,7 @@ int main(){
     int h=10,w=40,y=4,x=10;
     WINDOW* win=newwin(h,w,y,x); keypad(win,TRUE);
 
-    std::vector<std::string> choices={"Edit Configuration","Run Simulation","Generate Fortran Code","View Results","Exit"};
+    std::vector<std::string> choices={"Edit Configuration","Run Simulation","Run Makefile","View Results","Exit"};
     int highlight=1,choice=0;
     namespace fs = std::filesystem;
 
@@ -181,6 +181,18 @@ int main(){
         if(choice){
             std::string sel=choices[choice-1];
             if(sel=="Exit") break;
+            if(sel=="Run Makefile"){
+                endwin();
+                int result = system("make");
+                // make sure it works
+                if (result == 0) {
+                    std::cout << "Make completed successfully.\n";
+                } else {
+                    std::cerr << "Make failed with code: " << result << "\n";
+                }
+                // return to TUI
+                initscr(); noecho(); cbreak(); curs_set(0); keypad(stdscr,TRUE);
+                win=newwin(h,w,y,x); keypad(win,TRUE);
             if(sel=="Edit Configuration"){
                 endwin();          // leave menu mode
                 run_config_tui(config_path.string());
