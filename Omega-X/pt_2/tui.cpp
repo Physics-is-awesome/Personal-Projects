@@ -166,7 +166,7 @@ int main(){
     int highlight=1,choice=0;
     namespace fs = std::filesystem;
 
-    fs::path config_path = fs::path("Config") / "config.txt";
+    fs::path config_path = fs::path("config") / "config.cfg";
 
     while(true){
         mvprintw(1,10,"Use ↑↓ and Enter to select.");
