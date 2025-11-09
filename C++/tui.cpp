@@ -179,7 +179,7 @@ int main(){
             if(sel=="Exit") break;
             if(sel=="Edit Configuration"){
                 endwin();          // leave menu mode
-                run_config_tui("config.ini");
+                run_config_tui("config.txt");
                 // back to menu mode
                 initscr(); noecho(); cbreak(); curs_set(0); keypad(stdscr,TRUE);
                 win=newwin(h,w,y,x); keypad(win,TRUE);
