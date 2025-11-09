@@ -194,12 +194,13 @@ int main(){
                 // return to TUI
                 initscr(); noecho(); cbreak(); curs_set(0); keypad(stdscr,TRUE);
                 win=newwin(h,w,y,x); keypad(win,TRUE);
-            if(sel=="Edit Configuration"){
+            }if(sel=="Edit Configuration"){
                 endwin();          // leave menu mode
                 run_config_tui(config_path.string());
                 // back to menu mode
                 initscr(); noecho(); cbreak(); curs_set(0); keypad(stdscr,TRUE);
                 win=newwin(h,w,y,x); keypad(win,TRUE);
+            
             } else {
                 clear(); mvprintw(5,10,"Selected: %s", sel.c_str()); refresh();
                 getch();
