@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <filesystem>
 
 // ---------------- Config structures ----------------
 struct Line {
@@ -163,6 +164,9 @@ int main(){
 
     std::vector<std::string> choices={"Edit Configuration","Run Simulation","Generate Fortran Code","View Results","Exit"};
     int highlight=1,choice=0;
+    namespace fs = std::filesystem;
+
+    fs::path config_path = fs::path("Config") / "config.txt";
 
     while(true){
         mvprintw(1,10,"Use ↑↓ and Enter to select.");
@@ -179,7 +183,7 @@ int main(){
             if(sel=="Exit") break;
             if(sel=="Edit Configuration"){
                 endwin();          // leave menu mode
-                run_config_tui(Config/"config.txt");
+                run_config_tui(config_path.string());
                 // back to menu mode
                 initscr(); noecho(); cbreak(); curs_set(0); keypad(stdscr,TRUE);
                 win=newwin(h,w,y,x); keypad(win,TRUE);
