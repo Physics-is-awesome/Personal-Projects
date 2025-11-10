@@ -13,20 +13,19 @@ CXX = g++
 FFLAGS := -O2 -Wall -fimplicit-none
 CXXFLAGS = -O2 -Wall
 # Source files and objects
-SHARED_SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states.F90
-FORTRAN_SRC_init = driver/driver_init.F90 
-FORTRAN_SRC_MAIN = generated_code.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90  driver/driver_evol.F90 driver/driver_main.F90
+
+FORTRAN_SRC_pre = pre-init/interface.F90 pre-init/preread.F90
+FORTRAN_SRC_MAIN = init/read.F90 init/declare_vars.F90 init/states.F90 generated_code.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
 CPP_SRC = init/gen_declare_2.cpp
 
-FORTRAN_OBJ_init = $(FORTRAN_SRC_init:.F90=.o) 
-FORTRAN_OBJ_shared = $(SHARED_SRC:.F90=.o) 
+FORTRAN_OBJ_pre = $(FORTRAN_SRC_init:.F90=.o) 
 CPP_OBJ = $(CPP_SRC:.cpp=.o)
-OBJ_init = $(FORTRAN_OBJ_shared) $(FORTRAN_OBJ_init) $(CPP_OBJ) 
+OBJ_pre = $(FORTRAN_OBJ_init) $(CPP_OBJ) 
 
-OBJ_MAIN = $(FORTRAN_SRC_MAIN:.F90=.o) $(FORTRAN_OBJ_shared) $(CPP_OBJ)
+OBJ_MAIN = $(FORTRAN_SRC_MAIN:.F90=.o) $(CPP_OBJ)
 
 # Executable name
-init = program_init
+pre = program_init
 EXE = program_main
 # Default target
 all: $(EXE)
@@ -35,12 +34,12 @@ all: $(EXE)
 $(EXE): $(OBJ_MAIN) 
 	$(FC) $(OBJ_MAIN) -lstdc++ -o $(EXE)
 $(OBJ_MAIN): run_init
-run_init: $(init)
-	./$(init)
+run_init: $(pre)
+	./$(pre)
 	touch run_init
 
-$(init): $(OBJ_init)
-	$(FC) $(OBJ_init) -lstdc++ -o $(init)
+$(pre): $(OBJ_pre)
+	$(FC) $(OBJ_pre) -lstdc++ -o $(pre)
 
 
 
