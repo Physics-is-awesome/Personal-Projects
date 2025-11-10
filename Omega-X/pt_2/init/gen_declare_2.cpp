@@ -20,7 +20,7 @@ extern "C" void c_function(const char* fstring, int length) {
 
     std::cout << "Fortran code has been generated in 'generated_code.F90'!" << std::endl;
     // header
-    std::ofstream fortranFile("header_2.h");
+    std::ofstream header("header_2.h");
 
     header <<"" << cpp_string << "\n";
 
