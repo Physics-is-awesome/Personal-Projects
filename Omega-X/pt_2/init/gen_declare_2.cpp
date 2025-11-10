@@ -6,7 +6,7 @@
 extern "C" void c_function(const char* fstring, int length) {
     std::string cpp_string(fstring, length);  // Construct C++ string from Fortran string
     std::cout << "Received string: " << cpp_string << std::endl;
-    std::string str(cpp_string)
+    std::string str(cpp_string);
     std::stringstream ss(cpp_string);
     std::string token;
     std::vector<std::string> result;
