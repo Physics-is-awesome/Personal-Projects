@@ -38,10 +38,10 @@ $(OBJ_MAIN): run_init
 run_init: $(init)
 	./$(init)
 	touch run_init
-	@echo "CODE BLUE"
+
 $(init): $(OBJ_init)
 	$(FC) $(OBJ_init) -lstdc++ -o $(init)
-	@echo "Hi, this works!!!!!!!!!!!!!!!!"
+
 
 
 # Compile step for .f90(not using currently)
