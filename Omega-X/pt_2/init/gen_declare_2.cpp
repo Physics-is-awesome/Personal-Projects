@@ -6,7 +6,7 @@
 extern "C" void c_function(const char* fstring, int length) {
     std::string cpp_string(fstring, length);  // Construct C++ string from Fortran string
     std::cout << "Received string: " << cpp_string << std::endl;
-
+    std::string str(cpp_string)
     std::stringstream ss(cpp_string);
     std::string token;
     std::vector<std::string> result;
@@ -16,8 +16,8 @@ extern "C" void c_function(const char* fstring, int length) {
 
     const std::string delimiter = ", ";
 
-    while ((end = ss.find(delimiter, start)) != std::string::npos) {
-        words.push_back(ss.substr(start, end - start));
+    while ((end = str.find(delimiter, start)) != std::string::npos) {
+        words.push_back(str.substr(start, end - start));
         start = end + delimiter.length();
     }
 
