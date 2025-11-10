@@ -32,8 +32,11 @@ all: $(EXE)
 # Link step
 $(EXE): $(OBJ_MAIN) 
 	$(FC) $(OBJ_MAIN) -lstdc++ -o $(EXE)
-$(OBJ_MAIN): $(init)
+$(OBJ_MAIN): run_init
+run_init: $(init)
 	./$(init)
+	touch run_init
+	@echo "CODE BLUE"
 $(init): $(OBJ_init)
 	$(FC) $(OBJ_init) -lstdc++ -o $(init)
 	@echo "Hi, this works!!!!!!!!!!!!!!!!"
