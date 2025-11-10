@@ -2,7 +2,7 @@ program driver_init
   use read_config
   use states
   implicit none
-
+  call init()
   contains
   subroutine init()
     call read_file()
