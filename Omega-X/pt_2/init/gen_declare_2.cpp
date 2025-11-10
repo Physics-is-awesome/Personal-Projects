@@ -10,7 +10,7 @@ extern "C" void c_function(const char* fstring, int length) {
     std::stringstream ss(cpp_string);
     std::string token;
     std::vector<std::string> result;
-
+    std::vector<std::string> words; 
     while (ss >> token) {
         words.push_back(token);
     }
