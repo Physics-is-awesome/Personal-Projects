@@ -1,4 +1,4 @@
-module pre-read
+module preread
   use iso_c_binding
   use c_interface
   implicit none
