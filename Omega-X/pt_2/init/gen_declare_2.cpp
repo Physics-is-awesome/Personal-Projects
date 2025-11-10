@@ -11,7 +11,7 @@ extern "C" void c_function(const char* fstring, int length) {
     std::string token;
     std::vector<std::string> result;
     std::vector<std::string> words; 
-    while (std::getline(ss, token, ',')) {
+    while (std::getline(ss, token, ', ')) {
         words.push_back(token);
     }
 
