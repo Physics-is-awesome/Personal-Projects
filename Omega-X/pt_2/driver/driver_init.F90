@@ -1,11 +1,11 @@
-program driver_init
+module init
   use read_config
   use states
   implicit none
-  call init()
+
   contains
   subroutine init()
     call read_file()
     call init_temp()
   end subroutine init
-end program driver_init
+end module driver_init
