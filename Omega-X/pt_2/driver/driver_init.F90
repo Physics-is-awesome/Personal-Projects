@@ -1,4 +1,4 @@
-module driver_init
+program driver_init
   use read_config
   use states
   implicit none
@@ -8,4 +8,4 @@ module driver_init
     call read_file()
     call init_temp()
   end subroutine init
-end module driver_init
+end program driver_init
