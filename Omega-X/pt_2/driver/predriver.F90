@@ -1,4 +1,4 @@
 program predriver
   implicit none
-  call pre-read()
+  call preread()
 end program predriver
