@@ -13,24 +13,24 @@ CXX = g++
 FFLAGS := -O2 -Wall -fimplicit-none
 CXXFLAGS = -O2 -Wall
 # Source files and objects
-FORTRAN_SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states.F90 driver/driver_init.F90 # projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90  driver/driver_evol.F90 driver/driver_main.F90
-CPP_SRC = init/gen_declare_2.cpp
+FORTRAN_SRC_init = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states.F90 driver/driver_init.F90 # projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90  driver/driver_evol.F90 driver/driver_main.F90
+CPP_SRC_init = init/gen_declare_2.cpp
 
-FORTRAN_OBJ = $(FORTRAN_SRC:.F90=.o) 
+FORTRAN_OBJ_init = $(FORTRAN_SRC_init:.F90=.o) 
 
-CPP_OBJ = $(CPP_SRC:.cpp=.o)
+CPP_OBJ_init = $(CPP_SRC_init:.cpp=.o)
 
-OBJ = $(FORTRAN_OBJ) $(CPP_OBJ)
+OBJ_init = $(FORTRAN_OBJ_init) $(CPP_OBJ_init)
 
 # Executable name
-EXE = program
+init = program_init
 
 # Default target
 all: $(EXE)
 
 # Link step
-$(EXE): $(OBJ)
-	$(FC) $(OBJ) -lstdc++ -o $(EXE)
+$(init): $(OBJ_init)
+	$(FC) $(OBJ_init) -lstdc++ -o $(init)
 
 # Compile step for .f90(not using currently)
 #%.o: %.f90
@@ -44,12 +44,12 @@ $(EXE): $(OBJ)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 # Run
 
-run: $(EXE)
-	./$(EXE)
+run: $(init)
+	./$(init)
 
 # All: clean, run, run python(not yet), clean temporary files(not yet)
-all: $(EXE)
-	./$(EXE)
+all: $(init)
+	./$(init)
 	rm -f *.mod *.o */*.o */*/*.o */*.mod
 	#add pythin run ($(PYTHON) evolution/generation.py)
 	# delete temp files (rm -f evolution/fortran_modules/*.f90
