@@ -20,7 +20,7 @@ CPP_SRC = init/gen_declare_2.cpp
 
 FORTRAN_OBJ_pre = $(FORTRAN_SRC_init:.F90=.o) 
 CPP_OBJ = $(CPP_SRC:.cpp=.o)
-OBJ_pre = $(FORTRAN_OBJ_init) $(CPP_OBJ) 
+OBJ_pre = $(FORTRAN_OBJ_pre) $(CPP_OBJ) 
 
 OBJ_MAIN = $(FORTRAN_SRC_MAIN:.F90=.o) 
 
