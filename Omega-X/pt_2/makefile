@@ -13,7 +13,7 @@ CXX = g++
 FFLAGS := -O2 -Wall -fimplicit-none
 CXXFLAGS = -O2 -Wall
 # Source files and objects
-FORTRAN_SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states.F90 # projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90 driver/driver_init.F90 driver/driver_evol.F90 driver/driver_main.F90
+FORTRAN_SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states.F90 driver/driver_init.F90 # projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90  driver/driver_evol.F90 driver/driver_main.F90
 CPP_SRC = init/gen_declare_2.cpp
 
 FORTRAN_OBJ = $(FORTRAN_SRC:.F90=.o) 
