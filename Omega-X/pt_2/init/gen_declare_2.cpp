@@ -16,8 +16,8 @@ extern "C" void c_function(const char* fstring, int length) {
 
     const std::string delimiter = ", ";
 
-    while ((end = str.find(delimiter, start)) != std::string::npos) {
-        words.push_back(str.substr(start, end - start));
+    while ((end = ss.find(delimiter, start)) != std::string::npos) {
+        words.push_back(ss.substr(start, end - start));
         start = end + delimiter.length();
     }
 
