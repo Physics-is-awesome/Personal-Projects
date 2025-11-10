@@ -30,10 +30,9 @@ EXE = program_main
 all: $(EXE)
 
 # Link step
-$(EXE): $(OBJ_MAIN) $(init_program)
-	./$(init)
+$(EXE): $(OBJ_MAIN) 
 	$(FC) $(OBJ_MAIN) -lstdc++ -o $(EXE)
-$(init_program): $(init)
+$(OBJ_MAIN): $(init)
 	./$(init)
 $(init): $(OBJ_init)
 	$(FC) $(OBJ_init) -lstdc++ -o $(init)
