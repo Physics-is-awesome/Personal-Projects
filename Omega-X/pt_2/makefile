@@ -62,7 +62,7 @@ run: $(EXE)
 # All: clean, run, run python(not yet), clean temporary files(not yet)
 all: $(EXE)
 	./$(EXE)
-	rm -f *.mod *.o */*.o */*/*.o */*.mod
+	rm -f *.mod *.o */*.o */*/*.o */*.mod $(EXE) $(init)
 	#add pythin run ($(PYTHON) evolution/generation.py)
 	# delete temp files (rm -f evolution/fortran_modules/*.f90
 # Clean up
