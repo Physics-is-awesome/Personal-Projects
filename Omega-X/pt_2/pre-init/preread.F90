@@ -1,4 +1,4 @@
-module read_config
+module pre-read
   use iso_c_binding
   use c_interface
   implicit none
@@ -73,4 +73,4 @@ end if
   end function get_string
 
 
-end module read_config
+end module pre-read
