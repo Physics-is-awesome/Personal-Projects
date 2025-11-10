@@ -22,7 +22,7 @@ FORTRAN_OBJ_pre = $(FORTRAN_SRC_init:.F90=.o)
 CPP_OBJ = $(CPP_SRC:.cpp=.o)
 OBJ_pre = $(FORTRAN_OBJ_init) $(CPP_OBJ) 
 
-OBJ_MAIN = $(FORTRAN_SRC_MAIN:.F90=.o) $(CPP_OBJ)
+OBJ_MAIN = $(FORTRAN_SRC_MAIN:.F90=.o) 
 
 # Executable name
 pre = program_init
