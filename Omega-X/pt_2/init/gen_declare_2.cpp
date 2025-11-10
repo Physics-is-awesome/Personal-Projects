@@ -14,7 +14,7 @@ extern "C" void c_function(const char* fstring, int length) {
 
     fortranFile << "Module declare_2\n";
     fortranFile << "  IMPLICIT NONE\n";
-    fortranFile << "  real(8) :: " << cpp_string << "\n";
+    fortranFile << "  real(8), allocatable :: " << cpp_string << "\n";
     fortranFile << "END Module declare_2\n";
     fortranFile.close();
 
