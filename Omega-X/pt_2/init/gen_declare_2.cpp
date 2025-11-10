@@ -11,9 +11,18 @@ extern "C" void c_function(const char* fstring, int length) {
     std::string token;
     std::vector<std::string> result;
     std::vector<std::string> words; 
-    while (std::getline(ss, token, ', ')) {
-        words.push_back(token);
+    size_t start = 0;
+    size_t end;
+
+    const std::string delimiter = ", ";
+
+    while ((end = str.find(delimiter, start)) != std::string::npos) {
+        words.push_back(str.substr(start, end - start));
+        start = end + delimiter.length();
     }
+
+    // Add the last word
+    words.push_back(str.substr(start));
 
     std::ofstream header("generated_vars.h");
     header << "#ifndef GENERATED_VARS_H\n";
