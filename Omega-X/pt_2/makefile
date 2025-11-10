@@ -30,12 +30,14 @@ EXE = program_main
 all: $(EXE)
 
 # Link step
-$(init): $(OBJ_init)
-	$(FC) $(OBJ_init) -lstdc++ -o $(init)
-	@echo "Hi, this works!!!!!!!!!!!!!!!!"
 $(EXE): $(OBJ_MAIN) $(init)
 	./$(init)
 	$(FC) $(OBJ_MAIN) -lstdc++ -o $(EXE)
+
+$(init): $(OBJ_init)
+	$(FC) $(OBJ_init) -lstdc++ -o $(init)
+	@echo "Hi, this works!!!!!!!!!!!!!!!!"
+
 
 # Compile step for .f90(not using currently)
 #%.o: %.f90
