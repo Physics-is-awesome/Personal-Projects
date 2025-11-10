@@ -49,8 +49,8 @@ $(EXE): $(OBJ_MAIN) $(init)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 # Run
 
-run: $(init)
-	./$(init)
+run: $(EXE)
+	./$(EXE)
 
 # All: clean, run, run python(not yet), clean temporary files(not yet)
 all: $(EXE)
