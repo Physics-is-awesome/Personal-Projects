@@ -15,7 +15,7 @@ CXXFLAGS = -O2 -Wall
 # Source files and objects
 SHARED_SRC = init/interface.F90 init/read.F90 init/declare_vars.F90 init/states.F90
 FORTRAN_SRC_init = driver/driver_init.F90 
-FORTRAN_SRC_MAIN = projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90  driver/driver_evol.F90 driver/driver_main.F90
+FORTRAN_SRC_MAIN = generated_code.F90 projection/quad.F90 projection/basis.F90 evolution/mass_matrix.F90  driver/driver_evol.F90 driver/driver_main.F90
 CPP_SRC = init/gen_declare_2.cpp
 
 FORTRAN_OBJ_init = $(FORTRAN_SRC_init:.F90=.o) 
