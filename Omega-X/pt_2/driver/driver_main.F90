@@ -1,5 +1,5 @@
 program driver
-  use init
+  use driver_init
   use evol
   implicit none
   call init()
