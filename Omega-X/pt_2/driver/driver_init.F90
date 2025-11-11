@@ -1,4 +1,4 @@
-module init
+module driver_init
   use read_config
   use states
   implicit none
