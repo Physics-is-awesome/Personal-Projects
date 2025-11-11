@@ -13,7 +13,7 @@ contains
     integer, parameter :: max_entries = 100
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
-
+    integer :: count, ios, pos
     character(len=256) :: line, key, eqsign, value
 
     count = 0
