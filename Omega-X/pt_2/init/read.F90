@@ -89,9 +89,6 @@ end if
     entropy_var = get_real("entropy_var", keys, values, count)
 
 
-    ! test
-    fstring = get_string("string", keys, values, count)
-    call c_function(fstring, len(fstring))
 
     
   end subroutine read_file
