@@ -148,7 +148,7 @@ while running:
             impact = True
         # nuke 
         if nuke_triggered and not impact:
-            vel += pygame/Vector2(-1 * 30000 * dt,
+            vel += pygame.Vector2(-1 * 30000 * dt,
                                   -1 * 30000 * dt)
             
             nuke_triggered = False  # reset after one use
