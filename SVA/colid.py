@@ -31,7 +31,7 @@ mu = 240000.0  # acts like G*M in screen units
 
 # ---- Asteroid initial state ----
 pos = pygame.Vector2(120, 160)
-vel = pygame.Vector2(2.4, 0.9)  # try changing direction/speed
+vel = pygame.Vector2(200.4, 29)  # try changing direction/speed
 asteroid_radius = 18
 
 # ---- Visual extras ----
