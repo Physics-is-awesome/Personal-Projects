@@ -122,7 +122,7 @@ while running:
                 mu *= 1.1
             elif event.key == pygame.K_n:
                 nuke_triggered = True
-                nuke_timer = 30
+            
 
     if not paused and not impact:
         # Gravity
@@ -147,9 +147,10 @@ while running:
         if collide(pos):
             impact = True
         # nuke 
-        if nuke_triggered and not impact and nuke_timer > 0:
-            vel += pygame.Vector2(0 * 20 * dt,
-                                  -1 * 20 * dt)
+        if nuke_triggered and not impact:
+            
+            vel += pygame.Vector2(0 * 2000 * dt,
+                                  -1 * 2000 * dt)
             draw_nuke_effect(screen, pos)
             nuke_timer -= 1
             if nuke_timer == 0:
