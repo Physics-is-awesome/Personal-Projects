@@ -27,7 +27,7 @@ earth_radius = 70
 
 # Gravitational parameter (scaled for 2D screen):
 # Larger -> stronger pull (curvier orbits / faster impact)
-mu = 1  # acts like G*M in screen units
+mu = 100000000  # acts like G*M in screen units
 
 # ---- Asteroid initial state ----
 pos = pygame.Vector2(120, 160)
