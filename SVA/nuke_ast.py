@@ -25,7 +25,7 @@ SMOKE = (255, 140, 0)
 earth_pos = pygame.Vector2(WIDTH * 0.68, HEIGHT * 0.55)
 earth_radius = 70
 # nuke stuff
-NUKE_FORCE = 300.0
+
 nuke_triggered = False
 
 # Gravitational parameter (scaled for 2D screen):
@@ -82,7 +82,7 @@ def draw_nuke_effect(surface, pos):
         pygame.draw.circle(surface, (255, 255, 0), (int(pos.x), int(pos.y)), r, 2)
     msg = FONT.render("NUKE DETONATED!", True, (255, 255, 0))
     surface.blit(msg, (int(pos.x) - 60, int(pos.y) - 40))
-  
+
 def explode(surface):
     # expanding rings
     for r in range(earth_radius, earth_radius + 180, 18):
@@ -148,8 +148,9 @@ while running:
             impact = True
         # nuke 
         if nuke_triggered and not impact:
-            print("It works, well no")
-            vel = -acc* 10000
+            vel += pygame/Vector2(-1 * 30000 * dt,
+                                  -1 * 30000 * dt)
+            
             nuke_triggered = False  # reset after one use
             draw_nuke_effect(screen, pos)
 
