@@ -24,6 +24,9 @@ SMOKE = (255, 140, 0)
 # ---- World objects ----
 earth_pos = pygame.Vector2(WIDTH * 0.68, HEIGHT * 0.55)
 earth_radius = 70
+# nuke stuff
+NUKE_FORCE = 300.0
+nuke_triggered = False
 
 # Gravitational parameter (scaled for 2D screen):
 # Larger -> stronger pull (curvier orbits / faster impact)
