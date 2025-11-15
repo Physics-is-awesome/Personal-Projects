@@ -1,71 +1,143 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from IPython.display import HTML
+import turtle
+import random
+import math
 
-# --- Parameters ---
-G = 6.67430e-11   # gravitational constant
-M_earth = 5.972e24  # mass of Earth (kg)
-R_earth = 6.371e6   # radius of Earth (m)
+# Screen setup
+screen = turtle.Screen()
+screen.title("Asteroid Approaching Earth")
+screen.bgcolor("black")
+screen.setup(width=800, height=600)
 
-# Initial asteroid state: [x, y, vx, vy]
-# Start far away, moving toward Earth
-y = np.array([10*R_earth, 3*R_earth, -2000.0, -500.0])  # position (m), velocity (m/s)
+# Draw simple stars
+star = turtle.Turtle(visible=False)
+star.speed(0)
+star.color("white")
+for _ in range(150):
+    x = random.randint(-390, 390)
+    y = random.randint(-290, 290)
+    star.penup()
+    star.goto(x, y)
+    star.dot(random.randint(1, 3))
 
-dt = 10.0   # timestep (s)
-steps = 2000
+# Earth setup
+earth = turtle.Turtle()
+earth.speed(0)
+earth.penup()
+earth.goto(200, -50)  # Earth position
+earth.color("#1E90FF")  # DodgerBlue
+earth.shape("circle")
+earth.shapesize(stretch_wid=4, stretch_len=4)  # Bigger circle
+earth_radius = 40  # matches shapesize*10 roughly
 
-# --- Equations of motion ---
-def deriv(y):
-    x, y_pos, vx, vy = y
-    r = np.sqrt(x**2 + y_pos**2)
-    ax = -G*M_earth*x / r**3
-    ay = -G*M_earth*y_pos / r**3
-    return np.array([vx, vy, ax, ay])
+# Earth atmosphere glow (optional visual)
+halo = turtle.Turtle(visible=False)
+halo.speed(0)
+halo.penup()
+halo.goto(earth.xcor(), earth.ycor() - earth_radius)
+halo.color("#00BFFF")  # DeepSkyBlue
+halo.pendown()
+halo.width(2)
+halo.circle(earth_radius + 12)
 
-# --- Runge-Kutta 4 integrator ---
-def rk4_step(y, dt):
-    k1 = deriv(y)
-    k2 = deriv(y + 0.5*dt*k1)
-    k3 = deriv(y + 0.5*dt*k2)
-    k4 = deriv(y + dt*k3)
-    return y + (dt/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+# Asteroid setup
+asteroid = turtle.Turtle()
+asteroid.speed(0)
+asteroid.penup()
+asteroid.goto(-350, 220)  # starting point
+asteroid.color("#A9A9A9")  # DarkGray
+asteroid.shape("circle")
+asteroid.shapesize(stretch_wid=1.4, stretch_len=1.8)  # slightly oblong
+asteroid_radius = 14
 
-# --- Integrate trajectory ---
-trajectory = []
-for _ in range(steps):
-    y = rk4_step(y, dt)
-    trajectory.append(y)
-trajectory = np.array(trajectory)
+# Add surface speckles to the asteroid
+speck = turtle.Turtle(visible=False)
+speck.speed(0)
+speck.color("#808080")
 
-x_vals = trajectory[:,0]
-y_vals = trajectory[:,1]
+def draw_speckle():
+    speck.penup()
+    ax, ay = asteroid.position()
+    for _ in range(6):
+        dx = random.randint(-12, 12)
+        dy = random.randint(-10, 10)
+        speck.goto(ax + dx, ay + dy)
+        speck.dot(random.randint(2, 4))
 
-# --- Animate ---
-fig, ax = plt.subplots()
-ax.set_xlim(-12*R_earth, 12*R_earth)
-ax.set_ylim(-12*R_earth, 12*R_earth)
-ax.set_aspect('equal')
-ax.set_title("Asteroid Approaching Earth")
+draw_speckle()
 
-# Draw Earth
-earth = plt.Circle((0,0), R_earth, color='blue', alpha=0.5)
-ax.add_patch(earth)
+# Velocity aimed roughly at Earth
+vx, vy = 2.0, -1.8
 
-line, = ax.plot([], [], '-', lw=1, color='orange')
-point, = ax.plot([], [], 'o', color='red')
+# Trail
+trail = turtle.Turtle(visible=False)
+trail.speed(0)
+trail.color("#FFA500")  # Orange
+trail.width(2)
 
-def init():
-    line.set_data([], [])
-    point.set_data([], [])
-    return line, point
+# Impact text
+impact_text = turtle.Turtle(visible=False)
+impact_text.color("white")
+impact_text.penup()
 
-def update(i):
-    line.set_data(x_vals[:i], y_vals[:i])
-    point.set_data(x_vals[i], y_vals[i])
-    return line, point
+# Simple sound/flash effect (visual only)
+flash = turtle.Turtle(visible=False)
+flash.speed(0)
 
-ani = animation.FuncAnimation(fig, update, frames=steps,
-                              init_func=init, blit=True, interval=20)
+def distance(t1, t2):
+    x1, y1 = t1.position()
+    x2, y2 = t2.position()
+    return math.hypot(x2 - x1, y2 - y1)
 
-HTML(ani.to_jshtml())
+def explode():
+    # Flash concentric circles
+    flash.penup()
+    flash.goto(earth.xcor(), earth.ycor() - earth_radius)
+    flash.color("#FFD700")  # Gold
+    for r in range(earth_radius, earth_radius + 100, 10):
+        flash.pendown()
+        flash.circle(r)
+        flash.penup()
+    # Change Earth color briefly
+    earth.color("#FF6347")  # Tomato
+    impact_text.goto(0, 200)
+    impact_text.write("Impact!", align="center", font=("Arial", 28, "bold"))
+
+# Main animation loop
+frame = 0
+running = True
+while running:
+    # Move asteroid
+    ax, ay = asteroid.position()
+    ax += vx
+    ay += vy
+    asteroid.goto(ax, ay)
+
+    # Flicker trail
+    if frame % 2 == 0:
+        trail.penup()
+        trail.goto(ax, ay)
+        trail.pendown()
+        trail.goto(ax - vx * 5, ay - vy * 5)
+
+    # Slight drift and acceleration to feel more dynamic
+    vx *= 1.002
+    vy *= 1.002
+    vy -= 0.003  # gravity-like pull
+
+    # Redraw speckles occasionally to follow asteroid
+    if frame % 10 == 0:
+        draw_speckle()
+
+    # Check collision
+    if distance(asteroid, earth) <= (asteroid_radius + earth_radius):
+        explode()
+        running = False
+
+    # Off-screen safety
+    if not (-410 < ax < 410 and -310 < ay < 310):
+        running = False
+
+    frame += 1
+
+# Hold screen after end
+turtle.done()
