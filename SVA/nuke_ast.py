@@ -148,7 +148,7 @@ while running:
             impact = True
         # nuke 
         if nuke_triggered and not impact:
-
+            print("It works, well no")
             vel += pygame.Vector2(random.choice([-1, 1]) * NUKE_FORCE * dt,
                                   random.choice([-1, 1]) * NUKE_FORCE * dt)
             nuke_triggered = False  # reset after one use
