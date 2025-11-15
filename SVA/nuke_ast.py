@@ -149,7 +149,7 @@ while running:
         # nuke 
         if nuke_triggered and not impact:
             print("It works, well no")
-            vel = -1000
+            vel = -1000, -1000
             nuke_triggered = False  # reset after one use
             draw_nuke_effect(screen, pos)
 
