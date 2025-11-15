@@ -30,7 +30,7 @@ nuke_triggered = False
 
 # Gravitational parameter (scaled for 2D screen):
 # Larger -> stronger pull (curvier orbits / faster impact)
-mu = 100000000  # acts like G*M in screen units
+mu = 100000000000  # acts like G*M in screen units
 
 # ---- Asteroid initial state ----
 pos = pygame.Vector2(120, 160)
@@ -148,8 +148,8 @@ while running:
             impact = True
         # nuke 
         if nuke_triggered and not impact and nuke_timer > 0:
-            vel += pygame.Vector2(0 * 30000 * dt,
-                                  -1 * 30000 * dt)
+            vel += pygame.Vector2(0 * 20 * dt,
+                                  -1 * 20 * dt)
             draw_nuke_effect(screen, pos)
             nuke_timer -= 1
             if nuke_timer == 0:
