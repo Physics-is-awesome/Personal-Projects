@@ -27,7 +27,7 @@ earth_radius = 70
 
 # Gravitational parameter (scaled for 2D screen):
 # Larger -> stronger pull (curvier orbits / faster impact)
-mu = 10000000  # acts like G*M in screen units
+mu = 1  # acts like G*M in screen units
 
 # ---- Asteroid initial state ----
 pos = pygame.Vector2(120, 160)
@@ -89,7 +89,7 @@ def collide(p):
 # ---- Main loop ----
 running = True
 while running:
-    dt = clock.tick(60) / 1000.0 * 300  # seconds per frame
+    dt = clock.tick(60) / 1000.0  # seconds per frame
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
