@@ -89,7 +89,7 @@ def collide(p):
 # ---- Main loop ----
 running = True
 while running:
-    dt = clock.tick(60) / 1000.0  # seconds per frame
+    dt = clock.tick(60) / 1000.0 * 300  # seconds per frame
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
