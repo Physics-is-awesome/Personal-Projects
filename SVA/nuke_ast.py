@@ -30,7 +30,7 @@ nuke_triggered = False
 
 # Gravitational parameter (scaled for 2D screen):
 # Larger -> stronger pull (curvier orbits / faster impact)
-mu = 100000000000  # acts like G*M in screen units
+mu = 1000000000  # acts like G*M in screen units
 
 # ---- Asteroid initial state ----
 pos = pygame.Vector2(120, 160)
