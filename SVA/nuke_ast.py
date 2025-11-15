@@ -11,7 +11,7 @@ pygame.display.set_caption("Asteroid Orbit and Impact (Gravity)")
 
 clock = pygame.time.Clock()
 FONT = pygame.font.SysFont("Arial", 18)
-
+nuke_timer = 0
 # ---- Colors ----
 BLACK = (5, 5, 15)
 WHITE = (240, 240, 240)
@@ -77,9 +77,8 @@ def draw_trail(surface, pts):
             c = (255, 160, 80) if i % 2 == 0 else (255, 210, 120)
             pygame.draw.line(surface, c, pts[i - 1], pts[i], 2)
 def draw_nuke_effect(surface, pos):
-    # simple flash effect
-    for r in range(10, 60, 10):
-        pygame.draw.circle(surface, (255, 255, 0), (int(pos.x), int(pos.y)), r, 2)
+    for r in range(15, 80, 15):
+        pygame.draw.circle(surface, (255, 255, 0), (int(pos.x), int(pos.y)), r, 3)
     msg = FONT.render("NUKE DETONATED!", True, (255, 255, 0))
     surface.blit(msg, (int(pos.x) - 60, int(pos.y) - 40))
 
@@ -109,7 +108,7 @@ while running:
             elif event.key == pygame.K_r:
                 # Reset
                 pos = pygame.Vector2(120, 160)
-                vel = pygame.Vector2(2.4, 0.9)
+                vel = pygame.Vector2(0.3, 0.3)
                 trail.clear()
                 impact = False
                 paused = False
@@ -123,6 +122,7 @@ while running:
                 mu *= 1.1
             elif event.key == pygame.K_n:
                 nuke_triggered = True
+                nuke_timer = 30
 
     if not paused and not impact:
         # Gravity
@@ -147,13 +147,13 @@ while running:
         if collide(pos):
             impact = True
         # nuke 
-        if nuke_triggered and not impact:
+        if nuke_triggered and not impact and nuke_timer > 0:
             vel += pygame.Vector2(0 * 30000 * dt,
                                   -1 * 30000 * dt)
-            
-            nuke_triggered = False  # reset after one use
             draw_nuke_effect(screen, pos)
-
+            nuke_timer -= 1
+            if nuke_timer == 0:
+                nuke_triggered = False
 
     
         
