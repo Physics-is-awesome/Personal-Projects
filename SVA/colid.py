@@ -1,141 +1,100 @@
-import turtle
+import pygame
 import random
 import math
+import sys
+
+# Initialize pygame
+pygame.init()
 
 # Screen setup
-screen = turtle.Screen()
-screen.title("Asteroid Approaching Earth")
-screen.bgcolor("black")
-screen.setup(width=800, height=600)
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Asteroid Approaching Earth")
 
-# Draw simple stars
-star = turtle.Turtle(visible=False)
-star.speed(0)
-star.color("white")
-for _ in range(150):
-    x = random.randint(-390, 390)
-    y = random.randint(-290, 290)
-    star.penup()
-    star.goto(x, y)
-    star.dot(random.randint(1, 3))
+# Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+EARTH_BLUE = (30, 144, 255)
+ATMOSPHERE = (135, 206, 250)
+ASTEROID_GRAY = (169, 169, 169)
+EXPLOSION_COLORS = [(255, 69, 0), (255, 140, 0), (255, 215, 0)]
+
+# Clock
+clock = pygame.time.Clock()
 
 # Earth setup
-earth = turtle.Turtle()
-earth.speed(0)
-earth.penup()
-earth.goto(200, -50)  # Earth position
-earth.color("#1E90FF")  # DodgerBlue
-earth.shape("circle")
-earth.shapesize(stretch_wid=4, stretch_len=4)  # Bigger circle
-earth_radius = 40  # matches shapesize*10 roughly
-
-# Earth atmosphere glow (optional visual)
-halo = turtle.Turtle(visible=False)
-halo.speed(0)
-halo.penup()
-halo.goto(earth.xcor(), earth.ycor() - earth_radius)
-halo.color("#00BFFF")  # DeepSkyBlue
-halo.pendown()
-halo.width(2)
-halo.circle(earth_radius + 12)
+earth_pos = (WIDTH - 200, HEIGHT // 2)
+earth_radius = 60
 
 # Asteroid setup
-asteroid = turtle.Turtle()
-asteroid.speed(0)
-asteroid.penup()
-asteroid.goto(-350, 220)  # starting point
-asteroid.color("#A9A9A9")  # DarkGray
-asteroid.shape("circle")
-asteroid.shapesize(stretch_wid=1.4, stretch_len=1.8)  # slightly oblong
-asteroid_radius = 14
+asteroid_pos = [100, 100]
+asteroid_radius = 20
+velocity = [3, 2]
 
-# Add surface speckles to the asteroid
-speck = turtle.Turtle(visible=False)
-speck.speed(0)
-speck.color("#808080")
+# Stars
+stars = [(random.randint(0, WIDTH), random.randint(0, HEIGHT)) for _ in range(150)]
 
-def draw_speckle():
-    speck.penup()
-    ax, ay = asteroid.position()
-    for _ in range(6):
-        dx = random.randint(-12, 12)
-        dy = random.randint(-10, 10)
-        speck.goto(ax + dx, ay + dy)
-        speck.dot(random.randint(2, 4))
+def draw_stars():
+    for (x, y) in stars:
+        pygame.draw.circle(screen, WHITE, (x, y), random.randint(1, 2))
 
-draw_speckle()
+def draw_earth():
+    # Atmosphere glow
+    pygame.draw.circle(screen, ATMOSPHERE, earth_pos, earth_radius + 15)
+    # Earth body
+    pygame.draw.circle(screen, EARTH_BLUE, earth_pos, earth_radius)
 
-# Velocity aimed roughly at Earth
-vx, vy = 2.0, -1.8
-
-# Trail
-trail = turtle.Turtle(visible=False)
-trail.speed(0)
-trail.color("#FFA500")  # Orange
-trail.width(2)
-
-# Impact text
-impact_text = turtle.Turtle(visible=False)
-impact_text.color("white")
-impact_text.penup()
-
-# Simple sound/flash effect (visual only)
-flash = turtle.Turtle(visible=False)
-flash.speed(0)
-
-def distance(t1, t2):
-    x1, y1 = t1.position()
-    x2, y2 = t2.position()
-    return math.hypot(x2 - x1, y2 - y1)
+def draw_asteroid():
+    pygame.draw.circle(screen, ASTEROID_GRAY, asteroid_pos, asteroid_radius)
+    # Add speckles
+    for _ in range(5):
+        dx = random.randint(-asteroid_radius, asteroid_radius)
+        dy = random.randint(-asteroid_radius, asteroid_radius)
+        if dx**2 + dy**2 < asteroid_radius**2:
+            pygame.draw.circle(screen, (105, 105, 105),
+                               (asteroid_pos[0] + dx, asteroid_pos[1] + dy), 2)
 
 def explode():
-    # Flash concentric circles
-    flash.penup()
-    flash.goto(earth.xcor(), earth.ycor() - earth_radius)
-    flash.color("#FFD700")  # Gold
-    for r in range(earth_radius, earth_radius + 100, 10):
-        flash.pendown()
-        flash.circle(r)
-        flash.penup()
-    # Change Earth color briefly
-    earth.color("#FF6347")  # Tomato
-    impact_text.goto(0, 200)
-    impact_text.write("Impact!", align="center", font=("Arial", 28, "bold"))
+    for r in range(30, 150, 20):
+        color = random.choice(EXPLOSION_COLORS)
+        pygame.draw.circle(screen, color, earth_pos, r, 5)
+    font = pygame.font.SysFont("Arial", 48, bold=True)
+    text = font.render("IMPACT!", True, WHITE)
+    screen.blit(text, (WIDTH//2 - 100, HEIGHT//2 - 20))
 
-# Main animation loop
-frame = 0
 running = True
+impact = False
+
 while running:
-    # Move asteroid
-    ax, ay = asteroid.position()
-    ax += vx
-    ay += vy
-    asteroid.goto(ax, ay)
+    screen.fill(BLACK)
+    draw_stars()
+    draw_earth()
 
-    # Flicker trail
-    if frame % 2 == 0:
-        trail.penup()
-        trail.goto(ax, ay)
-        trail.pendown()
-        trail.goto(ax - vx * 5, ay - vy * 5)
+    if not impact:
+        # Move asteroid
+        asteroid_pos[0] += velocity[0]
+        asteroid_pos[1] += velocity[1]
+        draw_asteroid()
 
-    # Slight drift and acceleration to feel more dynamic
-    vx *= 1.002
-    vy *= 1.002
-    vy -= 0.003  # gravity-like pull
-
-    # Redraw speckles occasionally to follow asteroid
-    if frame % 10 == 0:
-        draw_speckle()
-
-    # Check collision
-    if distance(asteroid, earth) <= (asteroid_radius + earth_radius):
+        # Check collision
+        dist = math.hypot(asteroid_pos[0] - earth_pos[0],
+                          asteroid_pos[1] - earth_pos[1])
+        if dist < asteroid_radius + earth_radius:
+            impact = True
+    else:
         explode()
-        running = False
 
-    # Off-screen safety
-    if not (-410 < ax < 410 and -310 < ay < 310):
-        running = False
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+sys.exit()
+
 
     frame += 1
 
