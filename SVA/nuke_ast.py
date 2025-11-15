@@ -118,6 +118,8 @@ while running:
                 mu *= 0.9
             elif event.key == pygame.K_RIGHT:
                 mu *= 1.1
+            elif event.key == pygame.K_n:
+                nuke_triggered = True
 
     if not paused and not impact:
         # Gravity
@@ -141,15 +143,16 @@ while running:
         # Impact check
         if collide(pos):
             impact = True
-        if time >= 1000: 
-          print("Hi")
-        # Keep within screen (bounce lightly if desired)
-        if pos.x < 0 or pos.x > WIDTH or pos.y < 0 or pos.y > HEIGHT:
-            # Simple soft wrap to keep it visible
-            pos.x = max(10, min(WIDTH - 10, pos.x))
-            pos.y = max(10, min(HEIGHT - 10, pos.y))
-            vel *= 0.95
-        time += 1
+        # nuke 
+        if nuke_triggered and not impact:
+
+            vel += pygame.Vector2(random.choice([-1, 1]) * NUKE_FORCE * dt,
+                                  random.choice([-1, 1]) * NUKE_FORCE * dt)
+            nuke_triggered = False  # reset after one use
+            draw_nuke_effect(screen, pos)
+
+
+    
         
 
     # ---- Draw ----
