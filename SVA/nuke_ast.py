@@ -149,8 +149,8 @@ while running:
         # nuke 
         if nuke_triggered and not impact:
             
-            vel += pygame.Vector2(0 * 2000 * dt,
-                                  -1 * 2000 * dt)
+            vel += pygame.Vector2(0,
+                                  -1 * 200 * dt)
             draw_nuke_effect(screen, pos)
             
             nuke_triggered = False
