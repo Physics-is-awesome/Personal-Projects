@@ -2,11 +2,10 @@
 module m_h_module
   implicit none
 contains
-  subroutine compute_m_h(phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, eta_h, dm_h_dt)
+  subroutine compute_m_h()
+    use declare_2
     implicit none
-    ! Declare inputs and outputs as real
-    real(8), intent(in) :: phi_m_i, phi_rho_i, phi_sigma_i, u_h, T_h, eta_h
-    real(8), intent(out) :: dm_h_dt
+ 
 
     ! Evolution equation
     F_m_h = -dT_h_dx*phi_m_i*sigma_h - deta_h_dx*phi_m_i*rho_h + dphi_m_dx* &
