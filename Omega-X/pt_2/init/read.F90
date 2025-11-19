@@ -3,7 +3,7 @@ module read_config
   use c_interface
   implicit none
   integer :: nx, ny, nz, dim_run, p
-  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx
+  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b
   character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
   character(len=20), target :: fstring
 contains
