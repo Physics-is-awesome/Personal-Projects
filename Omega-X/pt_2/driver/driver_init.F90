@@ -7,5 +7,7 @@ module driver_init
   subroutine init()
     call read_file()
     call init_temp()
+    call init_momentum()
+    call init_entropy()
   end subroutine init
 end module driver_init
