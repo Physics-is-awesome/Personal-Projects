@@ -1,4 +1,4 @@
-module use
+module use_test
   implicit none
 
 contains
