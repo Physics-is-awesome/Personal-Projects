@@ -23,14 +23,6 @@ contains
     open(unit=10, file="config/config.cfg", status="old", action="read")
 
     do
-      !read(10,'(A)',iostat=ios) line
-      !if (ios /= 0) exit
-      !if (line(1:1) == "#" .or. trim(line) == "") cycle
-
-      !read(line,*) key, eqsign, value
-      !count = count + 1
-      !keys(count)   = trim(key)
-      !values(count) = trim(value)
       read(10,'(A)',iostat=ios) line
       if (ios < 0) exit        ! end of file
       if (ios > 0) then
@@ -54,6 +46,7 @@ end if
     ! getting dimensions
     dim_run = get_int("dim_run", keys, values, count)
     nx = get_int("nx", keys, values, count)
+    dx = get_real("dx", keys, values, count)
     if (dim_run >= 2) then
       ny = get_int("ny", keys, values, count)
     end if
