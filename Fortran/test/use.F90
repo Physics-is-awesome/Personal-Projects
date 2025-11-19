@@ -1,11 +1,9 @@
 module use_test
   implicit none
-
+  real(8) :: a = 8.0, b = 3.14, c
 contains
 
   subroutine math()
-    real(8) :: a = 8.0, b = 3.14, c
-
     c = a ** b
   end subroutine math
 
