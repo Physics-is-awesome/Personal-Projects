@@ -3,6 +3,7 @@ program test
   implicit none
 
   call math2()
+  print*, d
 contains
 
   subroutine math2()
