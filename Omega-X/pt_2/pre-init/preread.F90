@@ -44,7 +44,6 @@ end if
     ! test
     fstring = get_string("string", keys, values, count)
     print*, fstring
-    print*, len(fstring)
     call c_function(fstring, len(fstring))
 
     
@@ -56,7 +55,7 @@ end if
     character(len=*), intent(in) :: keys(:), values(:)
     integer, intent(in) :: n
     integer :: i
-    character(len=20) :: string
+    character(len=200) :: string
     string = ""
     do i = 1, n
        if (trim(keys(i)) == trim(search_key)) then
