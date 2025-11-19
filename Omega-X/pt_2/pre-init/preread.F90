@@ -3,7 +3,7 @@ module preread
   use c_interface
   implicit none
 
-  character(len=20), target :: fstring
+  character(len=200), target :: fstring
 contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
