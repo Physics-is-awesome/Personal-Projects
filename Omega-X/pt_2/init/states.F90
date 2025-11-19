@@ -1,8 +1,5 @@
 module states
   use read_config
-  call init_temp()
-  call init_momentum()
-  call init_entropy()
   implicit none
   
 #include "../config/dim_config.h"
@@ -14,7 +11,9 @@ module states
 #elif dim == 3
   real(8), allocatable :: mass(:, :, :), temp(:, :, :), entropy(:, :, :), momentum(:, :, :)
 #endif
-
+  call init_temp()
+  call init_momentum()
+  call init_entropy()
 contains 
 
  
