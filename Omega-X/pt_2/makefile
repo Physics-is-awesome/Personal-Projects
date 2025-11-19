@@ -6,7 +6,7 @@ BIN_DIR := bin
 EXEC := $(BIN_DIR)/run
 
 .PHONY: a
-
+abc
 FC := gfortran
 CXX = g++
 
