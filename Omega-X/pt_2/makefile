@@ -61,9 +61,9 @@ run: $(EXE)
 # All: clean, run, run python(not yet), clean temporary files(not yet)
 all: $(EXE)
 	./$(EXE)
-	rm -f *.mod *.o */*.o */*/*.o */*.mod $(EXE) $(init) generated*
+	rm -f *.mod *.o */*.o */*/*.o */*.mod $(EXE) $(init) $(pre) generated*
 	#add pythin run ($(PYTHON) evolution/generation.py)
 	# delete temp files (rm -f evolution/fortran_modules/*.f90
 # Clean up
 clean:
-	rm -f *.mod *.o */*.o */*/*.o */*.mod generated* $(EXE) $(init)
+	rm -f *.mod *.o */*.o */*/*.o */*.mod generated* $(EXE) $(init) $(pre)
