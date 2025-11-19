@@ -43,7 +43,6 @@ end if
    
     ! test
     fstring = get_string("string", keys, values, count)
-    print*, fstring
     call c_function(fstring, len(fstring))
 
     
