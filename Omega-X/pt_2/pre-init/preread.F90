@@ -20,14 +20,6 @@ contains
     open(unit=10, file="config/config.cfg", status="old", action="read")
 
     do
-      !read(10,'(A)',iostat=ios) line
-      !if (ios /= 0) exit
-      !if (line(1:1) == "#" .or. trim(line) == "  ") cycle
-
-      !read(line,*) key, eqsign, value
-      !count = count + 1
-      !keys(count)   = trim(key)
-      !values(count) = trim(value)
       read(10,'(A)',iostat=ios) line
       if (ios < 0) exit        ! end of file
       if (ios > 0) then
@@ -52,6 +44,7 @@ end if
     ! test
     fstring = get_string("string", keys, values, count)
     print*, fstring
+    print*, len(fstring)
     call c_function(fstring, len(fstring))
 
     
