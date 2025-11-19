@@ -9,4 +9,4 @@ contains
     c = a ** b
   end subroutine math
 
-end module use
+end module use_test
