@@ -6,8 +6,8 @@ program test
 contains
 
   subroutine math2()
-    call math
     real(8) :: d
+    call math()
     d = c+2+a
   end subroutine math2
 end program test
