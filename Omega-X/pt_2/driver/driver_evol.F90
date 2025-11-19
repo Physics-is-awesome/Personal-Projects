@@ -28,9 +28,9 @@ contains
     ! call basis functions
     call basis_functions(x_q, phi)
     ! run evolution in each program, to get week form
-    do i=1, 10
-      call compute_m_h()
-    end do
+
+    call compute_m_h()
+
     
     ! multiply by week form and sum for all nodes
 
@@ -44,7 +44,6 @@ contains
   
   ! Time integrator 
   ! create hdf5 program and add data
-  print*, F_m_h
   end subroutine driver_evolution
 end module evol
   
