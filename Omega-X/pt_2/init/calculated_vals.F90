@@ -5,5 +5,5 @@ module calc_vals
   implicit none
   sigma_h = dx+1
   print*, sigms_h
-contains
+end module calc_vals
   !subroutine derivative_of_temp_by_x()
