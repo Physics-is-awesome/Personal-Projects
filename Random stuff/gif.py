@@ -3,7 +3,7 @@ from moviepy.editor import VideoFileClip
 import os
 import glob
 video_picture = "picture" # or video  
-pictures_path = "/mnt/c/Users/ajcas/PicturesHo"
+pictures_path = "/mnt/c/Users/ajcas/Pictures"
 if video_picture == "picture":
   files = glob.glob(os.path.join(pictures_path, "gif_*.png"))
   images = [imageio.imread(f) for f in files]
