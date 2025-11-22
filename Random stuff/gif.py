@@ -5,7 +5,7 @@ import glob
 video_picture = "picture" # or video  
 pictures_path = "/mnt/c/Users/ajcas/Pictures"
 if video_picture == "picture":
-  files = glob.glob(os.path.join(pictures_path, "gif_*.png"))
+  files = glob.glob(os.path.join(pictures_path, "gif_*"))
   print("Found files:", files)  # Debugging
   if not files:
       raise RuntimeError("No matching files found! Check path and naming convention.")
