@@ -6,8 +6,8 @@ video_picture = "picture" # or video
 pictures_path = "/mnt/c/Users/ajcas/PicturesHo"
 if video_picture == "picture":
   files = glob.glob(os.path.join(pictures_path, "gif_*.png"))
-  images_used = [imageio.imread(f) for f in files]
-  images = []
+  images = [imageio.imread(f) for f in files]
+
 
 
   imageio.mimsave("output.gif", images, duration=0.5)
