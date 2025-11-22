@@ -6,6 +6,9 @@ video_picture = "picture" # or video
 pictures_path = "/mnt/c/Users/ajcas/Pictures"
 if video_picture == "picture":
   files = glob.glob(os.path.join(pictures_path, "gif_*.png"))
+  print("Found files:", files)  # Debugging
+  if not files:
+      raise RuntimeError("No matching files found! Check path and naming convention.")
   images = [imageio.imread(f) for f in files]
 
 
