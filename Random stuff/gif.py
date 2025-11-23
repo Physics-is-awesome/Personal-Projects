@@ -8,6 +8,11 @@ pictures_path = "/mnt/c/Users/ajcas/Onedrive/Pictures"
 if video_picture == "picture":
   files = glob.glob(os.path.join(pictures_path, "gif_*.png")) #gif_*.png
   files.sort()
+
+  base_img = Image.open(files[0])
+  target_size = base_img.size  # (width, height)
+
+
   print("Found files:", files)  # Debugging
   if not files:
       raise RuntimeError("No matching files found! Check path and naming convention.")
