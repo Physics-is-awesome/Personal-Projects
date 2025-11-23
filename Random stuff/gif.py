@@ -10,6 +10,11 @@ if video_picture == "picture":
   print("Found files:", files)  # Debugging
   if not files:
       raise RuntimeError("No matching files found! Check path and naming convention.")
+  images = []
+  for f in files:
+    img = Image.open(f).convert("RGB")
+    img = img.resize((400, 400))  # force consistent size
+    images.append(img)
   images = [imageio.imread(f) for f in files]
   print("Number of frames:", len(images))
 
