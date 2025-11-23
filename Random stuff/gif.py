@@ -2,7 +2,7 @@ from PIL import Image
 import os, glob
 
 pictures_path = "/mnt/c/Users/ajcas/OneDrive/Pictures"
-files = glob.glob(os.path.join(pictures_path, "*.png"))
+files = glob.glob(os.path.join(pictures_path, "gif_*.png"))
 files.sort()
 
 frames = [Image.open(f).convert("RGB") for f in files]
