@@ -6,7 +6,7 @@ import glob
 video_picture = "picture" # or video  
 pictures_path = "/mnt/c/Users/ajcas/Onedrive/Pictures"
 if video_picture == "picture":
-  files = glob.glob(os.path.join(pictures_path, ".png")) #gif_*
+  files = glob.glob(os.path.join(pictures_path, "*.png")) #gif_*.png
   files.sort()
   print("Found files:", files)  # Debugging
   if not files:
