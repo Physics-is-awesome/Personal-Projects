@@ -1,5 +1,6 @@
 import imageio
 from moviepy.editor import VideoFileClip
+from PIL import Image
 import os
 import glob
 video_picture = "picture" # or video  
