@@ -19,7 +19,7 @@ if video_picture == "picture":
   images = []
   for f in files:
     img = Image.open(f).convert("RGB")
-    img = img.resize((400, 400))  # force consistent size
+    img = img.resize((target_size))  # force consistent size
     images.append(img)
   images = [imageio.imread(f) for f in files]
   print("Number of frames:", len(images))
