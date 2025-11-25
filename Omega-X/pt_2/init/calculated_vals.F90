@@ -81,13 +81,12 @@ contains
        z_np1 = z_np1 + res
     end do
 
-  end function implicit_midpoint_step
+  end function time_discr
 
   !======================
   ! Spacial implicit mid-point
   !======================
   function space_discr(u, dx) result(dudx)
-    implicit none
     real(8), intent(in) :: u(:)
     real(8), intent(in) :: dx
     real(8) :: dudx(size(u))
