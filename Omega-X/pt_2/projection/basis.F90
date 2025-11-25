@@ -5,7 +5,7 @@ module basis
 
 contains
   ! expand more capacity(1d quadratic(?) =============================
-  subroutine basis_functions(xi_q, phi)
+  subroutine basis_functions()
     real(8), INTENT(IN) :: xi_q(3)
     real(8), INTENT(OUT), allocatable :: phi(:,:)
     integer :: q
