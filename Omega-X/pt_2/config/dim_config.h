@@ -1,1 +1,1 @@
-#define dim 3
+#define dim 1
