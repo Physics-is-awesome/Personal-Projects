@@ -54,7 +54,7 @@ contains
   !=============================
   ! implicit mid-point in time
   !=============================
-  funcion time_discr(z_n, dt, dn_dt) result(z_np1)
+  function time_discr(z_n, dt, dn_dt) result(z_np1)
     real(8), intent(in) :: z_n, dt
     interface
       function f(z) result(val)
