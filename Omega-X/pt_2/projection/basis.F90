@@ -6,8 +6,8 @@ module basis
 contains
   ! expand more capacity(1d quadratic(?) =============================
   subroutine basis_functions()
-    real(8), INTENT(IN) :: xi_q(3)
-    real(8), INTENT(OUT), allocatable :: phi(:,:)
+    real(8) :: xi_q(3)
+    real(8), allocatable :: phi(:,:)
     integer :: q
     allocate(phi(3,3))
     do q = 1, 3
