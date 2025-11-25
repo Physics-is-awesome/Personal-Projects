@@ -49,7 +49,8 @@ contains
     end do
   
     ! space derivative of phi
-    
+
+  end subroutine calculate_variables
   !=============================
   ! implicit mid-point in time
   !=============================
