@@ -7,9 +7,8 @@ contains
   subroutine calculate_variables()
     integer :: i
     ! Spacial derivative of tempature
-    do i = 1, nx
-      dT_h_dx(i) = space_discr(T_h(i), dx)
-    end do
+    dT_h_dx(i) = space_discr(T_h, dx)
+
 
     ! Calculate velocity
     do i = 1, nx
@@ -17,9 +16,9 @@ contains
     end do
 
     ! space derivative of velocity
-    do i = 1, nx
-      du_h_dx = space_discr(u_h(i), dx)
-    end do
+
+    du_h_dx = space_discr(u_h, dx)
+
     ! calculate spesific entropy
     do i = 1, nx
       s_h = sigma_h/rho_h
@@ -45,9 +44,8 @@ contains
     end do
 
     ! space derivative of eta
-    do i = 1, nx
-      deta_h_dx(i) = space_discr(eta(i), dx)
-    end do
+    deta_h_dx = space_discr(eta, dx)
+
   
     ! space derivative of phi
 
