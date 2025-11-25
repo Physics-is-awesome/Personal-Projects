@@ -9,9 +9,11 @@ contains
     integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
     real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
     real(8), INTENT(OUT), allocatable :: x_q(:), w_q(:)     ! Mapped physical points and weights
-    real(8), :: x_L =0 , x_R = nx              ! Element bounds 
+    real(8) :: x_L, x_R            ! Element bounds 
     integer :: q
     allocate(x_q(Nq), w_q(Nq))
+    x_L = 0.0d0
+    x_R = dble(nx)   ! convert integer nx to real
 
     J = (x_R - x_L) / 2.0d0              ! Jacobian for mapping
 
