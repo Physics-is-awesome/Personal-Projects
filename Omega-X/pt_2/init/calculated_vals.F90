@@ -8,7 +8,7 @@ contains
     integer :: i
     ! Spacial derivative of tempature
     do i = 1, nx
-      dT_h_dx(i) = space_discr(T(i), dx)
+      dT_h_dx(i) = space_discr(T_h(i), dx)
     end do
 
     ! Calculate velocity
