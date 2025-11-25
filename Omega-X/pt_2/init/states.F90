@@ -4,12 +4,12 @@ module states
   
 #include "../config/dim_config.h"
 #if dim == 1
-  real(8), allocatable :: mass(:), temp(:), entropy(:), momentum(:)
+  real(8), allocatable :: rho_h(:), T_h(:), sigma_h(:), m_h(:)
 
 #elif dim == 2
-  real(8), allocatable :: mass(:, :), temp(:, :), entropy(:, :), momentum(:, :)
+  real(8), allocatable :: rho_h(:, :), T_h(:, :), sigma_h(:, :), m_h(:, :)
 #elif dim == 3
-  real(8), allocatable :: mass(:, :, :), temp(:, :, :), entropy(:, :, :), momentum(:, :, :)
+  real(8), allocatable :: rho_h(:, :, :), T_h(:, :, :), sigma_h(:, :, :), m_h(:, :, :)
 #endif
 contains 
 
@@ -23,7 +23,7 @@ contains
     allocate(temp(nx))
     if (trim(temp_dist) == "gaussian") then 
       do i=1, nx
-        temp(i) = normal(temp_mean, temp_var)
+        T_h(i) = normal(temp_mean, temp_var)
       end do
     end if
 
@@ -33,7 +33,7 @@ contains
       do j=1, ny
         do i=1, nx
           
-          temp(i,j) = normal(temp_mean, temp_var)
+          T_h(i,j) = normal(temp_mean, temp_var)
         end do
       end do
     end if
@@ -44,7 +44,7 @@ contains
       do k=1, nz
         do j=1, ny
           do i=1, nx
-            temp(i,j, k) = normal(temp_mean, temp_var)
+            T_h(i,j, k) = normal(temp_mean, temp_var)
           end do
         end do
       end do
@@ -61,7 +61,7 @@ contains
     allocate(mass(nx))
     if (trim(mass_dist) == "gaussian") then 
       do i=1, nx
-        mass(i) = normal(mass_mean, mass_var)
+        rho_h(i) = normal(mass_mean, mass_var)
       end do
     end if
 
@@ -71,7 +71,7 @@ contains
       do j=1, ny
         do i=1, nx
           
-          mass(i,j) = normal(mass_mean, mass_var)
+          rho_h(i,j) = normal(mass_mean, mass_var)
         end do
       end do
     end if
@@ -82,7 +82,7 @@ contains
       do k=1, nz
         do j=1, ny
           do i=1, nx
-            temp(i,j, k) = normal(mass_mean, mass_var)
+            rho_h(i,j, k) = normal(mass_mean, mass_var)
           end do
         end do
       end do
@@ -101,7 +101,7 @@ contains
     allocate(momentum(nx))
     if (trim(momentum_dist) == "gaussian") then 
       do i=1, nx
-        momentum(i) = normal(momentum_mean, momentum_var)
+        m_h(i) = normal(momentum_mean, momentum_var)
       end do
     end if
 
@@ -111,7 +111,7 @@ contains
       do j=1, ny
         do i=1, nx
           
-          momentum(i,j) = normal(momentum_mean, momentum_var)
+          m_h(i,j) = normal(momentum_mean, momentum_var)
         end do
       end do
     end if
@@ -122,7 +122,7 @@ contains
       do k=1, nz
         do j=1, ny
           do i=1, nx
-            momentum(i,j, k) = normal(momentum_mean, momentum_var)
+            m_h(i,j, k) = normal(momentum_mean, momentum_var)
           end do
         end do
       end do
@@ -139,7 +139,7 @@ contains
     allocate(entropy(nx))
     if (trim(entropy_dist) == "gaussian") then 
       do i=1, nx
-        entropy(i) = normal(entropy_mean, entropy_var)
+        sigma_h(i) = normal(entropy_mean, entropy_var)
       end do
     end if
 
@@ -149,7 +149,7 @@ contains
       do j=1, ny
         do i=1, nx
           
-          entropy(i,j) = normal(entropy_mean, entropy_var)
+          sigma_h(i,j) = normal(entropy_mean, entropy_var)
         end do
       end do
     end if
@@ -160,7 +160,7 @@ contains
       do k=1, nz
         do j=1, ny
           do i=1, nx
-            entropy(i,j, k) = normal(entropy_mean, entropy_var)
+            sigma_h(i,j, k) = normal(entropy_mean, entropy_var)
           end do
         end do
       end do
