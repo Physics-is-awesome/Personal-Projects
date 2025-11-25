@@ -4,9 +4,52 @@ module calc_vals
   use declare_2
   implicit none
 
-  !subroutine derivative_of_temp_by_x()
+  subroutine calculate_variables()
+    ! Spacial derivative of tempature
+    do i, nx
+      dT_h_dx(i) = space_discr(T(i), dx)
+    end do
 
+    ! Calculate velocity
+    do i, nx
+      u_h(i) = m_h(i)/rho_h(i)
+    end do
 
+    ! space derivative of velocity
+    do i, nx
+      du_h_dx = space_discr(u_h(i), dx
+
+    ! calculate spesific entropy
+    do i, nx
+      s_h = sigma_h/rho_h
+    end do
+    ! calculate spesific internal energy(ideal, change later) =================================
+    do i, nx
+      U(i) = rho_h ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h)
+    end do
+'
+    ! calculate  ratio of tempeture to spesific entropy
+    do i, nx
+      T_S(i) = T_h(i)/s_h(i)
+    end do
+
+    ! calculating pressure (ideal, change later)======================================
+    do i, nx
+      p = (gamma-1) * rho_h ** (gamma) * 2.718281828459045 ** ((gamma-1)*s) 
+    end do
+
+    ! calculating eta
+    do i, nx
+      eta_h(i) = (m_h(i)**2)/(2*rho_h(i)**2) + e(i) + p/rho_h(i) - s_h(i) * T_h(i)
+    end do
+
+    ! space derivative of eta
+    do i, nx
+      deta_h_dx(i) = space_discr(eta(i), dx)
+    end do
+  
+    ! space derivative of phi
+    
   !=============================
   ! implicit mid-point in time
   !=============================
