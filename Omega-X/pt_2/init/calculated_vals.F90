@@ -27,7 +27,7 @@ contains
     do i = 1, nx
       U(i) = rho_h ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h)
     end do
-'
+
     ! calculate  ratio of tempeture to spesific entropy
     do i = 1, nx
       T_S(i) = T_h(i)/s_h(i)
