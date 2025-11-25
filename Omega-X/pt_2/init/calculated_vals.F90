@@ -54,34 +54,34 @@ contains
   !=============================
   ! implicit mid-point in time
   !=============================
-  function time_discr(z_n, dt, dn_dt) result(z_np1)
-    real(8), intent(in) :: z_n, dt
-    interface
-      function f(z) result(val)
-        real(8), intent(in) :: z
-        real(8) :: val
-      end function f
-    end interface
-    real(8) :: z_np1, z_half, res, tol
-    integer :: iter, max_iter
+  !function time_discr(z_n, dt, dn_dt) result(z_np1)
+   ! real(8), intent(in) :: z_n, dt
+    !interface
+     ! function f(z) result(val)
+      !  real(8), intent(in) :: z
+       ! real(8) :: val
+     ! end function f
+   ! end interface
+  !  real(8) :: z_np1, z_half, res, tol
+   ! integer :: iter, max_iter
 
     ! Initial guess: explicit Euler
-    z_np1 = z_n + dt * f(z_n)
+   ! z_np1 = z_n + dt * f(z_n)
 
-    tol = 1.0d-12
-    max_iter = 20
+    !tol = 1.0d-12
+    !max_iter = 20
 
     ! Newton iteration to solve implicit midpoint equation:
     ! z_{n+1} = z_n + dt * f( (z_n + z_{n+1})/2 )
-    do iter = 1, max_iter
-       z_half = 0.5d0 * (z_n + z_np1)
-       res    = z_n + dt * f(z_half) - z_np1
-       if (abs(res) < tol) exit
+    !do iter = 1, max_iter
+     !  z_half = 0.5d0 * (z_n + z_np1)
+      ! res    = z_n + dt * f(z_half) - z_np1
+      ! if (abs(res) < tol) exit
        ! Simple fixed-point correction
-       z_np1 = z_np1 + res
-    end do
+     !  z_np1 = z_np1 + res
+   ! end do
 
-  end function time_discr
+ ! end function time_discr
 
   !======================
   ! Spacial implicit mid-point
