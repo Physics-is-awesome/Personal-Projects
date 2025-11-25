@@ -44,7 +44,7 @@ contains
     end do
 
     ! space derivative of eta
-    deta_h_dx = space_discr(eta, dx)
+    deta_h_dx = space_discr(eta_h, dx)
 
   
     ! space derivative of phi
