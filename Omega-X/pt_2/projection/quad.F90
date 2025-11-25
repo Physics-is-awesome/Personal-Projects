@@ -1,5 +1,5 @@
 module quad
-  use declare
+  use declare_1
   implicit none
 contains
 
