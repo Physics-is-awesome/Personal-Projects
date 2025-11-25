@@ -21,10 +21,10 @@ contains
     call read_file()
 
     ! call quadrature weights and nodes
-    call quadrature_points(x_L, X_R, x_q, w_q)
+    call quadrature_points()
 
     ! call basis functions
-    call basis_functions(x_q, phi)
+    call basis_functions()
     ! run evolution in each program, to get week form
 
     call compute_m_h()
