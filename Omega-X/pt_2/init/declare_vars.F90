@@ -1,4 +1,4 @@
-module declare
+module declare_1
   implicit none
   
   real(8), allocatable :: x_q(:), w_q(:), phi(:,:), M(:,:) 
