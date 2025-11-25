@@ -16,16 +16,16 @@ contains
     end do
 
     ! space derivative of velocity
-
     du_h_dx = space_discr(u_h, dx)
 
     ! calculate spesific entropy
     do i = 1, nx
       s_h = sigma_h/rho_h
     end do
+
     ! calculate spesific internal energy(ideal, change later) =================================
     do i = 1, nx
-      U(i) = rho_h ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h)
+      U(i) = rho_h(i) ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h(i))
     end do
 
     ! calculate  ratio of tempeture to spesific entropy
@@ -35,7 +35,7 @@ contains
 
     ! calculating pressure (ideal, change later)======================================
     do i = 1, nx
-      p = (gamma-1) * rho_h ** (gamma) * 2.718281828459045 ** ((gamma-1)*s_h) 
+      p = (gamma-1) * rho_h(i) ** (gamma) * 2.718281828459045 ** ((gamma-1)*s_h(i)) 
     end do
 
     ! calculating eta
