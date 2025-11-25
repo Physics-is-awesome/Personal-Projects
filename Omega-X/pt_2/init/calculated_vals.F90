@@ -18,7 +18,7 @@ contains
     ! space derivative of velocity
     do i = 1, nx
       du_h_dx = space_discr(u_h(i), dx)
-
+    end do
     ! calculate spesific entropy
     do i = 1, nx
       s_h = sigma_h/rho_h
