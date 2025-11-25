@@ -8,7 +8,7 @@ contains
   subroutine quadrature_points()
     integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
     real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
-    real(8), INTENT(OUT), allocatable :: x_q(:), w_q(:)     ! Mapped physical points and weights
+    real(8), allocatable :: x_q(:), w_q(:)     ! Mapped physical points and weights
     real(8) :: x_L, x_R            ! Element bounds 
     integer :: q
     allocate(x_q(Nq), w_q(Nq))
