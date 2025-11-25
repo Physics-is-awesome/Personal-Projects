@@ -7,7 +7,7 @@ contains
     use declare_2
     implicit none
     ! allocate(F_m_h, dT_h_dx, sigma_h, deta_h_dx, phi_m_i, rho_h, dphi_m_dx, m_h, u_h, du_h_dx, Re)
-
+    integer :: i
     ! Evolution equation
     do i = 1, nx
       F_m_h(i) = -dT_h_dx(i)*phi_m_i(i)*sigma_h(i) - deta_h_dx(i)*phi_m_i(i)*rho_h(i) + dphi_m_dx(i)* &
