@@ -3,7 +3,7 @@ module calc_vals
   use declare_1
   use declare_2
   implicit none
-
+contains
   subroutine calculate_variables()
     ! Spacial derivative of tempature
     do i = 1, nx
