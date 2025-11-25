@@ -5,6 +5,7 @@ module m_h_module
 contains
   subroutine compute_m_h()
     use declare_2
+    use states
     implicit none
     ! allocate(F_m_h, dT_h_dx, sigma_h, deta_h_dx, phi_m_i, rho_h, dphi_m_dx, m_h, u_h, du_h_dx, Re)
     integer :: i
