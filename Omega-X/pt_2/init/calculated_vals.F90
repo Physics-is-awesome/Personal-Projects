@@ -103,8 +103,7 @@ contains
     dudx(1)   = (u(2) - u(1)) / dx
     dudx(n)   = (u(n) - u(n-1)) / dx
 
-  end function central_diff
+  end function space_discr
 
-end module space_discretizers
 
 end module calc_vals
