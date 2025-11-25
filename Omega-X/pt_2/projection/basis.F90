@@ -4,7 +4,7 @@ module basis
   implicit none
 
 contains
-
+  ! expand more capacity(1d quadratic(?) =============================
   subroutine basis_functions(xi_q, phi)
     real(8), INTENT(IN) :: xi_q(3)
     real(8), INTENT(OUT), allocatable :: phi(:,:)
