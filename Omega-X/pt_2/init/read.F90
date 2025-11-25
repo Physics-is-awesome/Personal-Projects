@@ -3,7 +3,7 @@ module read_config
   use c_interface
   implicit none
   integer :: nx, ny, nz, dim_run, p
-  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b
+  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma
   character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist
   character(len=20), target :: fstring
 contains
@@ -56,6 +56,10 @@ end if
     p = get_int("p", keys, values, count)
     a = get_real("a", keys, values, count)
     b = get_real("b", keys, values, count)
+
+    ! getting constants
+    Re = get_real("Re", keys, values, count)
+    gamma = get_real("gamma", keys, values, count)
     ! dynamics allowed
     mass = get_bol("mass", keys, values, count)
     momentum = get_bol("momentum", keys, values, count)
