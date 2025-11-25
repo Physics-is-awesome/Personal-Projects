@@ -5,6 +5,7 @@ module calc_vals
   implicit none
 contains
   subroutine calculate_variables()
+    integer :: i
     ! Spacial derivative of tempature
     do i = 1, nx
       dT_h_dx(i) = space_discr(T(i), dx)
