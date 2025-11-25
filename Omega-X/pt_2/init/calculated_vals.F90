@@ -36,7 +36,7 @@ contains
 
     ! calculating pressure (ideal, change later)======================================
     do i = 1, nx
-      p = (gamma-1) * rho_h ** (gamma) * 2.718281828459045 ** ((gamma-1)*s) 
+      p = (gamma-1) * rho_h ** (gamma) * 2.718281828459045 ** ((gamma-1)*s_h) 
     end do
 
     ! calculating eta
