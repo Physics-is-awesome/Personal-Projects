@@ -134,7 +134,6 @@ contains
   ! Entropy 
   ! ----------------------------------------
   subroutine init_entropy()
-    use states
     integer :: i, j, k
 #if dim == 1
     allocate(sigma_h(nx))
