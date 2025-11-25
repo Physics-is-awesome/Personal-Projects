@@ -18,7 +18,6 @@ contains
   ! Tempature 
   ! ----------------------------------------
   subroutine init_temp()
-    use states
     integer :: i, j, k
 #if dim == 1
     allocate(temp(nx))
@@ -57,7 +56,6 @@ contains
   ! mass 
   ! ----------------------------------------
   subroutine init_mass()
-    use states
     integer :: i, j, k
 #if dim == 1
     allocate(mass(nx))
@@ -98,7 +96,6 @@ contains
   ! Momentum 
   ! ----------------------------------------
   subroutine init_momentum()
-    use states
     integer :: i, j, k
 #if dim == 1
     allocate(momentum(nx))
