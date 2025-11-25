@@ -7,7 +7,7 @@ contains
   subroutine calculate_variables()
     integer :: i
     ! Spacial derivative of tempature
-    dT_h_dx(i) = space_discr(T_h, dx)
+    dT_h_dx = space_discr(T_h, dx)
 
 
     ! Calculate velocity
