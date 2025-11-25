@@ -20,7 +20,7 @@ contains
   subroutine init_temp()
     integer :: i, j, k
 #if dim == 1
-    allocate(temp(nx))
+    allocate(T_h(nx))
     if (trim(temp_dist) == "gaussian") then 
       do i=1, nx
         T_h(i) = normal(temp_mean, temp_var)
@@ -28,7 +28,7 @@ contains
     end if
 
 #elif dim == 2 
-    allocate(temp(nx, ny)
+    allocate(T_h(nx, ny)
     if (trim(temp_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
@@ -39,7 +39,7 @@ contains
     end if
 
 #elif dim == 3
-    allocate(temp(nx, ny, nz))
+    allocate(T_h(nx, ny, nz))
     if (trim(temp_dist) == "gaussian") then 
       do k=1, nz
         do j=1, ny
@@ -58,7 +58,7 @@ contains
   subroutine init_mass()
     integer :: i, j, k
 #if dim == 1
-    allocate(mass(nx))
+    allocate(rho_h(nx))
     if (trim(mass_dist) == "gaussian") then 
       do i=1, nx
         rho_h(i) = normal(mass_mean, mass_var)
@@ -66,7 +66,7 @@ contains
     end if
 
 #elif dim == 2 
-    allocate(mass(nx, ny)
+    allocate(rho_h(nx, ny)
     if (trim(mass_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
@@ -77,7 +77,7 @@ contains
     end if
 
 #elif dim == 3
-    allocate(mass(nx, ny, nz))
+    allocate(rho_h(nx, ny, nz))
     if (trim(mass_dist) == "gaussian") then 
       do k=1, nz
         do j=1, ny
@@ -98,7 +98,7 @@ contains
   subroutine init_momentum()
     integer :: i, j, k
 #if dim == 1
-    allocate(momentum(nx))
+    allocate(m_h(nx))
     if (trim(momentum_dist) == "gaussian") then 
       do i=1, nx
         m_h(i) = normal(momentum_mean, momentum_var)
@@ -106,7 +106,7 @@ contains
     end if
 
 #elif dim == 2 
-    allocate(momentum(nx, ny)
+    allocate(m_h(nx, ny)
     if (trim(momentum_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
@@ -117,7 +117,7 @@ contains
     end if
 
 #elif dim == 3
-    allocate(momentum(nx, ny, nz))
+    allocate(m_h(nx, ny, nz))
     if (trim(momentum_dist) == "gaussian") then 
       do k=1, nz
         do j=1, ny
@@ -137,7 +137,7 @@ contains
     use states
     integer :: i, j, k
 #if dim == 1
-    allocate(entropy(nx))
+    allocate(sigma_h(nx))
     if (trim(entropy_dist) == "gaussian") then 
       do i=1, nx
         sigma_h(i) = normal(entropy_mean, entropy_var)
@@ -145,7 +145,7 @@ contains
     end if
 
 #elif dim == 2 
-    allocate(entropy(nx, ny)
+    allocate(sigma_h(nx, ny)
     if (trim(entropy_dist) == "gaussian") then 
       do j=1, ny
         do i=1, nx
@@ -156,7 +156,7 @@ contains
     end if
 
 #elif dim == 3
-    allocate(entropy(nx, ny, nz))
+    allocate(sigma_h(nx, ny, nz))
     if (trim(entropy_dist) == "gaussian") then 
       do k=1, nz
         do j=1, ny
