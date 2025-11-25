@@ -3,7 +3,7 @@ module quad
   implicit none
 contains
 
-! this is only 1d and using 3-point Guass-Legendre
+! this is only 1d and using 3-point Guass-Legendre =========================================
   subroutine quadrature_points(x_L, X_R, x_q, w_q)
     integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
     real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
