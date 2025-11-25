@@ -4,7 +4,7 @@ module evol
   use quad
   use basis
   use mass_matrix
-  use declare
+  use declare_1
   use declare_2
   implicit none
   
