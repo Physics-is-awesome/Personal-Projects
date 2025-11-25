@@ -5,6 +5,7 @@ module driver_init
 
   contains
   subroutine init()
+    calculate_variables()
     call read_file()
     call init_temp()
     call init_momentum()
