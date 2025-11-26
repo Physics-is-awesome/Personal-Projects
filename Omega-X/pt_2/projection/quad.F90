@@ -5,7 +5,7 @@ module quad
 contains
 
 ! this is only 1d and using 3-point Guass-Legendre =========================================
-  subroutine quadrature_points()
+  subroutine quadrature_points(nx, w_q, xi_q)
     integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
     real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
     real(8), allocatable :: x_q(:), w_q(:)     ! Mapped physical points and weights
