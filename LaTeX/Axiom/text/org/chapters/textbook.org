@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       3ce2ae77-fc92-42b2-b37a-024c3c84bfbf
+:END:
 #+TITLE: textbook
 #+FILETAGS: chapter
 

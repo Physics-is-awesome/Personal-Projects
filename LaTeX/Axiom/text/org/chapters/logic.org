@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       ed725c6b-8bc5-4ac7-ade0-f2ada2ffb7ea
+:END:
 #+TITLE: logic
 #+FILETAGS: chapter
 

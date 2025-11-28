@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       ca93892c-5296-4b4b-ac41-c32a16baa7ec
+:END:
 #+TITLE: video
 #+FILETAGS: chapter
 

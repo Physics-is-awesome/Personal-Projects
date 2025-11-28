@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       b8f466c9-4458-4702-bfcd-0585265c88ec
+:END:
 #+TITLE: part_1_intro
 #+FILETAGS: chapter
 

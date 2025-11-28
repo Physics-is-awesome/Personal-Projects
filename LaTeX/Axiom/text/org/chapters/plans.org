@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       12f55e43-bc9c-4292-96fd-5d7d889707d2
+:END:
 #+TITLE: plans
 #+FILETAGS: chapter
 

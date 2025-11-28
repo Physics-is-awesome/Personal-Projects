@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       f7f5d837-4d29-431d-88c9-be9660a30ada
+:END:
 #+TITLE: personal_analysis
 #+FILETAGS: chapter
 

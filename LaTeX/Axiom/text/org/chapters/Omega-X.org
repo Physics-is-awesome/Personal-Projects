@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       bd7dec22-5892-432c-a1a6-b8427b3dcb60
+:END:
 #+TITLE: Omega-X
 #+FILETAGS: chapter
 

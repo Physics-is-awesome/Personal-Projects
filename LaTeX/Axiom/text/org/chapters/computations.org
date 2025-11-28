@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       baa7a281-8619-4219-a0ac-5e2805ed53df
+:END:
 #+TITLE: computations
 #+FILETAGS: chapter
 
