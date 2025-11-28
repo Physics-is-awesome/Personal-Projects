@@ -1,0 +1,20 @@
+:PROPERTIES:
+:ID:       383a7106-3b7e-44f3-96d3-8d94dab9277e
+:END:
+#+title: 2025-11-27
+#+filetags: daily Emacs
+
+* Links to Book Chapters
+-
+*
+
+
+This is my first journal write using EMACS, for that has been my project at the moment. Creating a doom Emacs with Org-mode enhancements, AUCTeX/pdf tools. Org-roam(graph+server), Org-bable for multiple languages(FORTRAN, python, Julia, Jupyter, and shell), LSP for coding, Magit(for git), projectile/treemacs(for using projects), a daily journal that auto inserts into my LaTeX book, and create Org nodes and graphs for chapters and journals.
+
+For the most part I have this set up. I need to edit AUCTeX so that it uses latexmc rather than latex, so that it will run multiple times for the book-like structure. I think I have more dependencies I need for the languages. I still have more to learn to get comfortable with this program. Also, I am not sure that the program auto inserts my journals.
+
+#+BEGIN_SRC python
+
+print("2+2 =", str(2+2))
+
+#+END_SRC
