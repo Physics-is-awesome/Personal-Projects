@@ -1,0 +1,11 @@
+#+TITLE: ethics
+#+FILETAGS: chapter
+
+* Overview
+- Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/text/part_1/ethics.tex][ethics.tex]]
+* Notes
+- Add your notes here
+
+* Key Concepts
+- List concepts here
+

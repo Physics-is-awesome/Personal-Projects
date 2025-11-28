@@ -1,0 +1,11 @@
+#+TITLE: Omega-X
+#+FILETAGS: chapter
+
+* Overview
+- Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/text/part_3/Omega-X.tex][Omega-X.tex]]
+* Notes
+- Add your notes here
+
+* Key Concepts
+- List concepts here
+

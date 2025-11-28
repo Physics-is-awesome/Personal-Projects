@@ -1,0 +1,11 @@
+#+TITLE: coding
+#+FILETAGS: chapter
+
+* Overview
+- Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/text/part_2/coding.tex][coding.tex]]
+* Notes
+- Add your notes here
+
+* Key Concepts
+- List concepts here
+

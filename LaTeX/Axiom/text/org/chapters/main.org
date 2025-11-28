@@ -1,0 +1,12 @@
+#+TITLE: main
+#+FILETAGS: chapter
+
+* Overview
+- Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/main/main.tex][main.tex]]
+* Notes
+SCHEDULED: <2025-11-27 Thu>
+- Add your notes here
+
+* Key Concepts
+- List concepts here
+

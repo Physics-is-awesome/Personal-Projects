@@ -1,0 +1,11 @@
+#+TITLE: personal
+#+FILETAGS: chapter
+
+* Overview
+- Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/text/part_1/personal.tex][personal.tex]]
+* Notes
+- Add your notes here
+
+* Key Concepts
+- List concepts here
+
