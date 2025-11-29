@@ -2,7 +2,7 @@
 :ID:       383a7106-3b7e-44f3-96d3-8d94dab9277e
 :END:
 #+title: 2025-11-27
-#+filetags: daily Emacs
+#+filetags: daily :Emacs
 
 * Links to Book Chapters
 -
