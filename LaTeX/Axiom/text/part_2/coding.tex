@@ -1,3 +1,12 @@
+\newif\ifstandalone
+\standalonetrue % comment this out when included in main.tex
+
+\ifstandalone
+\documentclass[12pt]{book}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\fi
 \chapter{Coding}
 \section{*Linux Terminal}
 
@@ -6,3 +15,7 @@
 \section{*FORTRAN}
 
 \section{*Python}
+
+\section{*Emacs}
+
+\section{*LaTeX}
