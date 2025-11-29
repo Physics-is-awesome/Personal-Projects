@@ -2,7 +2,7 @@
 :ID:       414c90ae-ac1a-4a31-b43b-e573cda408a1
 :END:
 #+TITLE: Epistemology
-#+FILETAGS: chapter
+#+FILETAGS: chapter :part1 :Epistemology
 
 * Overview
 - Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/text/part_1/Epistemology.tex][Epistemology.tex]]
