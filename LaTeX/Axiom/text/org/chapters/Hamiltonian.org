@@ -2,7 +2,7 @@
 :ID:       2de5a0b8-4c63-49e2-8619-eb2f9b0e03c6
 :END:
 #+TITLE: Hamiltonian
-#+FILETAGS: chapter
+#+FILETAGS: chapter :chapter3 :Hamiltonian
 
 * Overview
 - Link to LaTeX file: [[file:~/Personal-Projects/LaTeX/Axiom/text/part_3/Hamiltonian.tex][Hamiltonian.tex]]
