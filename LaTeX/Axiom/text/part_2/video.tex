@@ -1,3 +1,13 @@
+\newif\ifstandalone
+\standalonetrue % comment this out when included in main.tex
+
+\ifstandalone
+\documentclass[12pt]{book}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\fi
+
 \chapter{Video classes}
 \section{Differential Geometry - Robert Davie}
 \subsection{1-forms}
