@@ -2,7 +2,7 @@
 :ID:       ac7b4245-42ca-4ebd-973d-b81932c478d4
 :END:
 #+title: 2025-11-29
-#+filetags: daily:Emacs:Axiom
+#+filetags :daily:Emacs:Axiom
 
 * Axiom
 As is very obvious, I am making a transfer from now on. I will have this section for day-to-day journaling and notes, while the previous sections for more concise and developed thought. I won't change the already made stuff. This new
