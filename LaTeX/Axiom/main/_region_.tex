@@ -1,0 +1,167 @@
+\message{ !name(main.tex)}\documentclass[12pt]{book}
+\usepackage[width=4.375in, height=7.0in, top=1.0in, papersize={5.5in,8.5in}]{geometry}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath}
+\usepackage{epigraph}
+\usepackage{amssymb}
+\usepackage{setspace}
+\usepackage{tipa}
+\usepackage{tgbonum}
+\usepackage{dirtree}
+\usepackage[hidelinks]{hyperref}
+\usepackage{textcomp}
+\usepackage{amsthm}
+% axiom through Axiomthm
+\newtheorem{axiomthm}{Axiom}[chapter]
+% Definition through "definition"
+\newtheorem{definition}{Definition}[chapter]
+% theorem through theorem
+\newtheorem{theorem}{Theorem}[chapter]
+\usepackage{array}
+\usepackage{xy}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}  % for syntax highlighting colors
+\usepackage{tcolorbox} % A more modern package for frame and background
+\usepackage{graphicx}
+
+
+
+% Define the color palette based on the Vim "desert" scheme
+\definecolor{desertbackground}{HTML}{333333}
+\definecolor{desertcomment}{HTML}{98FB98}
+\definecolor{desertkeyword}{HTML}{87CEEB}
+\definecolor{desertstring}{HTML}{F0E68C}
+\definecolor{deserttext}{HTML}{FFFFFF}
+% Set global style options for all listings
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakautoindent=true,
+    captionpos=t,
+    frame=single,
+}
+
+% Define a specific style for FORTRAN
+\lstdefinestyle{FORTRAN}{
+    language=[95]Fortran,        % Use Fortran 95 syntax
+    backgroundcolor=\color{desertbackground},
+    basicstyle=\color{deserttext}\ttfamily\small,
+    keywordstyle=\color{desertkeyword}\bfseries,
+    commentstyle=\color{desertcomment}\itshape,
+    stringstyle=\color{desertstring},
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    captionpos=t,
+    frame=single,
+    showstringspaces=false,
+    breaklines=true,
+}
+
+\usepackage{titlesec}  % for custom section levels
+
+% Define new level
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+% Format heading in text
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries} % font style
+  {\thesubsubsubsection}{1em}{}     % numbering
+\titlespacing*{\subsubsubsection}{0pt}{1ex plus .1ex minus .2ex}{0.5ex} % spacing
+
+% Define ToC level & indentation
+\makeatletter
+\def\toclevel@subsubsubsection{4} % level below subsubsection
+\def\l@subsubsubsection{\@dottedtocline{4}{8em}{4em}} % indentation in ToC
+\makeatother
+
+
+
+% Increase numbering and toc depth
+\setcounter{secnumdepth}{4}  % numbers subsubsubsection
+\setcounter{tocdepth}{4}     % shows subsubsubsection in ToC
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{}
+\fancyhead[LE,RO]{\bfseries\thepage}
+\fancyhead[LO]{\bfseries\rightmark}
+\fancyhead[RE]{\bfseries\leftmark}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\addtolength{\headheight}{0.5pt}
+\setlength{\footskip}{0in}
+\renewcommand{\footruleskip}{0pt}
+\fancypagestyle{plain}{%
+\fancyhead{}
+
+
+
+\renewcommand{\headrulewidth}{0pt}
+}
+%
+%\parindent 0in
+\parskip 0.05in
+%
+\begin{document}
+
+\message{ !name(main.tex) !offset(-3) }
+
+\frontmatter
+%
+\chapter*{\Huge \center Axiom}
+\thispagestyle{empty}
+%{\hspace{0.25in} \includegraphics{./ru_sun.jpg} }
+\section*{\huge \center AJ Cason}
+\setcounter{secnumdepth}{8}
+\setcounter{tocdepth}{8}
+
+
+%
+%
+\tableofcontents
+%
+\mainmatter
+\input{Intro}
+% part 1
+\input{../text/part_1/part_1_intro}
+\input{../text/part_1/logic}
+\input{../text/part_1/mathematics}
+\input{../text/part_1/metaphysics}
+\input{../text/part_1/Epistemology}
+\input{../text/part_1/science}
+\input{../text/part_1/phil_phys}
+\input{../text/part_1/physics}
+\input{../text/part_1/math}
+\input{../text/part_1/computations}
+\input{../text/part_1/math}
+\input{../text/part_1/theology}
+\input{../text/part_1/ethics}
+\input{../text/part_1/social}
+\input{../text/part_1/personal}
+
+% part 2
+\input{../text/part_2/intro}
+\input{../text/part_2/textbook}
+\input{../text/part_2/video}
+\input{../text/part_2/coding}
+
+% Part 3
+\input{../text/part_3/intro}
+\input{../text/part_3/prev_work}
+\input{../text/part_3/Hamiltonian}
+\input{../text/part_3/Omega-X}
+\input{../text/part_3/Axiom}
+
+% part 4
+\input{../text/part_4/intro}
+
+% part 5
+\input{../text/part_5/intro}
+\input{../text/part_5/plans}
+\input{../text/part_5/personal_analysis}
+\end{document}
+
+\message{ !name(main.tex) !offset(-167) }

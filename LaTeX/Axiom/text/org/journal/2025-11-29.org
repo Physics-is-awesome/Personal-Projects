@@ -1,0 +1,18 @@
+:PROPERTIES:
+:ID:       ac7b4245-42ca-4ebd-973d-b81932c478d4
+:END:
+#+title: 2025-11-29
+#+filetags: daily :Emacs :Axiom
+
+* Axiom
+As is very obvious, I am making a transfer from now on. I will have this section for day-to-day journaling and notes, while the previous sections for more concise and developed thought. I won't change the already made stuff. This new
+This takes me to Emacs, I have figured out how to incorporate Org files into my LaTeX book.
+
+I do need to work on attaching it to the table of context. I believe I should have this completed by the end of the day.
+
+* Emacs
+I am learning much about how to use Emacs, as I have mentioned above I have been working to better understand and use Emacs. I have created two new function's. One to make IDs for Org files written outside of Emacs and also to turn Org files into LaTeX to use.
+
+* Media
+** Zettelkasten
+I was originally having this section be a Zettelkasten-like notes taking. Though after more consideration, I have reconsidered. While a similar linking will be useful, I am unlikely going to have the same extreme modularity that is accustomed to the system. Thus, I am unlikely to use it fully, but some use is likely.
