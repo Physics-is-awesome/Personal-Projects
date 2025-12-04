@@ -3,19 +3,19 @@ module read_config
   use c_interface
   implicit none
   integer :: nx, ny, nz, dim_run, p
-  real(8) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma
-  
+ 
   character(len=20), target :: fstring
 contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
   ! -------------------------------------------------------------------------------------------------
-  subroutine read_file(mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma, mass_dist, temp_dist, momentum_dist, entropy_dist, mass, entropy, momentum)
+  subroutine read_file(mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma, mass_dist, temp_dist, momentum_dist, entropy_dist, mass, entropy, momentum, nx, ny, nz, dim_run, p)
 
     integer, parameter :: max_entries = 100
     character(len=32) :: keys(max_entries)
     character(len=128) :: values(max_entries)
     integer :: count, ios, pos
+    integer, intent(out) :: nx, ny, nz, dim_run, p
     logical, intent(out) :: mass, entropy, momentum
     character(len=256), intent(out) :: mass_dist, temp_dist, momentum_dist, entropy_dist
     real(8), intent(out) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma
