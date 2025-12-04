@@ -16,10 +16,11 @@ contains
     real(8), intent(out) :: p(:,:,:), eta_h(:,:,:), deta_h_dx(:,:,:)
   
     ! Local variables
-
+    real(8) :: x(:,:,:)
     integer :: i, j, k
-
-
+    
+    ! x grid
+    x(nx,ny,nz)
 
     ! Specific entropy
     do k = 1, nz
@@ -43,7 +44,7 @@ contains
     call midpoint_derivative(U, sigma_h, T_h, ds=1.0d-3)
 
     ! Spatial derivative of temperature
-    dT_h_dx = space_discr(T_h, dx)
+    call midpoint_derivative(T_h, x, dT_h_dx, dx)
 
     ! Velocity
     do k = 1, nz
@@ -55,7 +56,7 @@ contains
     end do
 
     ! Spatial derivative of velocity
-    du_h_dx = space_discr(u_h, dx)
+    call midpoint_derivative(u_h, x, du_h_dx, dx)
 
     ! Ratio T/s
     do k = 1, nz
@@ -86,44 +87,13 @@ contains
     end do
 
     ! Spatial derivative of eta
-    deta_h_dx = space_discr(eta_h, dx)
+    call midpoint_derivative(eta_h, x, deta_h_dx, dx)
 
 
   
     ! space derivative of phi
 
   end subroutine calculate_variables
-  !=============================
-  ! implicit mid-point in time
-  !=============================
-  !function time_discr(z_n, dt, dn_dt) result(z_np1)
-   ! real(8), intent(in) :: z_n, dt
-    !interface
-     ! function f(z) result(val)
-      !  real(8), intent(in) :: z
-       ! real(8) :: val
-     ! end function f
-   ! end interface
-  !  real(8) :: z_np1, z_half, res, tol
-   ! integer :: iter, max_iter
-
-    ! Initial guess: explicit Euler
-   ! z_np1 = z_n + dt * f(z_n)
-
-    !tol = 1.0d-12
-    !max_iter = 20
-
-    ! Newton iteration to solve implicit midpoint equation:
-    ! z_{n+1} = z_n + dt * f( (z_n + z_{n+1})/2 )
-    !do iter = 1, max_iter
-     !  z_half = 0.5d0 * (z_n + z_np1)
-      ! res    = z_n + dt * f(z_half) - z_np1
-      ! if (abs(res) < tol) exit
-       ! Simple fixed-point correction
-     !  z_np1 = z_np1 + res
-   ! end do
-
- ! end function time_discr
 
   !======================
   ! Spacial implicit mid-point
@@ -156,28 +126,44 @@ contains
   !=========================================================
   subroutine midpoint_derivative(y, x, dy_dx, ds)
     implicit none
-    real(8), intent(in)  :: y(:), x(:)
-    real(8), intent(out) :: dy_dx(size(y))
+    ! Inputs
+    real(8), intent(in)  :: y(:,:,:), x(:,:,:)
     real(8), intent(in)  :: ds
-    integer :: i
+    ! Outputs
+    real(8), intent(out) :: dy_dx(:,:,:)
+  
+    ! Locals
+    integer :: i, j, k, nx, ny, nz
     real(8) :: yp, ym, xp, xm
-
-    do i = 1, size(y)
-       ! Perturb independent variable symmetrically
-       xp = x(i) + ds/2.0d0
-       xm = x(i) - ds/2.0d0
-
-       ! Approximate dependent variable at perturbed points
-       ! Here we assume linear interpolation between neighbors
-       if (i > 1 .and. i < size(y)) then
-          yp = y(i+1)   ! forward neighbor
-          ym = y(i-1)   ! backward neighbor
-          dy_dx(i) = (yp - ym) / (xp - xm)
-       else
-          dy_dx(i) = 0.0d0   ! boundary handling
-       end if
+  
+    nx = size(y,1)
+    ny = size(y,2)
+    nz = size(y,3)
+  
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          xp = x(i,j,k) + ds/2.0d0
+          xm = x(i,j,k) - ds/2.0d0
+  
+          if (i > 1 .and. i < nx) then
+            yp = y(i+1,j,k)
+            ym = y(i-1,j,k)
+            dy_dx(i,j,k) = (yp - ym) / (xp - xm)
+          else
+            ! One-sided difference at boundaries
+            if (i == 1) then
+              dy_dx(i,j,k) = (y(2,j,k) - y(1,j,k)) / (x(2,j,k) - x(1,j,k))
+            else if (i == nx) then
+              dy_dx(i,j,k) = (y(nx,j,k) - y(nx-1,j,k)) / (x(nx,j,k) - x(nx-1,j,k))
+            end if
+          end if
+        end do
+      end do
     end do
   end subroutine midpoint_derivative
+
+
 
 
 end module calc_vals
