@@ -1,0 +1,65 @@
+:PROPERTIES:
+:ID:       79699593-774a-43c1-a422-41611a537f52
+:END:
+#+title: 2025-12-03
+#+filetags: :daily:Emacs:Axiom:Plans:Projects:
+
+* Links to Book Chapters
+- [[id:87a0fae6-5fb5-4081-a3dd-c9ea0f089351][coding]] [[id:e7fad687-1f57-48e5-9f00-1f15ac725755][Axiom]] roam:Omega-X roam:plans roam:personal_analysis
+
+
+* Emacs
+** Emacs updates
+For this journal, remember that the command is SPC n r d t. Beyond that I have fully completed the Org \(\rightarrow\) LaTeX file. Though, as useful as these programs can be it does raise the question of if I should use it. I have begun to question its usefulness.
+
+** Emacs vs Vim
+I have found that as I have created these things, I have realized I can substitute a lot of the programs by simple scripting and vim. While Vim's speed and ease of use has its use. I do think the scripting of Emacs it also quite fast, ease of moving between files, and even the spell check. Beyond that the integration of things coding languages is potentially very useful once I gain the hang of it.
+** Org vs Tex
+One question I have been looking into is whether I should write my notes directly in LaTeX or continue to write in an Org file and export to LaTeX after the fact.
+*Org*
+#+ATTR_LATEX: :align 1|1 :enviorment longtable
+| Pros                              | Cons                                        |
+| Org babel to run commands         | Easy errors                                 |
+| Org-capture to quickly make notes | whitespace inconsistency                    |
+| Graph view                        | Hard to write math with                     |
+| Easy connections                  | Difficulty with more complex LaTeX commands |
+| Easy to use syntax                | Degregation of performace over time         |
+| Easy to use Hierarchy             |                                             |
+*Tex*
+#+ATTR_LATEX: :align 1|1 :enviorment longtable
+| Pros                                         | Cons                     |
+| Absolute control                             | more verbose             |
+| none of the easy errors                      | Have to script new stuff |
+| Can be scripted to simulate Org-capture-like | No babel                 |
+| More freedom of use in LaTeX commands        |                          |
+
+** Future
+Currently my plan is to have continue to use Org for journaling, though I may revisit this idea later on.
+
+With this I will continue to learn how to use Org/LaTeX integration and use. Also some of syntax of Org. I also need to learn more about running code and using it in Emacs. I currently only use it for notes.
+- note-book enviorment(like jupiter)
+- build-up the graph view
+- Agenda
+- linking
+- task automation
+* Omega-X
+** Arguments
+Currently, I have the poor practice of setting variables in a module and ignoring using arguments or such things. I plan to rectify this. This is for several reasons; to protect from errors and to allow for MPI(my next step).
+** Updates
+I need to continue on a couple of sets. Create a IO files, finish the evolution driver, and have ways to analyze the data.
+
+* Future Ideas
+I have a couple ideas for future projects:
+** Categorical Metriplectic
+Using category theory to set up a fully and complete formal theory of the Metriplectic system. This is highly ambitious considering my limited knowledge in category theory, but it is a field that is thoroughly explored and thus I believe it is within my reach to accomplish.
+** Cason Brackets Dynamics(name pending)
+I believe I can integrate metriplectic systems to Nambu mechanics. As far as I know this is a completely novel goal and thus would be my own.
+Let's see with the names: Cason Formalism, Cason Mechanics, Cason dynamics, Cason framework, Cason Analysis, Casonian Dynamics, Casonian Mechanics, Cason's Method, Cason's Dynamics, Casonic Dynamics, The Cason Principle, Cason Bracket Dynamics, Cason system, Cason Framework for hybrid Dynamics. I know this seems overtly narcissistic, trying hard to come up with a name based upon my own; I don't really care.
+** Metriplectic PINN
+I have read several papers using Metriplectic dynamics to create PINN(Physics-informed-neural-networks).
+* Media
+** Star Trek
+I forgot how much I like Star Trek next Gen, especially Picard.
+* Self-analysis
+** Stress \& TV
+For some reason, watching TV where the show lets you in on how stupid an idea is and yet the character does it stresses me out. Especially with lying and illicit activity. When they lie and it spirals out, then they lie more. I don't like it. Messes with me.
