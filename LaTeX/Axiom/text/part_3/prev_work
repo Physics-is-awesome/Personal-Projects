@@ -1,12 +1,4 @@
-\newif\ifstandalone
-\standalonetrue % comment this out when included in main.tex
 
-\ifstandalone
-\documentclass[12pt]{book}
-\usepackage{graphicx}
-\usepackage{amsmath,amssymb}
-\begin{document}
-\fi
 
 \chapter{Previous Research}
 \par These are brief/lazy copies/explanations of things I have written previously made projects. Copied from my last book Logos
