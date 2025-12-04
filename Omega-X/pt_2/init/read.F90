@@ -2,7 +2,7 @@ module read_config
   use iso_c_binding
   use c_interface
   implicit none
-  integer :: nx, ny, nz, dim_run, p
+
  
   character(len=20), target :: fstring
 contains
