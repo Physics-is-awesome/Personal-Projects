@@ -30,7 +30,6 @@ contains
     ! Mapped physical points and weights
     real(8) :: x_L, x_R            ! Element bounds 
     integer :: q
-    allocate(x_q(Nq), w_q(Nq))
     x_L = 0.0d0
     x_R = dble(nx)   ! convert integer nx to real
 
