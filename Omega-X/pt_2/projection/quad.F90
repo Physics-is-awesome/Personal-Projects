@@ -22,12 +22,12 @@ contains
   !   - The Jacobian J maps reference coordinates to physical coordinates.
   !   - The mapped physical points x_q are computed internally.
   !=========================================================
-  subroutine quadrature_points(nx, w_q, xi_q)
+  subroutine quadrature_points(nx, w_q, xi_q, x_q)
     integer, intent(in) :: nx
-    real(8), intent(out) :: w_q(:), xi_q(:)
+    real(8), intent(out) :: w_q(:), xi_q(:), x_q(:)
     integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
-    real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
-    real(8), allocatable :: x_q(:), w_q(:)     ! Mapped physical points and weights
+    real(8) :: J                  ! Reference points and weights and Jacobian
+    ! Mapped physical points and weights
     real(8) :: x_L, x_R            ! Element bounds 
     integer :: q
     allocate(x_q(Nq), w_q(Nq))
