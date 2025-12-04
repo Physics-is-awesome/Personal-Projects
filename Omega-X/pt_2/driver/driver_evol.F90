@@ -1,5 +1,4 @@
 module evol
-  use read_config
   use m_h_module
   use quad
   use basis
