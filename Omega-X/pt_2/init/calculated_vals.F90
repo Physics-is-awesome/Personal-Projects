@@ -4,51 +4,85 @@ module calc_vals
   ! use declare_2
   implicit none
 contains
-  subroutine calculate_variables()
-    integer :: i
+  subroutine calculate_variables(nx, gamma, dx, rho_h, m_h, sigma_h, e, &
+                                 U, T_h, dT_h_dx, u_h, du_h_dx, s_h, T_S, &
+                                 p, eta_h, deta_h_dx)
+    integer, intent(in) :: nx, ny, nz
+    real(8), intent(in) :: gamma, dx
+    real(8), intent(in) :: rho_h(nx,ny,nz), m_h(nx,ny,nz), sigma_h(nx,ny,nz), e(nx,ny,nz)
+    real(8), intent(out) :: U(nx,ny,nz), T_h(nx,ny,nz), dT_h_dx(nx,ny,nz)
+    real(8), intent(out) :: u_h(nx,ny,nz), du_h_dx(nx,ny,nz), s_h(nx,ny,nz), T_S(nx,ny,nz)
+    real(8), intent(out) :: p(nx,ny,nz), eta_h(nx,ny,nz), deta_h_dx(nx,ny,nz)
 
+    integer :: i, j, k
 
-    ! calculate internal energy(ideal, change later) =================================\
-    do i = 1, nx
-      U(i) = rho_h(i) ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h(i))
+    ! Specific entropy
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          s_h(i,j,k) = sigma_h(i,j,k) / rho_h(i,j,k)
+        end do
+      end do
     end do
-    ! Tempature(derivative of internal energy by entropy)
+
+    ! Internal energy (ideal EOS placeholder)
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          U(i,j,k) = rho_h(i,j,k) ** (gamma - 1) * exp((gamma - 1) * s_h(i,j,k))
+        end do
+      end do
+    end do
+
+    ! Temperature via midpoint derivative (vectorized helper)
     call midpoint_derivative(U, sigma_h, T_h, ds=1.0d-3)
-    ! Spacial derivative of tempature
+
+    ! Spatial derivative of temperature
     dT_h_dx = space_discr(T_h, dx)
 
-
-    ! Calculate velocity
-    do i = 1, nx
-      u_h(i) = m_h(i)/rho_h(i)
+    ! Velocity
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          u_h(i,j,k) = m_h(i,j,k) / rho_h(i,j,k)
+        end do
+      end do
     end do
 
-    ! space derivative of velocity
+    ! Spatial derivative of velocity
     du_h_dx = space_discr(u_h, dx)
 
-    ! calculate spesific entropy
-    do i = 1, nx
-      s_h(i) = sigma_h(i)/rho_h(i)
+    ! Ratio T/s
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          T_S(i,j,k) = T_h(i,j,k) / s_h(i,j,k)
+        end do
+      end do
     end do
 
-
-    ! calculate  ratio of tempeture to spesific entropy
-    do i = 1, nx
-      T_S(i) = T_h(i)/s_h(i)
+    ! Pressure (ideal EOS placeholder)
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          p(i,j,k) = (gamma - 1) * rho_h(i,j,k) ** gamma * exp((gamma - 1) * s_h(i,j,k))
+        end do
+      end do
     end do
 
-    ! calculating pressure (ideal, change later)======================================
-    do i = 1, nx
-      p(i) = (gamma-1) * rho_h(i) ** (gamma) * 2.718281828459045 ** ((gamma-1)*s_h(i)) 
+    ! Eta
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          eta_h(i,j,k) = (m_h(i,j,k)**2)/(2.0d0 * rho_h(i,j,k)**2) + e(i,j,k) + &
+                         p(i,j,k)/rho_h(i,j,k) - s_h(i,j,k) * T_h(i,j,k)
+        end do
+      end do
     end do
 
-    ! calculating eta
-    do i = 1, nx
-      eta_h(i) = (m_h(i)**2)/(2*rho_h(i)**2) + e(i) + p/rho_h(i) - s_h(i) * T_h(i)
-    end do
-
-    ! space derivative of eta
+    ! Spatial derivative of eta
     deta_h_dx = space_discr(eta_h, dx)
+
 
   
     ! space derivative of phi
