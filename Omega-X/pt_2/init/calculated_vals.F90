@@ -6,6 +6,14 @@ module calc_vals
 contains
   subroutine calculate_variables()
     integer :: i
+
+
+    ! calculate internal energy(ideal, change later) =================================\
+    do i = 1, nx
+      U(i) = rho_h(i) ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h(i))
+    end do
+    ! Tempature(derivative of internal energy by entropy)
+    call midpoint_derivative(U, sigma_h, T_h, ds=1.0d-3)
     ! Spacial derivative of tempature
     dT_h_dx = space_discr(T_h, dx)
 
@@ -20,13 +28,9 @@ contains
 
     ! calculate spesific entropy
     do i = 1, nx
-      s_h = sigma_h/rho_h
+      s_h(i) = sigma_h(i)/rho_h(i)
     end do
 
-    ! calculate spesific internal energy(ideal, change later) =================================
-    do i = 1, nx
-      U(i) = rho_h(i) ** (gamma - 1) * 2.718281828459045 ** ((gamma-1)*s_h(i))
-    end do
 
     ! calculate  ratio of tempeture to spesific entropy
     do i = 1, nx
@@ -35,7 +39,7 @@ contains
 
     ! calculating pressure (ideal, change later)======================================
     do i = 1, nx
-      p = (gamma-1) * rho_h(i) ** (gamma) * 2.718281828459045 ** ((gamma-1)*s_h(i)) 
+      p(i) = (gamma-1) * rho_h(i) ** (gamma) * 2.718281828459045 ** ((gamma-1)*s_h(i)) 
     end do
 
     ! calculating eta
@@ -103,6 +107,38 @@ contains
     dudx(n)   = (u(n) - u(n-1)) / dx
 
   end function space_discr
+
+  !=========================================================
+  ! General midpoint derivative helper
+  ! y: dependent variable array (e.g. U)
+  ! x: independent variable array (e.g. s or T_h)
+  ! dy_dx: output array of derivatives dy/dx
+  ! ds: step size for finite difference
+  !=========================================================
+  subroutine midpoint_derivative(y, x, dy_dx, ds)
+    implicit none
+    real(8), intent(in)  :: y(:), x(:)
+    real(8), intent(out) :: dy_dx(size(y))
+    real(8), intent(in)  :: ds
+    integer :: i
+    real(8) :: yp, ym, xp, xm
+
+    do i = 1, size(y)
+       ! Perturb independent variable symmetrically
+       xp = x(i) + ds/2.0d0
+       xm = x(i) - ds/2.0d0
+
+       ! Approximate dependent variable at perturbed points
+       ! Here we assume linear interpolation between neighbors
+       if (i > 1 .and. i < size(y)) then
+          yp = y(i+1)   ! forward neighbor
+          ym = y(i-1)   ! backward neighbor
+          dy_dx(i) = (yp - ym) / (xp - xm)
+       else
+          dy_dx(i) = 0.0d0   ! boundary handling
+       end if
+    end do
+  end subroutine midpoint_derivative
 
 
 end module calc_vals
