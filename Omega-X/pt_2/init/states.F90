@@ -153,8 +153,9 @@ contains
     end if
   end subroutine init_mass
 
-
+!===============================================================
 ! function for normal distribution(without special start)
+!===============================================================
   function normal(mu, sigma) result(val)
     real(8), intent(in) :: mu, sigma
     real(8) :: val
