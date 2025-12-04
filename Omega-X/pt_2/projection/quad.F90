@@ -1,10 +1,27 @@
 module quad
-  use declare_1
-  use states
+
   implicit none
 contains
 
-! this is only 1d and using 3-point Guass-Legendre =========================================
+  !=========================================================
+  ! Subroutine: quadrature_points
+  !
+  ! Purpose:
+  !   Computes Gauss–Legendre quadrature points and weights
+  !   for a 1D element using 3-point quadrature. The routine
+  !   maps reference points from [-1,1] to the physical
+  !   element [x_L, x_R].
+  !
+  ! Arguments:
+  !   nx    (in)  : integer, number of elements or domain size
+  !   w_q   (out) : real(8) array of quadrature weights (size Nq)
+  !   xi_q  (out) : real(8) array of reference quadrature points (size Nq)
+  !
+  ! Notes:
+  !   - Nq is fixed at 3 (3-point Gauss–Legendre).
+  !   - The Jacobian J maps reference coordinates to physical coordinates.
+  !   - The mapped physical points x_q are computed internally.
+  !=========================================================
   subroutine quadrature_points(nx, w_q, xi_q)
     integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
     real(8) :: xi_q(Nq), J                  ! Reference points and weights and Jacobian
@@ -34,4 +51,4 @@ contains
   end subroutine quadrature_points
 
 end module quad
-! hi
+
