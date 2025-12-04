@@ -16,11 +16,11 @@ contains
     real(8), intent(out) :: p(:,:,:), eta_h(:,:,:), deta_h_dx(:,:,:)
   
     ! Local variables
-    real(8) :: x(:,:,:)
+    real(8) :: x(nx,ny,nz)
     integer :: i, j, k
     
     ! x grid
-    x(nx,ny,nz)
+
 
     ! Specific entropy
     do k = 1, nz
