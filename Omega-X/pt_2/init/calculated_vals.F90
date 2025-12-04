@@ -1,7 +1,6 @@
 module calc_vals
-  use states
-  use declare_1
-  ! use declare_2
+
+
   implicit none
 contains
   subroutine calculate_variables(nx, gamma, dx, rho_h, m_h, sigma_h, e, &
