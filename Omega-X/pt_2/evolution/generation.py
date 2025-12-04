@@ -285,7 +285,7 @@ def write_fortran_module(obs_name: str, rhs_expr: sp.Expr):
 
     # Write module
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    file_path = os.path.join(OUTPUT_DIR, f"{obs_name}_module.f90")
+    file_path = os.path.join(OUTPUT_DIR, f"{obs_name}_module.F90")
     header = textwrap.dedent(f"""\
         ! Automatically generated module for {obs_name}
         ! Purpose:
