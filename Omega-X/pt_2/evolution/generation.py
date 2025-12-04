@@ -314,7 +314,7 @@ def write_fortran_module(obs_name: str, rhs_expr: sp.Expr):
         f.write("    integer :: i, j, k\n\n")
         f.write(f"    do concurrent (k = 1:size({output_name},3), j = 1:size({output_name},2), i = 1:size({output_name},1))\n")
         f.write(f"      {output_name}(i,j,k) = {indexed_expr}\n")
-        f.write("    end do concurrent\n\n")
+        f.write("    end do \n\n")
         f.write(f"  end subroutine compute_{obs_name}\n")
         f.write("end module\n")
 
