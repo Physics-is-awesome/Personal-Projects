@@ -5,7 +5,7 @@ module calc_vals
 contains
   subroutine calculate_variables(nx, gamma, dx, rho_h, m_h, sigma_h, e, &
                                  U, T_h, dT_h_dx, u_h, du_h_dx, s_h, T_S, &
-                                 p, eta_h, deta_h_dx)
+                                 p, eta_h, deta_h_dx, ny, nz)
     ! Inputs
     real(8), intent(in) :: gamma, dx
     real(8), intent(in) :: rho_h(:,:,:), m_h(:,:,:), sigma_h(:,:,:), e(:,:,:)
