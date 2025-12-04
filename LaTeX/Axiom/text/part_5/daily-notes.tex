@@ -1,32 +1,121 @@
-% Created 2025-11-29 Sat 20:57
-% Intended LaTeX compiler: pdflatex
-\documentclass[11pt]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{graphicx}
-\usepackage{longtable}
-\usepackage{wrapfig}
-\usepackage{rotating}
-\usepackage[normalem]{ulem}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{capt-of}
-\usepackage{hyperref}
-\author{ajsp4}
-\date{\today}
-\title{Daily Notes}
-\hypersetup{
- pdfauthor={ajsp4},
- pdftitle={Daily Notes},
- pdfkeywords={},
- pdfsubject={},
- pdfcreator={Emacs 29.3 (Org mode 9.7.34)}, 
- pdflang={English}}
-\usepackage{biblatex}
+% Auto-generated Daily Notes
 
-\begin{document}
+\section{2025-11-27}
 
-\maketitle
-\tableofcontents
+\section{Emacs}
+\label{sec:org7de38ef}
 
-\end{document}
+This is my first journal write using EMACS, for that has been my project at the moment. Creating a doom Emacs with Org-mode enhancements, AUCTeX/pdf tools. Org-roam(graph+server), Org-bable for multiple languages(FORTRAN, python, Julia, Jupyter, and shell), LSP for coding, Magit(for git), projectile/treemacs(for using projects), a daily journal that auto inserts into my \LaTeX{} book, and create Org nodes and graphs for chapters and journals.
+
+For the most part I have this set up. I need to edit AUCTeX so that it uses latexmc rather than latex, so that it will run multiple times for the book-like structure. I think I have more dependencies I need for the languages. I still have more to learn to get comfortable with this program. Also, I am not sure that the program auto inserts my journals.
+
+\begin{verbatim}
+
+print("2+2 =", str(2+2))
+
+\end{verbatim}
+
+
+\section{2025-11-29}
+
+\section{Axiom}
+\label{sec:orgee4035d}
+As is very obvious, I am making a transfer from now on. I will have this section for day-to-day journaling and notes, while the previous sections for more concise and developed thought. I won't change the already made stuff. This new
+This takes me to Emacs, I have figured out how to incorporate Org files into my \LaTeX{} book.
+
+I do need to work on attaching it to the table of context. I believe I should have this completed by the end of the day.
+\section{Emacs}
+\label{sec:org56b88e8}
+I am learning much about how to use Emacs, as I have mentioned above I have been working to better understand and use Emacs. I have created two new function's. One to make IDs for Org files written outside of Emacs and also to turn Org files into \LaTeX{} to use.
+\section{Media}
+\label{sec:orgf77c96d}
+\subsection{Zettelkasten}
+\label{sec:org3e092d7}
+I was originally having this section be a Zettelkasten-like notes taking. Though after more consideration, I have reconsidered. While a similar linking will be useful, I am unlikely going to have the same extreme modularity that is accustomed to the system. Thus, I am unlikely to use it fully, but some use is likely.
+
+
+\section{2025-12-03}
+
+\section{Links to Book Chapters}
+\label{sec:orgb2ae1f3}
+\begin{itemize}
+\item \href{../Personal-Projects/LaTeX/Axiom/text/org/chapters/coding.org}{coding} \href{../Personal-Projects/LaTeX/Axiom/text/org/chapters/Axiom.org}{Axiom} \url{roam:Omega-X} \url{roam:plans} \url{roam:personal\_analysis}
+\end{itemize}
+\section{Emacs}
+\label{sec:org2ff4327}
+\subsection{Emacs updates}
+\label{sec:org0f45ecb}
+For this journal, remember that the command is SPC n r d t. Beyond that I have fully completed the Org \(\rightarrow\) \LaTeX{} file. Though, as useful as these programs can be it does raise the question of if I should use it. I have begun to question its usefulness.
+\subsection{Emacs vs Vim}
+\label{sec:org2ed83f2}
+I have found that as I have created these things, I have realized I can substitute a lot of the programs by simple scripting and vim. While Vim's speed and ease of use has its use. I do think the scripting of Emacs it also quite fast, ease of moving between files, and even the spell check. Beyond that the integration of things coding languages is potentially very useful once I gain the hang of it.
+\subsection{Org vs Tex}
+\label{sec:org0157d35}
+One question I have been looking into is whether I should write my notes directly in \LaTeX{} or continue to write in an Org file and export to \LaTeX{} after the fact.
+\textbf{Org}
+\begin{center}
+\begin{tabular}{1|1}
+Pros & Cons\\
+Org babel to run commands & Easy errors\\
+Org-capture to quickly make notes & whitespace inconsistency\\
+Graph view & Hard to write math with\\
+Easy connections & Difficulty with more complex \LaTeX{} commands\\
+Easy to use syntax & Degregation of performace over time\\
+Easy to use Hierarchy & \\
+\end{tabular}
+\end{center}
+\textbf{Tex}
+\begin{center}
+\begin{tabular}{1|1}
+Pros & Cons\\
+Absolute control & more verbose\\
+none of the easy errors & Have to script new stuff\\
+Can be scripted to simulate Org-capture-like & No babel\\
+More freedom of use in \LaTeX{} commands & \\
+\end{tabular}
+\end{center}
+\subsection{Future}
+\label{sec:org043937a}
+Currently my plan is to have continue to use Org for journaling, though I may revisit this idea later on.
+
+With this I will continue to learn how to use Org/\LaTeX{} integration and use. Also some of syntax of Org. I also need to learn more about running code and using it in Emacs. I currently only use it for notes.
+\begin{itemize}
+\item note-book enviorment(like jupiter)
+\item build-up the graph view
+\item Agenda
+\item linking
+\item task automation
+\end{itemize}
+\section{Omega-X}
+\label{sec:orgf57bd37}
+\subsection{Arguments}
+\label{sec:org2e95ce9}
+Currently, I have the poor practice of setting variables in a module and ignoring using arguments or such things. I plan to rectify this. This is for several reasons; to protect from errors and to allow for MPI(my next step).
+\subsection{Updates}
+\label{sec:orgdbe319a}
+I need to continue on a couple of sets. Create a IO files, finish the evolution driver, and have ways to analyze the data.
+\section{Future Ideas}
+\label{sec:orgbced3fe}
+I have a couple ideas for future projects:
+\subsection{Categorical Metriplectic}
+\label{sec:org06b2cfa}
+Using category theory to set up a fully and complete formal theory of the Metriplectic system. This is highly ambitious considering my limited knowledge in category theory, but it is a field that is thoroughly explored and thus I believe it is within my reach to accomplish.
+\subsection{Cason Brackets Dynamics(name pending)}
+\label{sec:org7c33a0c}
+I believe I can integrate metriplectic systems to Nambu mechanics. As far as I know this is a completely novel goal and thus would be my own.
+Let's see with the names: Cason Formalism, Cason Mechanics, Cason dynamics, Cason framework, Cason Analysis, Casonian Dynamics, Casonian Mechanics, Cason's Method, Cason's Dynamics, Casonic Dynamics, The Cason Principle, Cason Bracket Dynamics, Cason system, Cason Framework for hybrid Dynamics. I know this seems overtly narcissistic, trying hard to come up with a name based upon my own; I don't really care.
+\subsection{Metriplectic PINN}
+\label{sec:org5e21423}
+I have read several papers using Metriplectic dynamics to create PINN(Physics-informed-neural-networks).
+\section{Media}
+\label{sec:org415b5da}
+\subsection{Star Trek}
+\label{sec:org6b202fe}
+I forgot how much I like Star Trek next Gen, especially Picard.
+\section{Self-analysis}
+\label{sec:org04eabe6}
+\subsection{Stress $\backslash$& TV}
+\label{sec:org0e72c18}
+For some reason, watching TV where the show lets you in on how stupid an idea is and yet the character does it stresses me out. Especially with lying and illicit activity. When they lie and it spirals out, then they lie more. I don't like it. Messes with me.
+
+
