@@ -1,6 +1,5 @@
 module basis
   use quad
-  use declare_1
   implicit none
 
 contains
