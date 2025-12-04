@@ -33,7 +33,7 @@ FORTRAN_INTRINSICS = {
 # Regex helpers
 IDENT_RE = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
 TEMP_RE = re.compile(r"^t[0-9]+$")  # SymPy temporaries pattern
-
+LOOP_INDICES = {"i", "j", "k"}
 # -----------------------------
 # 1) Symbolic model (edit here)
 # -----------------------------
@@ -221,13 +221,27 @@ def build_args_and_decls(symbols, obs_name):
     return args_order, decls, set(array_ins), output_name
 
 def validate_generated_expression(indexed_expr: str, declared_arrays: set, declared_scalars: set, output_name: str):
+    """
+    Validate identifiers in the generated Fortran expression.
+    Allows:
+      - declared arrays (they appear as name(i,j,k) but the base name is checked),
+      - declared scalars,
+      - Fortran intrinsics,
+      - SymPy temporaries (t0, t1, ...),
+      - loop indices i,j,k,
+      - the output name (F_<obs>).
+    Raises RuntimeError listing any undeclared identifiers.
+    """
     idents = extract_identifiers(indexed_expr)
-    # Allowed tokens: declared arrays, declared scalars, output_name, intrinsics, temporaries, numeric tokens (handled by regex)
+
     bad = []
     for ident in idents:
+        # ignore numeric-like tokens (IDENT_RE doesn't match numbers)
         if ident in FORTRAN_INTRINSICS:
             continue
         if TEMP_RE.match(ident):
+            continue
+        if ident in LOOP_INDICES:
             continue
         if ident == output_name:
             continue
@@ -235,8 +249,9 @@ def validate_generated_expression(indexed_expr: str, declared_arrays: set, decla
             continue
         if ident in declared_scalars:
             continue
-        # allow Fortran numeric-like tokens to pass (they won't match IDENT_RE)
+        # If we reach here, ident is unknown
         bad.append(ident)
+
     if bad:
         raise RuntimeError(f"Undeclared identifiers found in generated expression: {bad}")
 
