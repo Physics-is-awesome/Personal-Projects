@@ -14,7 +14,7 @@ module driver_init
     call init_mass(s, nx, ny, nz, mass_mean, mass_var, mass_dist)
     call calculate_variables(nx, gamma, dx, rho_h, m_h, sigma_h, e, &
                                  U, T_h, dT_h_dx, u_h, du_h_dx, s_h, T_S, &
-                                 p, eta_h, deta_h_dx)
+                                 p, eta_h, deta_h_dx, ny, nz)
 
   end subroutine init
 end module driver_init
