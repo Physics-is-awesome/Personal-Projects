@@ -33,7 +33,7 @@ contains
     do concurrent (k = 1:size(F_m_h,3), j = 1:size(F_m_h,2), i = 1:size(F_m_h,1))
       F_m_h(i,j,k) = -dT_h_dx(i,j,k)*phi_m_i(i,j,k)*sigma_h(i,j,k) - deta_h_dx(i,j,k)*phi_m_i(i,j,k)*rho_h(i,j,k) + dphi_m_dx(i,j,k)*m_h(i,j,k)*u_h(i,j,k) - &
       du_h_dx(i,j,k)*m_h(i,j,k)*phi_m_i(i,j,k) - du_h_dx(i,j,k)*phi_m_i(i,j,k)/Re
-    end do concurrent
+    end do 
 
   end subroutine compute_m_h
 end module

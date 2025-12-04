@@ -25,7 +25,7 @@ contains
 
     do concurrent (k = 1:size(F_rho_h,3), j = 1:size(F_rho_h,2), i = 1:size(F_rho_h,1))
       F_rho_h(i,j,k) = dphi_rho_dx(i,j,k)*rho_h(i,j,k)*u_h(i,j,k)
-    end do concurrent
+    end do 
 
   end subroutine compute_rho_h
 end module

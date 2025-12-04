@@ -33,7 +33,7 @@ contains
       F_sigma_h(i,j,k) = (Pr*(gamma - 1)*(dphi_sigma_dx(i,j,k)*sigma_h(i,j,k)*u_h(i,j,k) - du_h_dx(i,j,k)**2*phi_sigma_i(i,j,k)/T_h(i,j,k) &
       ) + dT_h_dx(i,j,k)*dphi_sigma_dx(i,j,k)*gamma/T_h(i,j,k) - dT_h_dx(i,j,k)**2*gamma* &
       phi_sigma_i(i,j,k)/T_h(i,j,k)**2)/(Pr*(gamma - 1))
-    end do concurrent
+    end do 
 
   end subroutine compute_sigma_h
 end module
