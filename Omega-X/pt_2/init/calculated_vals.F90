@@ -6,14 +6,20 @@ contains
   subroutine calculate_variables(nx, gamma, dx, rho_h, m_h, sigma_h, e, &
                                  U, T_h, dT_h_dx, u_h, du_h_dx, s_h, T_S, &
                                  p, eta_h, deta_h_dx)
-    integer, intent(in) :: nx, ny, nz
+    ! Inputs
     real(8), intent(in) :: gamma, dx
-    real(8), intent(in) :: rho_h(nx,ny,nz), m_h(nx,ny,nz), sigma_h(nx,ny,nz), e(nx,ny,nz)
-    real(8), intent(out) :: U(nx,ny,nz), T_h(nx,ny,nz), dT_h_dx(nx,ny,nz)
-    real(8), intent(out) :: u_h(nx,ny,nz), du_h_dx(nx,ny,nz), s_h(nx,ny,nz), T_S(nx,ny,nz)
-    real(8), intent(out) :: p(nx,ny,nz), eta_h(nx,ny,nz), deta_h_dx(nx,ny,nz)
+    real(8), intent(in) :: rho_h(:,:,:), m_h(:,:,:), sigma_h(:,:,:), e(:,:,:)
+    integer, intent(in) :: nx, ny, nz
+    ! Outputs
+    real(8), intent(out) :: U(:,:,:), T_h(:,:,:), dT_h_dx(:,:,:)
+    real(8), intent(out) :: u_h(:,:,:), du_h_dx(:,:,:), s_h(:,:,:), T_S(:,:,:)
+    real(8), intent(out) :: p(:,:,:), eta_h(:,:,:), deta_h_dx(:,:,:)
+  
+    ! Local variables
 
     integer :: i, j, k
+
+
 
     ! Specific entropy
     do k = 1, nz
