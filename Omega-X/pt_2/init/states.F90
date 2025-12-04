@@ -45,9 +45,9 @@ contains
     ny_ = merge(ny, 1, present(ny))
     nz_ = merge(nz, 1, present(nz))
 
-    if (.not. allocated(s%T)) allocate(s%m_h(nx, ny_, nz_))
+    if (.not. allocated(s%m_h)) allocate(s%m_h(nx, ny_, nz_))
 
-    if (trim(temp_dist) == "gaussian") then
+    if (trim(momentum_dist) == "gaussian") then
       do k = 1, nz_
         do j = 1, ny_
           do i = 1, nx
@@ -75,7 +75,7 @@ contains
     ny_ = merge(ny, 1, present(ny))
     nz_ = merge(nz, 1, present(nz))
 
-    if (.not. allocated(s%T)) allocate(s%sigma_h(nx, ny_, nz_))
+    if (.not. allocated(s%sigma_h)) allocate(s%sigma_h(nx, ny_, nz_))
 
     if (trim(entropy_dist) == "gaussian") then
       do k = 1, nz_
@@ -115,8 +115,8 @@ contains
           end do
         end do
       end do
-    else if (trim(rho_h_dist) == "uniform") then
-      s%rho_h = rho_h_mean
+    else if (trim(mass_dist) == "uniform") then
+      s%rho_h = mass_mean
     end if
   end subroutine init_mass
 
