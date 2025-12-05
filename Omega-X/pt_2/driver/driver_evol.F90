@@ -3,8 +3,7 @@ module evol
   use quad
   use basis
   use mass_matrix
-  use declare_1
-  ! use declare_2
+
   implicit none
   
 
@@ -16,10 +15,10 @@ contains
 
 
     ! call quadrature weights and nodes
-    call quadrature_points(nx, w_q, xi_q)
+    call quadrature_points(Omega)
 
     ! call basis functions
-    call basis_functions(xi_q, phi)
+    call basis_functions(Omega)
     ! run evolution in each program, to get week form
 
     call compute_m_h()
@@ -29,7 +28,7 @@ contains
 
 
     ! calculate mass matrix
-    call compute_mass_matrix(w_q, phi, M)
+    call compute_mass_matrix(Omega)
 
 
   ! multiplly evolution and the inverse of the mass matrix
