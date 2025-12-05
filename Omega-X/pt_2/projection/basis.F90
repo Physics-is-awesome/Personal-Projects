@@ -10,18 +10,17 @@ contains
   !   xi_q   : input quadrature points (size nq)
   !   phi    : output basis functions (3 x nq)
   !=========================================================
-  subroutine basis_functions(xi_q, phi)
-    implicit none
-    real(8), intent(in)  :: xi_q(:)        ! quadrature points
-    real(8), intent(out) :: phi(3, size(xi_q)) ! basis functions
-    integer :: q, nq
+  subroutine basis_functions(Omega)
+    type(Omega-X), intent(inout) :: Omega
+    
+    integer :: q
 
-    nq = size(xi_q)
+    
 
-    do q = 1, nq
-      phi(1,q) = 0.5d0 * xi_q(q) * (xi_q(q) - 1.0d0)
-      phi(2,q) = 1.0d0 - xi_q(q)**2
-      phi(3,q) = 0.5d0 * xi_q(q) * (xi_q(q) + 1.0d0)
+    do q = 1, Omega%m%p
+      Omega%proj%phi(1,q) = 0.5d0 * Omega%proj%xi_q(q) * (Omega%proj%xi_q(q) - 1.0d0)
+      Omega%proj%phi(2,q) = 1.0d0 - Omega%proj%xi_q(q)**2
+      Omega%proj%phi(3,q) = 0.5d0 * Omega%proj%xi_q(q) * (Omega%proj%xi_q(q) + 1.0d0)
     end do
   end subroutine basis_functions
 
