@@ -11,6 +11,14 @@ module types
     real(8) :: dx  ! discritization value
   end type
 
+  type :: projection
+    real(8) :: w_q(:)  ! w_q: real(8) array of quadrature weights (size p)
+    real(8) :: xi_q(:)  ! xi_q: real(8) array of reference quadrature points (size p)
+    real(8) :: x_q(:)   ! x_q: real(8) array for maping points on physical elements(size p)
+    real(8) :: phi(:,:)  ! phi: real(8) output basis functions (3 x p)
+    real(8) :: M(:,:)  ! M: real(8), mass matrix(p x p
+  end type
+
   ! values for setting up initilization of main state variables
   type :: state_init
     character(len=256) :: mass_dist, temp_dist, momentum_dist, entropy_dist   ! distribution functions for state variables
@@ -51,6 +59,7 @@ module types
     type(State) :: S
     type(state_init) :: s_int
     type(mesh) :: m
+    type(projection) :: proj
   end type
 
 end module
