@@ -19,7 +19,7 @@ contains
     real(8) :: x(nx,ny,nz)
     integer :: i, j, k
     
-    ! x grid
+
 
 
     ! Specific entropy
@@ -71,7 +71,7 @@ contains
     do k = 1, nz
       do j = 1, ny
         do i = 1, nx
-          p(i,j,k) = (gamma - 1) * rho_h(i,j,k) ** gamma * exp((gamma - 1) * s_h(i,j,k))
+          pressure(i,j,k) = (gamma - 1) * rho_h(i,j,k) ** gamma * exp((gamma - 1) * s_h(i,j,k))
         end do
       end do
     end do
@@ -81,7 +81,7 @@ contains
       do j = 1, ny
         do i = 1, nx
           eta_h(i,j,k) = (m_h(i,j,k)**2)/(2.0d0 * rho_h(i,j,k)**2) + e(i,j,k) + &
-                         p(i,j,k)/rho_h(i,j,k) - s_h(i,j,k) * T_h(i,j,k)
+                         pressure(i,j,k)/rho_h(i,j,k) - s_h(i,j,k) * T_h(i,j,k)
         end do
       end do
     end do
