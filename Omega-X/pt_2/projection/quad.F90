@@ -23,9 +23,8 @@ contains
   !   - The mapped physical points x_q are computed internally.
   !=========================================================
   subroutine quadrature_points(nx, w_q, xi_q, x_q)
-    integer, intent(in) :: nx
+    integer, intent(in) :: nx,  p          !(polyinomial) Number of quadrature points # change to intent in rather than parameter at later point
     real(8), intent(out) :: w_q(:), xi_q(:), x_q(:)
-    integer, parameter :: Nq = 3         ! Number of quadrature points # change to intent in rather than parameter at later point
     real(8) :: J                  ! Reference points and weights and Jacobian
     ! Mapped physical points and weights
     real(8) :: x_L, x_R            ! Element bounds 
