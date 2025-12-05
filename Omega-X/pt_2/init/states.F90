@@ -1,122 +1,107 @@
 module states
   implicit none
 
-  type :: State
-    real(8), allocatable :: rho_h(:,:,:)
-    real(8), allocatable :: sigma_h(:,:,:)
-    real(8), allocatable :: m_h(:,:,:)
-  end type State
+
 
 contains
 
   ! Initialize the full state arrays
-  subroutine init_state(s, nx, ny, nz)
-    type(State), intent(inout) :: s
-    integer, intent(in) :: nx
-    integer, intent(in), optional :: ny, nz
+  subroutine init_state(Omega)
+    type(Omega-X), intent(inout) :: Omega
+
     integer :: ny_, nz_
 
     ! Defaults for missing dimensions
-    ny_ = merge(ny, 1, present(ny))
-    nz_ = merge(nz, 1, present(nz))
+    ny_ = merge(Omega%m%ny, 1, present(ny))
+    nz_ = merge(Omega%m%nz, 1, present(nz))
 
-    allocate(s%rho_h(nx, ny_, nz_))
-    allocate(s%sigma_h(nx, ny_, nz_))
-    allocate(s%m_h(nx, ny_, nz_))
+    allocate(Omega%S%rho_h(Omega%m%nx, ny_, nz_))
+    allocate(Omega%S%sigma_h(Omega%m%nx, ny_, nz_))
+    allocate(Omega%S%m_h(Omega%m%nx, ny_, nz_))
 
-    s%rho_h   = 0.0d0
-    s%sigma_h = 0.0d0
-    s%m_h     = 0.0d0
+    Omega%S%rho_h   = 0.0d0
+    Omega%S%sigma_h = 0.0d0
+    Omega%S%m_h     = 0.0d0
   end subroutine init_state
 
  
   !================================================================
   ! Initialize momentum field with chosen distribution 
   !================================================================
-  subroutine init_momentum(s, nx, ny, nz, momentum_mean, momentum_var, momentum_dist)
-    type(State), intent(inout) :: s
-    integer, intent(in) :: nx
-    integer, intent(in), optional :: ny, nz
-    real(8), intent(in) :: momentum_mean, momentum_var
-    character(len=*), intent(in) :: momentum_dist
+  subroutine init_momentum(Omega)
+    type(Omega-X), intent(inout) :: Omega
+
 
     integer :: i, j, k, ny_, nz_
 
-    ny_ = merge(ny, 1, present(ny))
-    nz_ = merge(nz, 1, present(nz))
+    ny_ = merge(Omega%m%ny, 1, present(Omega%m%ny))
+    nz_ = merge(Omega%m%nz, 1, present(Omega%m%nz))
 
-    if (.not. allocated(s%m_h)) allocate(s%m_h(nx, ny_, nz_))
+    if (.not. allocated(Omega%S%m_h)) allocate(Omega%S%m_h(Omega%m%nx, ny_, nz_))
 
     if (trim(momentum_dist) == "gaussian") then
       do k = 1, nz_
         do j = 1, ny_
-          do i = 1, nx
-            s%m_h(i,j,k) = normal(momentum_mean, momentum_var)
+          do i = 1, Omega%m%nx
+            Omega%S%m_h(i,j,k) = normal(Omega%s_int%momentum_mean, Omega%s_int%momentum_var)
           end do
         end do
       end do
-    else if (trim(momentum_dist) == "uniform") then
-      s%m_h = momentum_mean
+    else if (trim(Omega%s_int%momentum_dist) == "uniform") then
+      Omega%S%m_h = Omega%s_int%momentum_mean
     end if
   end subroutine init_momentum
 
   !================================================================
   ! Initialize entropy field with chosen distribution 
   !================================================================
-  subroutine init_entropy(s, nx, ny, nz, entropy_mean, entropy_var, entropy_dist)
-    type(State), intent(inout) :: s
-    integer, intent(in) :: nx
-    integer, intent(in), optional :: ny, nz
-    real(8), intent(in) :: entropy_mean, entropy_var
-    character(len=*), intent(in) :: entropy_dist
+  subroutine init_entropy(Omega)
+    type(Omega-X), intent(inout) :: Omega
 
     integer :: i, j, k, ny_, nz_
 
-    ny_ = merge(ny, 1, present(ny))
-    nz_ = merge(nz, 1, present(nz))
+    ny_ = merge(Omega%m%ny, 1, present(Omega%m%ny))
+    nz_ = merge(Omega%m%nz, 1, present(Omega%m%nz))
 
-    if (.not. allocated(s%sigma_h)) allocate(s%sigma_h(nx, ny_, nz_))
+    if (.not. allocated(Omega%S%sigma_h)) allocate(Omega%S%sigma_h(Omega%m%nx, ny_, nz_))
 
-    if (trim(entropy_dist) == "gaussian") then
+    if (trim(Omega%s_int%entropy_dist) == "gaussian") then
       do k = 1, nz_
         do j = 1, ny_
-          do i = 1, nx
-            s%sigma_h(i,j,k) = normal(entropy_mean, entropy_var)
+          do i = 1, Omega%m%nx
+            Omega%S%sigma_h(i,j,k) = normal(Omega%s_int%entropy_mean, Omega%s%int%entropy_var)
           end do
         end do
       end do
-    else if (trim(entropy_dist) == "uniform") then
-      s%sigma_h = entropy_mean
+    else if (trim(Omega%s_int%entropy_dist) == "uniform") then
+      Omega%S%sigma_h = Omega%s_int%entropy_mean
     end if
   end subroutine init_entropy
 
   !================================================================
   ! Initialize mass field with chosen distribution 
   !================================================================
-  subroutine init_mass(s, nx, ny, nz, mass_mean, mass_var, mass_dist)
-    type(State), intent(inout) :: s
-    integer, intent(in) :: nx
-    integer, intent(in), optional :: ny, nz
-    real(8), intent(in) :: mass_mean, mass_var
-    character(len=*), intent(in) :: mass_dist
+  subroutine init_mass(Omega)
+    type(Omega-X), intent(inout) :: Omega
+
 
     integer :: i, j, k, ny_, nz_
 
-    ny_ = merge(ny, 1, present(ny))
-    nz_ = merge(nz, 1, present(nz))
+    ny_ = merge(Omega%m%ny, 1, present(Omega%m%ny))
+    nz_ = merge(Omega%m%nz, 1, present(Omega%m%nz))
 
-    if (.not. allocated(s%rho_h)) allocate(s%rho_h(nx, ny_, nz_))
+    if (.not. allocated(Omega%S%rho_h)) allocate(Omega%S%rho_h(Omega%m%nx, ny_, nz_))
 
-    if (trim(mass_dist) == "gaussian") then
+    if (trim(Omega%s_int%mass_dist) == "gaussian") then
       do k = 1, nz_
         do j = 1, ny_
-          do i = 1, nx
-            s%rho_h(i,j,k) = normal(mass_mean, mass_var)
+          do i = 1, Omega%m$nx
+            Omega%S%rho_h(i,j,k) = normal(Omega%s_int%mass_mean, Omega%s_int%mass_var)
           end do
         end do
       end do
-    else if (trim(mass_dist) == "uniform") then
-      s%rho_h = mass_mean
+    else if (trim(Omega%s_int%mass_dist) == "uniform") then
+      Omega%S%rho_h = Omega%s_int%mass_mean
     end if
   end subroutine init_mass
 
