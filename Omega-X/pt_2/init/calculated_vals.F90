@@ -50,7 +50,7 @@ contains
     ! Spatial derivative of velocity
     call midpoint_derivative(u_h, x, du_h_dx, dx)
 
-    ! Eta
+    ! Eta/spesific entropy
     do k = 1, nz
       do j = 1, ny
         do i = 1, nx
