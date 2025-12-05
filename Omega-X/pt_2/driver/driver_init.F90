@@ -2,6 +2,7 @@ module driver_init
   use read_config
   use states
   use calc_vals
+  use types
   implicit none
 
   contains
