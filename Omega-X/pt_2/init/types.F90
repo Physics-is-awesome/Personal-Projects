@@ -44,7 +44,7 @@ module types
     real(8) :: eta_h(:,:,:)  ! spesific entropy
     real(8) :: deta_h_dx(:,:,:)  ! special derivative of spesific entropy
   end type
-
+  ! higher order type
   type :: Omega-X
     type(derived_vars) :: dv
     type(constants) :: const
@@ -52,3 +52,5 @@ module types
     type(state_init) :: inints
     type(mesh) :: m
   end type
+
+end module
