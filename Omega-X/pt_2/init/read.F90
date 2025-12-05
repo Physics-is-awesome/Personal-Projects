@@ -1,6 +1,7 @@
 module read_config
   use iso_c_binding
   use c_interface
+  use types
   implicit none
 
  
@@ -9,13 +10,8 @@ contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
   ! -------------------------------------------------------------------------------------------------
-  subroutine read_file(mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma, mass_dist, temp_dist, momentum_dist, entropy_dist, mass, entropy, momentum, nx, ny, nz, p)
-
-    ! used variables
-    integer, intent(out) :: nx, ny, nz,  p
-    logical, intent(out) :: mass, entropy, momentum
-    character(len=256), intent(out) :: mass_dist, temp_dist, momentum_dist, entropy_dist
-    real(8), intent(out) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma
+  subroutine read_file(Omega)
+    type(Omega-X), intent(out) :: Omega
 
     ! local vars
     character(len=256) :: line, key, eqsign, value
@@ -49,46 +45,45 @@ end if
     close(10)
 
     ! getting dimensions
-    dim_run = get_int("dim_run", keys, values, count)
-    nx = get_int("nx", keys, values, count)
-    dx = get_real("dx", keys, values, count)
+    Omega%m%dim_run = get_int("dim_run", keys, values, count)
+    Omega%m%nx = get_int("nx", keys, values, count)
+    Omega%m$dx = get_real("dx", keys, values, count)
     if (dim_run >= 2) then
-      ny = get_int("ny", keys, values, count)
+      Omega%m%ny = get_int("ny", keys, values, count)
     end if
     if (dim_run >= 3) then
-      nz = get_int("nz", keys, values, count)
+      Omega%m%nz = get_int("nz", keys, values, count)
     end if
-    p = get_int("p", keys, values, count)
-    a = get_real("a", keys, values, count)
-    b = get_real("b", keys, values, count)
+    Omega%m%p = get_int("p", keys, values, count)
+
 
     ! getting constants
-    Re = get_real("Re", keys, values, count)
-    gamma = get_real("gamma", keys, values, count)
+    Omega%c%Re = get_real("Re", keys, values, count)
+    Omega%c%gamma = get_real("gamma", keys, values, count)
     ! dynamics allowed
     !mass = get_bol("mass", keys, values, count)
     !momentum = get_bol("momentum", keys, values, count) =============================== note in a type to use
     !entropy = get_bol("entropy", keys, values, count)
     
     ! temp
-    temp_dist = get_string("temp_dist", keys, values, count)
-    temp_mean = get_real("temp_mean", keys, values, count)
-    temp_var = get_real("temp_var", keys, values, count)
+    Omega%s_int%temp_dist = get_string("temp_dist", keys, values, count)
+    Omega%s_init%temp_mean = get_real("temp_mean", keys, values, count)
+    Omega%s_init%temp_var = get_real("temp_var", keys, values, count)
 
     ! mass
-    mass_dist = get_string("mass_dist", keys, values, count)
-    mass_mean = get_real("mass_mean", keys, values, count)
-    mass_var = get_real("mass_var", keys, values, count)
+    Omega%s_init%mass_dist = get_string("mass_dist", keys, values, count)
+    Omega%s_init%mass_mean = get_real("mass_mean", keys, values, count)
+    Omega%s_init%mass_var = get_real("mass_var", keys, values, count)
 
     ! momentum
-    momentum_dist = get_string("momentum_dist", keys, values, count)
-    momentum_mean = get_real("momentum_mean", keys, values, count)
-    momentum_var = get_real("moemntum_var", keys, values, count)
+    Omega%s_init%momentum_dist = get_string("momentum_dist", keys, values, count)
+    Omega%s_init%momentum_mean = get_real("momentum_mean", keys, values, count)
+    Omega%s_init%momentum_var = get_real("moemntum_var", keys, values, count)
 
     ! entropy
-    entropy_dist = get_string("entropy_dist", keys, values, count)
-    entropy_mean = get_real("entropy_mean", keys, values, count)
-    entropy_var = get_real("entropy_var", keys, values, count)
+    Omega%s_init%entropy_dist = get_string("entropy_dist", keys, values, count)
+    Omega%s_init%entropy_mean = get_real("entropy_mean", keys, values, count)
+    Omega%s_init%entropy_var = get_real("entropy_var", keys, values, count)
 
 
 
