@@ -22,14 +22,6 @@ contains
 
 
 
-    ! Specific entropy
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          s_h(i,j,k) = sigma_h(i,j,k) / rho_h(i,j,k)
-        end do
-      end do
-    end do
 
     ! Internal energy (ideal EOS placeholder)
     do k = 1, nz
@@ -58,11 +50,20 @@ contains
     ! Spatial derivative of velocity
     call midpoint_derivative(u_h, x, du_h_dx, dx)
 
+    ! Eta
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          eta_h(i,j,k) = sigma_h(i,j,k) / rho_h(i,j,k)
+        end do
+      end do
+    end do
+
     ! Ratio T/s
     do k = 1, nz
       do j = 1, ny
         do i = 1, nx
-          T_S(i,j,k) = T_h(i,j,k) / s_h(i,j,k)
+          T_S(i,j,k) = T_h(i,j,k) / eta(i,j,k)
         end do
       end do
     end do
@@ -71,20 +72,12 @@ contains
     do k = 1, nz
       do j = 1, ny
         do i = 1, nx
-          pressure(i,j,k) = (gamma - 1) * rho_h(i,j,k) ** gamma * exp((gamma - 1) * s_h(i,j,k))
+          pressure(i,j,k) = (gamma - 1) * rho_h(i,j,k) ** gamma * exp((gamma - 1) * eta(i,j,k))
         end do
       end do
     end do
 
-    ! Eta
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          eta_h(i,j,k) = (m_h(i,j,k)**2)/(2.0d0 * rho_h(i,j,k)**2) + e(i,j,k) + &
-                         pressure(i,j,k)/rho_h(i,j,k) - s_h(i,j,k) * T_h(i,j,k)
-        end do
-      end do
-    end do
+
 
     ! Spatial derivative of eta
     call midpoint_derivative(eta_h, x, deta_h_dx, dx)
