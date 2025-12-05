@@ -1,9 +1,14 @@
 program driver
   use driver_init
   use evol
-  use declare_2
+  use types
   implicit none
-  call init()
-  call driver_evolution()
-  print*, F_m_h(2)
+
+  type(Omega-X) :: Omega
+  ! init driver
+  call init(Omega)
+  
+  ! evolution driver
+  call driver_evolution(Omega)
+
 end program driver
