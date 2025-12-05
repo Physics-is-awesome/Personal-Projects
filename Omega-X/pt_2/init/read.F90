@@ -9,17 +9,20 @@ contains
   ! -------------------------------------------------------------------------------------------------
   ! Read dimensions, sizes, dynamics, etc
   ! -------------------------------------------------------------------------------------------------
-  subroutine read_file(mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma, mass_dist, temp_dist, momentum_dist, entropy_dist, mass, entropy, momentum, nx, ny, nz, dim_run, p)
+  subroutine read_file(mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma, mass_dist, temp_dist, momentum_dist, entropy_dist, mass, entropy, momentum, nx, ny, nz, p)
 
-    integer, parameter :: max_entries = 100
-    character(len=32) :: keys(max_entries)
-    character(len=128) :: values(max_entries)
-    integer :: count, ios, pos
-    integer, intent(out) :: nx, ny, nz, dim_run, p
+    ! used variables
+    integer, intent(out) :: nx, ny, nz,  p
     logical, intent(out) :: mass, entropy, momentum
     character(len=256), intent(out) :: mass_dist, temp_dist, momentum_dist, entropy_dist
     real(8), intent(out) :: mass_mean, temp_mean, momentum_mean, entropy_mean, mass_var, temp_var, momentum_var, entropy_var, dx, a, b, Re, gamma
+
+    ! local vars
     character(len=256) :: line, key, eqsign, value
+    integer, parameter :: max_entries = 100
+    character(len=32) :: keys(max_entries)
+    character(len=128) :: values(max_entries)
+    integer :: count, ios, pos, dim_run
 
     count = 0
     open(unit=10, file="config/config.cfg", status="old", action="read")
