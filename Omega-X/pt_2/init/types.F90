@@ -49,7 +49,7 @@ module types
     type(derived_vars) :: dv
     type(constants) :: const
     type(State) :: S
-    type(state_init) :: inints
+    type(state_init) :: s_int
     type(mesh) :: m
   end type
 
