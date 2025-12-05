@@ -66,9 +66,9 @@ end if
     Re = get_real("Re", keys, values, count)
     gamma = get_real("gamma", keys, values, count)
     ! dynamics allowed
-    mass = get_bol("mass", keys, values, count)
-    momentum = get_bol("momentum", keys, values, count)
-    entropy = get_bol("entropy", keys, values, count)
+    !mass = get_bol("mass", keys, values, count)
+    !momentum = get_bol("momentum", keys, values, count) =============================== note in a type to use
+    !entropy = get_bol("entropy", keys, values, count)
     
     ! temp
     temp_dist = get_string("temp_dist", keys, values, count)
