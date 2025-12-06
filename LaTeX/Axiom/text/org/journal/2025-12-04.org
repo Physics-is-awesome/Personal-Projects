@@ -1,0 +1,68 @@
+:PROPERTIES:
+:ID:       c2a9aac9-6b01-4a56-8cd3-adf726ae6bbb
+:END:
+#+title: 2025-12-04
+#+filetags: :daily:plans:
+* Links to books
+- [[id:12f55e43-bc9c-4292-96fd-5d7d889707d2][plans]]
+* Projects
+I have recently come into more free time and would like to use it to my advantage to increase my abilities and capacity; though, I am having trouble considering what to do, in what order, and how to block my time.
+** Formal projects
+The actual projects I want to work on are continuing:
+- FORTRAN Omega-X project([[[id:bd7dec22-5892-432c-a1a6-b8427b3dcb60][Omega-X]]]finish it, develop parallel computing, develop TUI, continue documentation, profile it, add higher order methods, more time stepping methods, add modules for working with additional systems, data analysis, visualization, GPU acceleration, etc)
+- Cason Bracket dynamics: synthesis Nambu and Metriplectic and incorporate into Omega-X
+- Categoric Theory of Metriplectic Dynamics: Self explanatory
+- Metriplectic PINN: PINN based upon PINNs
+- Emacs Building: I want to build workflows and other things in Emacs to make stuff easier for me(coding workflow, see data, writing book stuff)
+
+** Skills
+There are several skills I want to continue to develop:
+- Julia coding: right now in the basics
+- C++: similar to Julia
+- Emacs: I want to get more comfortable with the key-bindings and creating commands to make things simple
+- Parallel computing: most clearly can gain this through my Omega-X project
+- Org/LaTeX: Learing how to use both org and tex so they work together.
+
+** Plan
+I am thinking schedule it:
+1. develop a plan for the day in Org, experiment with Org/TeX integration to gain that experience in that regard.
+   - Incorporate Julia whenever possible
+2. Theoretic study - work on one a day
+   - Categoric Theory of Metriplectic Dynamics
+   - Cason Bracket Dynamics
+2. Programming Project - work on one maybe two a day
+   - Develop Omega-X project
+     - finish it
+     - develop parallel computing
+     - develop TUI
+     - continue documentation
+     - profile it
+     - add higher order methods
+     - more time stepping methods
+     - add modules for working with additional systems
+     - data analysis, visualization
+     - GPU acceleration
+   - Develop Emacs tools
+     - Create Julia REPL in Emacs and keybinding to make it simple
+     - custom LaTeX keys
+     - Set FORTRAN build and run
+3. Skill Development - work on one or two a day
+   - Julia
+     - symbolic Poisson/Nambu brackets solver
+     - ODE solver using the SciML interface
+     - GPU-accelerated metriplectic evolution
+     - Category theory for dynamics
+   - C++
+     - Simple library
+     - SIMD-accelerated
+     - learn expression templates
+     - GPU version using CUDA or HIP
+     - Plug-in architecture
+     - simple MHD solver
+   - FORTRAN
+     - Coarrays
+     - Polymorphic OOP with type-bound procedures
+     - Generics (Fortran 2023)
+     - MPI
+     - GPU Offloading
+     - Memory alignment + SIMD-aware design

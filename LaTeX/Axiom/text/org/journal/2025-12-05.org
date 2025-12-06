@@ -1,0 +1,102 @@
+:PROPERTIES:
+:ID:       6814d6df-a4b0-4def-892e-c1662f0418fd
+:END:
+#+title: 2025-12-05
+#+filetags: daily
+
+* Links to Book Chapters
+-
+
+* Plans for Today:
+I have been currently working on my school work; getting caught up with that. I have also conntacted NSCC about the dual enrollment program to make sure I am not missing anything.
+
+For my next steps:
+- Programming Project: Omega-X
+  - First: I am going to build a type binding for Omega-X's ininitilize subdriver.
+  - Second: formalize declare_vars module to work for this new update
+  - Third: Move C++ binding to a safe place(C++/FORTRAN?[either fits])
+- Theoretic study: Catogoric Metriplectic:
+  - Create LaTeX notes sections
+  - Write list of possible papers to read
+  - Read one and write notes
+- Programming/skill: EMACS building/Julia
+  - Develop Julia REPL in EMACS
+  - Play around with it once in
+** Omega-X Notes
+As I mentioned in the above section my first task is to develop a type system for driver_init.F90. To create the types:
+#+BEGIN_SRC fortran
+module types_make
+     !individual types
+      type :: name_of_type_1
+        real :: variable_in_type_1
+      end type name_of_type_1
+
+      type :: name_of_type_2
+        real :: variable_in_type_2
+      end type name_of_type_2
+
+      ! higher level type
+      type :: higher_level_type
+        type(name_of_type_1)
+        type(name_of_type_2)
+      end type higher_level_type
+end module types_make
+#+END_SRC
+The to use it:
+#+Begin_SRC fortran
+program use_types
+        use types_make
+
+        type(higher_level_type) :: H_T_L
+
+        ! initialize fields
+        H_T_L%name_of_type_2%variable_in_type_2 = 1.0
+#+END_SRC
+
+
+I ended up doing less than I imagined. I created the type system and corrected the arguments for many things. My next steps should be to develop the
+1. declare_vars
+2. fix uses of modules
+3. Change python code to work with new type arguments.
+
+This is what I can do tommorow.
+
+** Emacs Build
+While working on Omega-X I figured I should focus on FORTRAN integration before Julia, I also saw a cool calculator thing I will set up and shouldn't take long.
+
+Calculator:
+- Get in M-x calc or C-x * or M-x full-calc
+- It is in reverse polish notation: operators follow their operands
+- t to get to trail
+- i to enter
+- u to undo
+- DD to redo
+- TAD to swithc
+- DEL to delete one
+There is also a LaTeX embeded system:
+- C-x * e → Enter calc-embedded mode.
+- C-x * r → Replace the marked expression with its result.
+- C-x * q → Quick evaluation of inline expressions.
+
+calc-embedded	C-x * e	Enter embedded mode on the current region (or insert delimiters if none).
+calc-embedded-word	C-x * w         Evaluate the word at point as a Calc expression.
+calc-embedded-activate	C-x * a	Activate embedded formulas in the current buffer.
+calc-embedded-new-formula	C-x * n	Insert a new embedded formula at point.
+calc-embedded-select	C-x * s	Select the next embedded formula in the buffer.
+calc-embedded-edit	C-x * e (when inside formula)	Edit the embedded formula in Calc.
+calc-embedded-update	C-x * r	Replace/update the formula with its evaluated result.
+calc-embedded-update-all	C-x * u	Update all embedded formulas in the buffer.
+calc-embedded-clear	C-x * c	Clear (remove) the result part of an embedded formula.
+calc-embedded-clear-all	C-x * C	Clear results for all formulas in the buffer.
+calc-embedded-duplicate	C-x * d	Duplicate the current formula.
+calc-embedded-next	C-x * n	Jump to the next embedded formula.
+calc-embedded-previous	C-x * p	Jump to the previous embedded formula.
+calc-embedded-reload	C-x * l	Reload Calc settings for embedded mode.
+
+Now I have created the FORTRAN stuff:
+1. Fortran-lang LSP
+2. Fortran-indent improvements and compile.el
+3. custom build commands
+4. Org babel
+
+** Categoric Metreplectic
