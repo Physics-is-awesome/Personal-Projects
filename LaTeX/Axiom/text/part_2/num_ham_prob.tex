@@ -1,1 +1,31 @@
 \chapter{Numerical Hamiltonian Problems}
+\subsection{Chapter 1: Hamiltonian Systems}
+
+MacKay and Meiss have compiled great papers on the subject in 1987, Marsen (1992) offers a more geometric introduction.
+
+Usually in mechanics, q is generalized coordinates while p is conjugated generalized momenta. H being total mechanical energy.
+
+I like how they show the nature of the Hamiltonian system to be a logical nessesity based upon how the phase space is constructed, rather than purely physical construction.
+
+It is sometimes useful to combine dependent variables into a 2d $ y = (p,q) $.
+$$ \dv{y}{t} =J^{-1} \grad H $$
+
+Where, $\grad $ is the gradient operator and $J$ is skew-symmetric Matrix
+
+
+\subsection{Chapter 2: Symplecticness}
+
+As mentioned, Hamiltonian problems are exeptional. Most systems do not allow for area preservation(energy conservation, time symmetry, etc), which is a requirment of Hamiltonian systems.
+That is why exploration into other systems like Nambu, Metriplectic, etc is needed.
+
+This area preservation is not simply required as a general rule but is the basis of the structure. All other properties of Hamiltonian dynamics is derived from the area property.
+
+One can check for the preservation ogarea by checking if the Jacobian is exactly 1 or a simpler way is to find it is if $ dp* \wedge dq* = dp \wedge dq $ or that the pull back of the 2-form is equal to the origional 2-form.
+
+In multiple-diminsions. Look for multiple area preservations rather than multi-diminsional preservation.
+
+\subsection{Chapter 2: Numerical Methods}
+
+Stiff problems are defined to be where numerical stability, not accuracy, forces you to take extremely small steps.
+
+Explicit methods requires s number of evaluations per steps while implicit provides coupled system of $s \times D $ algebraic systems and $s \times D $ components of stage vectors.

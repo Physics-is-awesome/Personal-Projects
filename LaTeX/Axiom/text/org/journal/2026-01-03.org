@@ -1,0 +1,19 @@
+:PROPERTIES:
+:ID:       7382ca67-3085-46b5-9754-6012b8356349
+:END:
+#+title: 2026-01-03
+#+filetags: daily
+
+* Links to Book Chapters
+-
+
+* Emacs
+** TABS
+I have recently added the tab like system. Here are the commands:
+New tab	tab-new	C-x t 2
+Close tab	tab-close	C-x t 0
+Switch tab	tab-next / tab-previous	C-x t o / C-x t O
+Rename tab	tab-rename	M-x tab-rename
+Duplicate tab	tab-duplicate	M-x tab-duplicate
+
+So that's that.
