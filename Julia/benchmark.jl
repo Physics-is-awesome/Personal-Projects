@@ -134,7 +134,7 @@ t_implicit = @elapsed begin
 
         # Flattened stage vector
         K0 = zeros(s*d)
-        K = newton_solve(residual, K0)
+        
         function residual(K)
             R = similar(K)
 
@@ -155,7 +155,7 @@ t_implicit = @elapsed begin
             return R
         end
 
-
+        K = newton_solve(residual, K0)
 
         # Update solution
         for i in 1:s
