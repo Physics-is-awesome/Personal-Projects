@@ -139,7 +139,7 @@ t_implicit = @elapsed begin
             R = similar(K)
 
             for i in 1:s
-                ki - view(K, (i-1)*d+1:i*d)
+                ki = view(K, (i-1)*d+1:i*d)
 
                 ui = copy(u)
 
