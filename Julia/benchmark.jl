@@ -108,7 +108,7 @@ t_implicit = @elapsed begin
             end
 
             n = length(x)
-            j = zeros(n,n)
+            J = zeros(n,n)
             ep = 1e-8
 
             # finite-difference Jacobian
