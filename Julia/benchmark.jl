@@ -144,7 +144,7 @@ t_implicit = @elapsed begin
                 ui = copy(u)
 
                 for j in 1:s
-                    kj = view(k, (j-1)*d+1:j*d)
+                    kj = view(K, (j-1)*d+1:j*d)
                     ui .+= h * A[i, j] * kj
                 end
 
