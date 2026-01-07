@@ -91,4 +91,5 @@ t_explicit = @elapsed begin
     h = 0.01
     solution = erk_solve(f, u0, tspan, h, A, b, c)
 end
-println("The time explicit took $t_explicit")
+println("The time explicit took: $t_explicit")
+
