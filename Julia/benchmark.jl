@@ -98,31 +98,37 @@ t_implicit = @elapsed begin
     #------------------------------------
     # General Newton solver
     #------------------------------------
-    function newton_solve(f, x0; tol=1e-10, maxiter=15)
+    function newton_solve(F, x0; tol=1e-10, maxiter=20)
         x = copy(x0)
-
+        n = length(x)
+    
         for iter in 1:maxiter
-            r = f(x)
-            if norm(r) < tol
+            r = F(x)
+            norm_r = norm(r)
+            println(@sprintf("  Newton iter %d, ||r|| = %.3e", iter, norm_r))
+            if norm_r < tol
                 return x
             end
-
-            n = length(x)
-            J = zeros(n,n)
-            ep = 1e-8
-
-            # finite-difference Jacobian
-            for i in 1:n
+    
+            # Finite-difference Jacobian
+            J = zeros(n, n)
+            ε = 1e-8
+            for j in 1:n
                 dx = zeros(n)
-                dx[i] = ep
-                J[:, 1] = (f(x .+ dx) .- r)/ ep
+                dx[j] = ε
+                J[:, j] = (F(x .+ dx) .- r) / ε
             end
+    
+            # Optional tiny regularization if singular
+            J += 1e-12 * I
+    
+            # Solve linear system
+            δ = -J \ r
+            x .+= δ
 
-            sigma = J \ (-r)
-            x .+= sigma
         end
 
-        error("Newton method did not converge")
+        error("Newton did not converge after $maxiter iterations")
     end
     # ----------------------------------------
     # One IRK timestep
