@@ -98,11 +98,11 @@ t_implicit = @elapsed begin
     #------------------------------------
     # General Newton solver
     #------------------------------------
-    function newton_solve(F, x0; tol=1e-10, maxiter=15)
+    function newton_solve(f, x0; tol=1e-10, maxiter=15)
         x = copy(x0)
 
         for iter in 1:maxiter
-            r = F(x)
+            r = f(x)
             if norm(r) < tol
                 return x
             end
@@ -115,7 +115,7 @@ t_implicit = @elapsed begin
             for i in 1:n
                 dx = zeros(n)
                 dx[i] = ep
-                J[:, 1] = (F(x .+ dx) .- r)/ ep
+                J[:, 1] = (f(x .+ dx) .- r)/ ep
             end
 
             sigma = J \ (-r)
@@ -187,7 +187,7 @@ t_implicit = @elapsed begin
     end
 
     #----------------
-    # Butcher Bableau
+    # Butcher Tableau
     # --------------
     A = [0.5]
     b = [1.0]
