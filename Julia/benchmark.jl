@@ -159,7 +159,7 @@ t_implicit = @elapsed begin
 
         # Update solution
         for i in 1:s
-            ki = view(k, (i-1)*d+1:i*d)
+            ki = view(K, (i-1)*d+1:i*d)
             u .+= h * b[i] * ki
         end
     end
