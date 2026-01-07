@@ -155,11 +155,12 @@ t_implicit = @elapsed begin
             return R
         end
 
-        K = newton_solve(residual, k0)
+        K = newton_solve(residual, K0)
 
         # Update solution
         for i in 1:s
-            ki - view(k, (i-1)*d+1:i*d)
+            ki = view(k, (i-1)*d+1:i*d)
+            u .+= h * b[i] * ki
         end
     end
 
