@@ -1,5 +1,5 @@
 \chapter{Numerical Hamiltonian Problems}
-\subsection{Chapter 1: Hamiltonian Systems}
+\section{Chapter 1: Hamiltonian Systems}
 
 MacKay and Meiss have compiled great papers on the subject in 1987, Marsen (1992) offers a more geometric introduction.
 
@@ -13,7 +13,7 @@ $$ \dv{y}{t} =J^{-1} \grad H $$
 Where, $\grad $ is the gradient operator and $J$ is skew-symmetric Matrix
 
 
-\subsection{Chapter 2: Symplecticness}
+\section{Chapter 2: Symplecticness}
 
 As mentioned, Hamiltonian problems are exeptional. Most systems do not allow for area preservation(energy conservation, time symmetry, etc), which is a requirment of Hamiltonian systems.
 That is why exploration into other systems like Nambu, Metriplectic, etc is needed.
@@ -24,8 +24,27 @@ One can check for the preservation ogarea by checking if the Jacobian is exactly
 
 In multiple-diminsions. Look for multiple area preservations rather than multi-diminsional preservation.
 
-\subsection{Chapter 2: Numerical Methods}
+\section{Chapter 2: Numerical Methods}
 
 Stiff problems are defined to be where numerical stability, not accuracy, forces you to take extremely small steps.
 
 Explicit methods requires s number of evaluations per steps while implicit provides coupled system of $s \times D $ algebraic systems and $s \times D $ components of stage vectors.
+
+After reading this I wrote a program in Julia to compare the time it takes for both an explicit RK and Implicit to solve a ODE. It was more challenging than it should have been.
+
+\section{Chapter 4: Order Condition}
+
+More so COmputer science stuff, not so importaint at the moment but something to look at later.
+
+\section{Chapter 5: Implementation}
+Really just the stuff I did earlier when writing my own implicit RK.
+
+\section{Chapter 6: Symplectic Integration}
+
+If $ b_i a_{ij} + b_j a{ji} - b_i b_j = 0 $ for $i,j = 1,...,s$. Then the method is symplectic. They have a nice proof that I can use as a reference.
+
+Most all symplectic methods are implicit.
+
+They go through solutions of various families of symplectic RK integration.
+
+\section{Chapter 7: Symplectic Order Conditions}
