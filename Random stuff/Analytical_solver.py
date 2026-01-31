@@ -1,48 +1,40 @@
-# calc_engine.py
+# calc_engine_fixed.py
+"""
+Calc I-III style symbolic derivative & integral engine (SymPy-backed, Option B).
+- Parse LaTeX (with fallback to sympify)
+- Own differentiation (no sympy.diff)
+- Own integration (no sympy.integrate) with:
+    - linearity, constant extraction, power rule
+    - trig + exponential primitives (with linear arguments)
+    - u-substitution detection
+    - integration by parts (heuristic)
+    - trig identity rewriting (sin^2, cos^2, sin*cos -> sin2x/2)
+    - trig substitution for sqrt(a^2 - x^2), sqrt(a^2 + x^2), sqrt(x^2 - a^2)
+    - partial-fraction preprocessing via sympy.apart
+- Returns SymPy Expr and LaTeX string
+"""
+from __future__ import annotations
 import sympy as sp
 from sympy.parsing.latex import parse_latex
+from typing import Optional, Tuple
 
 # -----------------------
-# Utilities
+# Utilities / Safe parse
 # -----------------------
-def parse_expr_from_latex(latex_str):
+def safe_parse(expr_str: str) -> sp.Expr:
+    """Try parse LaTeX; on exception, fall back to sympify (plain text)."""
     try:
-        return parse_latex(latex_str)
-    except Exception as e:
-        raise ValueError(f"LaTeX parsing failed: {e}")
+        return parse_latex(expr_str)
+    except Exception:
+        return sp.sympify(expr_str)
 
-def make_symbol(varname="x"):
+def make_symbol(varname: str = "x") -> sp.Symbol:
     return sp.Symbol(varname, real=True)
 
-def is_linear_in(e, var):
-    # returns (a,b) if e == a*var + b (a,b possibly symbolic), else None
-    if e.is_Add or e.is_Mul or e.is_Symbol or e.is_Number or e.is_Pow:
-        p = sp.expand(e)
-    else:
-        p = e
-    poly = p.as_poly(var)
-    if poly is not None and poly.degree() <= 1:
-        coeffs = [poly.coeff_monomial(var**i) for i in range(poly.degree()+1)]
-        if poly.degree() == 0:
-            a = sp.Integer(0)
-            b = coeffs[0]
-        else:
-            a = coeffs[1]
-            b = coeffs[0]
-        return sp.simplify(a), sp.simplify(b)
-    return None
-
-def try_linear_coeff(expr, var):
-    lin = is_linear_in(expr, var)
-    if lin is not None:
-        return lin
-    return None
-
 # -----------------------
-# Differentiation (own rules)
+# Differentiation (custom)
 # -----------------------
-def my_diff(expr, var):
-    # Do not call sympy.diff
+def my_diff(expr: sp.Expr, var: sp.Symbol) -> sp.Expr:
     expr = sp.simplify(expr)
     if expr.is_Number:
         return sp.Integer(0)
@@ -52,28 +44,28 @@ def my_diff(expr, var):
         return sp.Integer(0)
 
     if expr.is_Add:
-        return sp.Add(*(my_diff(a, var) for a in expr.args))
+        return sp.simplify(sum(my_diff(a, var) for a in expr.args))
 
     if expr.is_Mul:
         terms = []
         args = expr.args
-        for i in range(len(args)):
-            d = my_diff(args[i], var)
+        # product rule: sum over i (d arg_i * product of others)
+        for i, f in enumerate(args):
+            d = my_diff(f, var)
             if d != 0:
-                other = sp.Mul(*([args[j] for j in range(len(args)) if j != i]))
+                # other factors: everything except args[i]
+                other = sp.Mul(*args[:i], *args[i+1:]) if len(args) > 1 else sp.Integer(1)
                 terms.append(sp.simplify(d * other))
-        return sp.simplify(sp.Add(*terms))
+        return sp.simplify(sum(terms))
 
     if expr.is_Pow:
         base, exp = expr.args
         if exp.is_Number:
+            # d/dx base^n = n * base^(n-1) * base'
             return sp.simplify(exp * base**(exp - 1) * my_diff(base, var))
-        # power with variable exponent: d(a^b) = a^b*(b' ln a + b a'/a)
-        return sp.simplify(
-            expr * (my_diff(exp, var) * sp.log(base) + my_diff(base, var) * exp / base)
-        )
+        # general: d(a^b) = a^b*(b' ln a + b a'/a)
+        return sp.simplify(expr * (my_diff(exp, var) * sp.log(base) + my_diff(base, var) * exp / base))
 
-    # Common functions
     f = expr.func
     a = expr.args[0] if expr.args else None
     if f == sp.exp:
@@ -87,21 +79,23 @@ def my_diff(expr, var):
     if f == sp.tan:
         return sp.simplify((1 + sp.tan(a)**2) * my_diff(a, var))
     if f == sp.sec:
-        return sp.simplify(sp.sec(a)*sp.tan(a) * my_diff(a, var))
+        return sp.simplify(sp.sec(a) * sp.tan(a) * my_diff(a, var))
     if f == sp.csc:
-        return sp.simplify(-sp.csc(a)*sp.cot(a) * my_diff(a, var))
+        return sp.simplify(-sp.csc(a) * sp.cot(a) * my_diff(a, var))
     if f == sp.asin:
         return sp.simplify(my_diff(a, var) / sp.sqrt(1 - a**2))
+    if f == sp.acos:
+        return sp.simplify(-my_diff(a, var) / sp.sqrt(1 - a**2))
     if f == sp.atan:
         return sp.simplify(my_diff(a, var) / (1 + a**2))
 
     raise NotImplementedError(f"No diff rule implemented for {expr}")
 
 # -----------------------
-# Trig rewrite system
+# Trig rewrite system (fixed)
 # -----------------------
-def trig_rewrite_once(e):
-    # One-step local rewrites (Calc-level)
+def trig_rewrite_once(e: sp.Expr) -> sp.Expr:
+    # local rewrite rules for trig forms used in Calc
     if e.is_Pow:
         b, n = e.base, e.exp
         if b.func == sp.sin and n == 2:
@@ -113,141 +107,127 @@ def trig_rewrite_once(e):
 
     if e.is_Mul:
         args = list(e.args)
-        for i,a in enumerate(args):
-            for j,b in enumerate(args):
-                if i != j and a.func == sp.sin and b.func == sp.cos and a.args[0] == b.args[0]:
-                    u = a.args[0]
-                    rest = [r for k,r in enumerate(args) if k not in (i,j)]
-                    return sp.Mul(sp.Rational(1,2), sp.sin(2*u), *rest)
+        # sin(u)*cos(u) -> 1/2 sin(2u)
+        for i, a in enumerate(args):
+            for j, b in enumerate(args):
+                if i != j and hasattr(a, "func") and hasattr(b, "func"):
+                    if a.func == sp.sin and b.func == sp.cos and a.args[0] == b.args[0]:
+                        u = a.args[0]
+                        rest = [r for k, r in enumerate(args) if k not in (i, j)]
+                        return sp.Mul(sp.Rational(1, 2), sp.sin(2*u), *rest)
 
     return e
 
-def full_trig_rewrite(expr):
+def full_trig_rewrite(expr: sp.Expr) -> sp.Expr:
     prev = None
     curr = sp.simplify(expr)
-    # iterative fixed-point application
     while prev != curr:
         prev = curr
-        curr = curr.replace(lambda e: True, trig_rewrite_once)
+        # apply trig_rewrite_once to every node
+        curr = curr.replace(lambda _ : True, trig_rewrite_once)
         curr = sp.simplify(curr)
     return curr
 
 # -----------------------
-# Partial fractions / rational handling
+# Partial fraction attempt (preprocessing)
 # -----------------------
-def try_partial_fraction(expr, var):
-    # only try when expr is rational in var
-    poly = sp.together(expr)
-    poly = sp.simplify(poly)
+def try_partial_fraction(expr: sp.Expr, var: sp.Symbol) -> Optional[sp.Expr]:
+    # attempt to decompose rational expressions with sympy.apart
     try:
-        a = sp.apart(poly, var)
+        ap = sp.apart(expr, var)
     except Exception:
         return None
-    if a != expr:
-        # apart decomposed it; integrate each term
-        terms = a.as_ordered_factors() if a.is_Mul else a
-        # but easier: break into addends
-        addends = a.as_ordered_terms() if a.is_Add else [a]
+    if ap != expr:
+        # integrate each additive term
+        addends = ap.as_ordered_terms() if ap.is_Add else [ap]
         results = []
         for t in addends:
             r = my_integrate(t, var)
             if r is None:
                 return None
             results.append(r)
-        return sp.Add(*results)
+        return sp.simplify(sp.Add(*results))
     return None
 
 # -----------------------
-# u-substitution detection
+# u-substitution detection (fixed)
 # -----------------------
-def collect_subexprs(expr):
-    # return list of candidate subexpressions ordered by size (larger first)
+def collect_subexprs(expr: sp.Expr):
+    # use preorder_traversal generator and collect unique subexpressions
     seen = set()
     out = []
-    def walk(e):
-        if e in seen:
-            return
-        seen.add(e)
-        out.append(e)
-        for a in e.args:
-            walk(a)
-    walk(expr)
-    # sort so more complex (more args) first
-    out.sort(key=lambda s: (-len(tuple(s.preorder_traversal())), str(s)))
+    for node in sp.preorder_traversal(expr):
+        if node in seen:
+            continue
+        seen.add(node)
+        out.append(node)
+    # sort by complexity: more complex first
+    out.sort(key=lambda s: (-len(tuple(sp.preorder_traversal(s))), str(s)))
     return out
 
-def try_u_sub(expr, var):
+def try_u_sub(expr: sp.Expr, var: sp.Symbol) -> Optional[sp.Expr]:
     expr = sp.simplify(expr)
-    # We want expr = f(u) * u'(x) or const * f(u) * u'(x)
-    # Approach: for each candidate u (subexpr), compute du and see if expr is divisible by du
-    candidates = collect_subexprs(expr)
-    for u in candidates:
-        if u == expr:
+    for u in collect_subexprs(expr):
+        if u == expr or u == var:
             continue
         du = sp.simplify(my_diff(u, var))
         if du == 0:
             continue
-        # see if expr/du is independent of var (i.e., function of u only or constant)
-        ratio = sp.simplify(expr / du)
-        # check if ratio still contains var
-        if not ratio.has(var):
-            # integral is ∫ ratio(u) du
-            # replace u variable with dummy symbol t to integrate by our engine recursively
-            t = sp.Symbol('u_temp', real=True)
-            # form function in t by replacing u->t in ratio
-            f_of_u = ratio.xreplace({u: t})
-            inner = my_integrate(f_of_u, t)
-            if inner is None:
-                # fallback: if ratio is just a constant, return that constant * u
-                if f_of_u.free_symbols == set():
-                    return sp.simplify(f_of_u * u)
+        # check if expr / du is independent of var
+        with sp.concrete_expression():
+            try:
+                ratio = sp.simplify(expr / du)
+            except Exception:
                 continue
-            # substitute back t->u
+        if not ratio.has(var):
+            # integrate ratio as function of u: replace u->temp symbol and integrate wrt temp
+            t = sp.Symbol("u_temp", real=True)
+            f_of_t = ratio.xreplace({u: t})
+            inner = my_integrate(f_of_t, t)
+            if inner is None:
+                # if ratio constant, return const * u
+                if f_of_t.free_symbols == set():
+                    return sp.simplify(f_of_t * u)
+                continue
             return sp.simplify(inner.xreplace({t: u}))
     return None
 
 # -----------------------
-# Integration by parts (heuristic)
+# Integration by parts (fixed)
 # -----------------------
-def pick_u_for_parts(expr, var):
-    # LIATE-like heuristic: Log/Inverse trig/Algebraic/Trig/Exp
-    # return chosen u and dv (as expression factors)
-    # For simplicity: try single-factor u among multiplicative factors
+def pick_u_for_parts(expr: sp.Expr, var: sp.Symbol) -> Optional[Tuple[sp.Expr, sp.Expr]]:
     if not expr.is_Mul:
         return None
     factors = list(expr.args)
-    priority = []
+    # scoring LIATE-ish
+    scored = []
     for f in factors:
         score = 0
-        # log
         if f.func == sp.log:
-            score += 50
-        # inverse trig
+            score += 100
         if f.func in (sp.asin, sp.acos, sp.atan):
-            score += 40
-        # algebraic (polynomial / powers)
-        if f.is_Pow or f.is_Symbol or f.is_polynomial:
-            try:
-                if sp.Poly(f, var).degree() >= 0:
-                    score += 30
-            except Exception:
-                score += 10
-        # trig
+            score += 80
+        # algebraic
+        try:
+            poly = sp.Poly(f, var)
+            if poly.degree() >= 0:
+                score += 60
+        except Exception:
+            if f.is_Symbol or f.is_Pow:
+                score += 30
         if f.func in (sp.sin, sp.cos, sp.tan, sp.sec):
-            score += 20
-        # exp
+            score += 40
         if f.func == sp.exp:
-            score += 10
-        # default small bonus for simpler shapes
-        priority.append((score, f))
-    if not priority:
+            score += 20
+        scored.append((score, f))
+    if not scored:
         return None
-    priority.sort(reverse=True, key=lambda x: x[0])
-    u = priority[0][1]
-    dv = sp.Mul(*([f for f in factors if f != u]))
+    scored.sort(reverse=True, key=lambda x: x[0])
+    u = scored[0][1]
+    dv = sp.Mul(*[f for f in factors if f != u]) if len(factors) > 1 else sp.Integer(1)
     return u, dv
 
-def try_integration_by_parts(expr, var):
+def try_integration_by_parts(expr: sp.Expr, var: sp.Symbol) -> Optional[sp.Expr]:
     if not expr.is_Mul:
         return None
     pick = pick_u_for_parts(expr, var)
@@ -265,131 +245,94 @@ def try_integration_by_parts(expr, var):
     return sp.simplify(u * v - int_inner)
 
 # -----------------------
-# Trig substitution
+# Trig substitution detection & application (fixed)
 # -----------------------
-def detect_trig_sub(expr, var):
-    # Look for radicals sqrt(a^2 - x^2), sqrt(a^2 + x^2), sqrt(x^2 - a^2)
-    sqrts = [s for s in expr.atoms(sp.sqrt)]
-    for s in sqrts:
-        inside = sp.simplify(s.args[0])
-        # check patterns
-        # a^2 - x^2
-        if inside.is_Add:
-            # try to detect two-term form
-            terms = sp.Add.make_args(inside)
-            if len(terms) == 2:
-                # try find numeric or symbol a^2 and -x^2
-                for t in terms:
-                    other = inside - t
-                    if t.is_Pow and t.exp == 2 and other == -var**2:
-                        a = sp.sqrt(t)
-                        return ("sin", a, s)
-                    if other.is_Pow and other.exp == 2 and t == -var**2:
-                        a = sp.sqrt(other)
-                        return ("sin", a, s)
-        # x^2 + a^2
-        if inside.is_Add:
-            terms = sp.Add.make_args(inside)
-            # find var**2 and a^2
-            if var**2 in terms:
-                rest = sp.simplify(inside - var**2)
-                if rest.is_Pow and rest.exp == 2:
-                    a = sp.sqrt(rest)
-                    return ("tan", a, s)
-                if rest.free_symbols == set() and rest.is_Number:
-                    a = sp.sqrt(rest)
-                    return ("tan", a, s)
-        # x^2 - a^2
-        if inside.is_Add:
-            if var**2 in sp.Add.make_args(inside):
-                rest = inside - var**2
-                if rest.is_Pow and rest.exp == -2:
-                    pass
-            # try x^2 - a^2
-            if inside.has(var**2):
-                # attempt to express as var**2 - a**2
-                try:
-                    a2 = sp.simplify(inside - var**2)
-                    if a2.is_Number or (a2.is_Pow and a2.exp == 2):
-                        if a2.is_Number:
-                            a = sp.sqrt(a2)
-                        else:
-                            a = sp.sqrt(a2)  # symbolic
-                        # ensure sign
-                        # confirm shape var**2 - a**2
-                        if sp.simplify(var**2 - a**2) == inside:
-                            return ("sec", a, s)
-                except Exception:
-                    continue
+def detect_trig_sub(expr: sp.Expr, var: sp.Symbol) -> Optional[Tuple[str, sp.Expr, sp.Expr]]:
+    # look for sqrt atoms (i.e., Powell with exponent 1/2 or sp.sqrt)
+    pow_atoms = [p for p in expr.atoms(sp.Pow) if p.exp == sp.Rational(1, 2)]
+    # also include explicit sp.sqrt atoms
+    sqrt_atoms = list(expr.atoms(sp.Function))  # catch sp.sqrt too (sqrt is Pow usually)
+    candidates = pow_atoms
+    for s in candidates:
+        inside = sp.simplify(s.base)
+        # check form a^2 - x^2  (-> sin)
+        a2 = sp.simplify(inside + var**2)
+        if a2.free_symbols == set():
+            # inside == a^2 - x^2
+            if sp.simplify(inside - (a2 - var**2)) == 0:
+                return ("sin", sp.sqrt(a2), s)
+        # check x^2 + a^2  (-> tan)
+        a2b = sp.simplify(inside - var**2)
+        if a2b.free_symbols == set():
+            return ("tan", sp.sqrt(a2b), s)
+        # check x^2 - a^2 (-> sec)
+        a2c = sp.simplify(var**2 - inside)
+        if a2c.free_symbols == set() and a2c != 0:
+            return ("sec", sp.sqrt(a2c), s)
     return None
 
-def apply_trig_sub(expr, var):
+def apply_trig_sub(expr: sp.Expr, var: sp.Symbol) -> Optional[sp.Expr]:
     sub = detect_trig_sub(expr, var)
     if sub is None:
         return None
     kind, a, radical = sub
-    theta = sp.Symbol('theta', real=True)
-
+    theta = sp.Symbol("theta", real=True)
     if kind == "sin":
-        # x = a sin θ, dx = a cos θ dθ, sqrt(a^2 - x^2) = a cos θ
         x_sub = a * sp.sin(theta)
         dx = a * sp.cos(theta)
-        sqrt_sub = a * sp.cos(theta)
-        new = sp.simplify(expr.xreplace({var: x_sub, radical: sqrt_sub}) * dx)
-        res_theta = my_integrate(full_trig_rewrite(new), theta)
-        if res_theta is None:
+        rad_sub = a * sp.cos(theta)
+        new = sp.simplify(expr.xreplace({var: x_sub, radical: rad_sub}) * dx)
+        inner = my_integrate(full_trig_rewrite(new), theta)
+        if inner is None:
             return None
-        # back-substitute θ = asin(x/a)
         back = sp.asin(var / a)
-        return sp.simplify(res_theta.subs(theta, back))
+        return sp.simplify(inner.subs(theta, back))
     if kind == "tan":
-        # x = a tan θ, dx = a sec^2 θ dθ, sqrt(a^2 + x^2) = a sec θ
         x_sub = a * sp.tan(theta)
         dx = a * sp.sec(theta)**2
-        sqrt_sub = a * sp.sec(theta)
-        new = sp.simplify(expr.xreplace({var: x_sub, radical: sqrt_sub}) * dx)
-        res_theta = my_integrate(full_trig_rewrite(new), theta)
-        if res_theta is None:
+        rad_sub = a * sp.sec(theta)
+        new = sp.simplify(expr.xreplace({var: x_sub, radical: rad_sub}) * dx)
+        inner = my_integrate(full_trig_rewrite(new), theta)
+        if inner is None:
             return None
         back = sp.atan(var / a)
-        return sp.simplify(res_theta.subs(theta, back))
+        return sp.simplify(inner.subs(theta, back))
     if kind == "sec":
-        # x = a sec θ, dx = a sec θ tan θ dθ, sqrt(x^2 - a^2) = a tan θ
         x_sub = a * sp.sec(theta)
         dx = a * sp.sec(theta) * sp.tan(theta)
-        sqrt_sub = a * sp.tan(theta)
-        new = sp.simplify(expr.xreplace({var: x_sub, radical: sqrt_sub}) * dx)
-        res_theta = my_integrate(full_trig_rewrite(new), theta)
-        if res_theta is None:
+        rad_sub = a * sp.tan(theta)
+        new = sp.simplify(expr.xreplace({var: x_sub, radical: rad_sub}) * dx)
+        inner = my_integrate(full_trig_rewrite(new), theta)
+        if inner is None:
             return None
-        # back-substitute θ = acos(a/x)
+        # back-substitute theta = acos(a/x)
         back = sp.acos(a / var)
-        return sp.simplify(res_theta.subs(theta, back))
+        return sp.simplify(inner.subs(theta, back))
+    return None
 
 # -----------------------
-# Core integration engine
+# Core integration engine (unified, fixed)
 # -----------------------
-def my_integrate(expr, var):
+def my_integrate(expr: sp.Expr, var: sp.Symbol) -> Optional[sp.Expr]:
     expr = sp.simplify(expr)
-    # Safety small-step simplification
     expr = full_trig_rewrite(expr)
 
-    # Base: constant
+    # constants
     if expr.is_Number:
         return sp.simplify(expr * var)
 
-    # Variable itself
+    # variable
     if expr == var:
         return sp.simplify(var**2 / 2)
 
-    # Linearity
+    # linearity
     if expr.is_Add:
         parts = [my_integrate(a, var) for a in expr.args]
         if any(p is None for p in parts):
             return None
         return sp.simplify(sp.Add(*parts))
 
-    # Constant multiple extraction
+    # constant multiple extraction
     if expr.is_Mul:
         const, rest = expr.as_independent(var)
         if const != 1:
@@ -397,68 +340,73 @@ def my_integrate(expr, var):
             if inner is not None:
                 return sp.simplify(const * inner)
 
-    # Power rule for var^n
+    # power rule for var^n
     if expr.is_Pow and expr.base == var and expr.exp.is_Number:
         n = expr.exp
         if n != -1:
             return sp.simplify(var**(n + 1) / (n + 1))
 
-    # Rational / partial fractions (preprocess)
+    # partial fraction preprocessing
     pf = try_partial_fraction(expr, var)
     if pf is not None:
-        return sp.simplify(pf)
+        return pf
 
-    # Exponential with linear argument: integrate e^{a x + b} -> e^{ax+b}/a
+    # exp(a*x + b) with linear a
     if expr.func == sp.exp:
-        arg = expr.args[0]
-        lin = try_linear_coeff(arg, var)
-        if lin is not None:
-            a, b = lin
-            if a != 0:
-                return sp.simplify(expr / a)
+        a = expr.args[0]
+        # try linear coefficient
+        try:
+            poly = sp.Poly(sp.expand(a), var)
+            if poly.degree() == 1:
+                coeff = poly.coeffs()[0]
+                if coeff != 0:
+                    return sp.simplify(expr / coeff)
+        except Exception:
+            pass
 
-    # sin(kx), cos(kx)
-    if expr.func == sp.sin:
+    # sin(kx + c), cos(kx + c) primitives
+    if expr.func in (sp.sin, sp.cos):
         a = expr.args[0]
-        lin = try_linear_coeff(a, var)
-        if lin is not None:
-            k, c = lin
-            if k != 0:
-                return sp.simplify(-sp.cos(a) / k)
-    if expr.func == sp.cos:
-        a = expr.args[0]
-        lin = try_linear_coeff(a, var)
-        if lin is not None:
-            k, c = lin
-            if k != 0:
-                return sp.simplify(sp.sin(a) / k)
+        try:
+            poly = sp.Poly(sp.expand(a), var)
+            if poly.degree() == 1:
+                k = poly.coeffs()[0]
+                if k != 0:
+                    if expr.func == sp.sin:
+                        return sp.simplify(-sp.cos(a) / k)
+                    else:
+                        return sp.simplify(sp.sin(a) / k)
+        except Exception:
+            pass
 
     # 1/(a x + b)
     if expr.is_Pow and expr.exp == -1:
         base = expr.base
-        lin = try_linear_coeff(base, var)
-        if lin is not None:
-            a, b = lin
-            if a != 0:
-                return sp.simplify(sp.log(base) / a)
+        try:
+            poly = sp.Poly(sp.expand(base), var)
+            if poly.degree() == 1:
+                a = poly.coeffs()[0]
+                if a != 0:
+                    return sp.simplify(sp.log(base) / a)
+        except Exception:
+            pass
 
-    # 1/(x^2 + a^2) and 1/(x^2 - a^2)
+    # specific rational quadratic forms 1/(x^2 + a^2)
     if expr.is_Pow and expr.exp == -1 and expr.base.is_Add:
         base = sp.expand(expr.base)
-        # x^2 + a^2
-        if base.match(var**2 + sp.Wild('A')):
-            A = (base - var**2)
-            if A.free_symbols == set() and A != 0:
-                a = sp.sqrt(A)
-                return sp.simplify(sp.atan(var / a) / a)
-        # x^2 - a^2
-        if base.match(var**2 - sp.Wild('A')):
-            A = (var**2 - base)
-            # Actually easier: check factorization
-            fac = sp.factor(base)
-            if fac.is_Mul:
-                # leave to partial fractions
-                pass
+        # attempt x^2 + a^2
+        try:
+            poly = sp.Poly(base, var)
+            if poly.degree() == 2:
+                A, B, C = poly.coeffs()
+                # try completing square pattern if B == 0
+                if B == 0 and A != 0 and C != 0:
+                    a2 = C / A
+                    if a2.is_Number and a2 > 0:
+                        a = sp.sqrt(a2)
+                        return sp.simplify(sp.atan(var / a) / (A * a))
+        except Exception:
+            pass
 
     # u-substitution
     u = try_u_sub(expr, var)
@@ -475,64 +423,45 @@ def my_integrate(expr, var):
     if t is not None:
         return sp.simplify(t)
 
-    # Rational special cases (1/(x^2 + a^2) as direct pattern):
-    # Try to match 1/(A*var**2 + B*var + C)
-    poly = sp.Poly(sp.together(expr), var) if sp.Poly(sp.together(expr), var).degree() <= 2 else None
-    try:
-        poly = sp.Poly(sp.together(expr), var)
-    except Exception:
-        poly = None
-    if poly is not None and poly.degree() == 2:
-        # attempt specific forms
-        A = poly.coeffs()[0]
-        B = poly.coeffs()[1] if len(poly.coeffs()) > 1 else 0
-        C = poly.coeffs()[-1]
-        denom = A*var**2 + B*var + C
-        # complete square
-        if B == 0 and A != 0 and sp.sign(A) > 0 and C != 0:
-            # A(x^2 + C/A)
-            if sp.simplify(expr - 1/denom) == 0:
-                a2 = C/A
-                if a2.is_Number and a2 > 0:
-                    a = sp.sqrt(a2)
-                    return sp.simplify(sp.atan(var / a) / (A * a))
-
+    # fallback: couldn't find rule
     return None
 
 # -----------------------
-# User-facing wrapper
+# Public wrapper
 # -----------------------
-def solve_from_latex(latex_str, variable="x", mode="integrate"):
+def solve_from_latex(latex_str: str, variable: str = "x", mode: str = "integrate") -> Tuple[sp.Expr, str]:
     var = make_symbol(variable)
-    expr = parse_expr_from_latex(latex_str)
+    expr = safe_parse(latex_str)
     expr = sp.simplify(expr)
     if mode == "diff":
         res = sp.simplify(my_diff(expr, var))
     elif mode == "integrate":
-        res = sp.simplify(my_integrate(expr, var))
+        res = my_integrate(expr, var)
         if res is None:
-            raise NotImplementedError("Integration rule not found for this integrand.")
+            raise NotImplementedError(f"Integration rule not found for integrand: {sp.srepr(expr)}")
+        res = sp.simplify(res)
     else:
         raise ValueError("mode must be 'diff' or 'integrate'")
     return res, sp.latex(res)
 
 # -----------------------
-# If run directly, quick examples
+# Quick CLI-style tests when run directly
 # -----------------------
 if __name__ == "__main__":
-    examples = [
+    tests = [
         (r"\sin(x)e^{x}", "diff"),
         (r"x^3 + 2x", "integrate"),
         (r"\sin(x^2) 2 x", "integrate"),
         (r"x e^{x}", "integrate"),
         (r"\sin^2 x", "integrate"),
-        (r"\sqrt{9 - x^2}", "integrate"),  # trig sub example (note: integrand has no dx multiplier)
+        (r"\sqrt{9 - x^2}", "integrate"),
         (r"\frac{1}{x^2 + 4}", "integrate")
     ]
-    for tex, mode in examples:
+
+    for tex, mode in tests:
         try:
             res, latex = solve_from_latex(tex, "x", mode)
-            print(f"{mode.upper()} {tex}  =>  {res}")
+            print(f"{mode.upper():9} {tex:20} => {res}")
             print(f" LaTeX: {latex}\n")
         except Exception as e:
-            print(f"Failed on {tex} ({mode}): {e}\n")
+            print(f"FAILED {mode} {tex}: {e}\n")
