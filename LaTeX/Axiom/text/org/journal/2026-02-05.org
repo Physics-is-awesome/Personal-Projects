@@ -1,0 +1,40 @@
+:PROPERTIES:
+:ID:       20c14516-ab81-4e8f-84fd-16689e255a9e
+:END:
+#+title: 2026-02-05
+#+filetags: daily
+
+* Links to Book Chapters
+-
+
+* Plans
+As I mention in "Self-development" at this time I am working to return to normal. For this I have to re-establish and create habits
+to be the person I want to be.
+** 9:00 - 11:00
+- Wake-up
+- Prepare for the day
+- Hair-cut
+** 11:00 - 1:00
+- Exercise
+- Eat Lunch
+** 1:00 - 4:00
+- Do Calculus review exam
+** 4:00 - 5:00
+- Read
+        - The Karamazov Brothers
+        - Numerical Hamiltonian
+** 5:00 - 5:45
+- Eat
+** 5:45 - 6:00
+- Math discussion post
+** 6:00 - 7:00
+- Project
+        - Numerical Hamiltonian
+        - Website
+                - One idea is to create a kinda to do website based upon my schedule of that day.
+        - Writing
+        - Other
+** 7:30 - 8:30
+- Blank period for extra time to push things back
+** 8:30 - 10:00
+- Watch TV
