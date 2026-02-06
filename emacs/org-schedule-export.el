@@ -35,26 +35,33 @@ Return nil if TS is nil."
 ;; Task extraction
 ;; ----------------------------
 
-(defun schedule/org-extract-tasks (ast)
-  "Extract TODO headlines with scheduling info from org AST."
-  (let (tasks)
+(defun schedule/org-extract-headline-lists (ast)
+  "Extract headlines and their list items.
+
+Each level-2+ headline becomes a category.
+Each '-' list item under it becomes a task."
+  (let (results)
     (org-element-map ast 'headline
       (lambda (hl)
-        (let ((todo      (org-element-property :todo-keyword hl))
-              (title     (org-element-property :raw-value hl))
-              (scheduled (org-element-property :scheduled hl))
-              (priority  (org-element-property :priority hl))
-              (tags      (org-element-property :tags hl)))
-          ;; Only export TODO headlines
-          (when todo
-            (push
-             `((title     . ,title)
-               (todo      . ,todo)
-               (scheduled . ,(schedule/org-ts-to-iso scheduled))
-               (priority  . ,priority)
-               (tags      . ,tags))
-             tasks)))))
-    (nreverse tasks)))
+        (let ((level (org-element-property :level hl))
+              (title (org-element-property :raw-value hl)))
+          ;; Only classify ** and deeper
+          (when (>= level 2)
+            (let (items)
+              ;; Search only inside this headline
+              (org-element-map hl 'item
+                (lambda (it)
+                  (push
+                   (org-element-interpret-data
+                    (org-element-contents it))
+                   items)))
+              (when items
+                (push
+                 `((category . ,title)
+                   (items . ,(nreverse items)))
+                 results))))))
+    (nreverse results)))
+
 
 ;; ----------------------------
 ;; Grouping (by scheduled date)
