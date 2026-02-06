@@ -84,7 +84,7 @@ Each '-' list item under it becomes a task."
 
 If GROUP is non-nil, group tasks by scheduled date."
   (let* ((ast   (schedule/org-parse-file org-file))
-         (tasks (schedule/org-extract-tasks ast))
+         (tasks ((schedule/org-extract-headline-lists ast))
          (data  (if group
                     (schedule/group-tasks-by-date tasks)
                   tasks)))
