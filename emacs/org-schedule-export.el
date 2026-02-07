@@ -1,4 +1,4 @@
-;;; org-schedule-export.el --- Export org schedules to JSON -*- lexical-binding: t; -*-
+;;; Commentary: org-schedule-export.el --- Export org schedules to JSON -*- lexical-binding: t; -*-
 
 ;; ----------------------------
 ;; Dependencies
@@ -60,7 +60,7 @@ Each '-' list item under it becomes a task."
                  `((category . ,title)
                    (items . ,(nreverse items)))
                  results))))))
-    (nreverse results)))
+      (nreverse results))))
 
 
 ;; ----------------------------
@@ -85,12 +85,12 @@ Each '-' list item under it becomes a task."
 If GROUP is non-nil, group tasks by scheduled date."
   (let* ((ast   (schedule/org-parse-file org-file))
          (tasks ((schedule/org-extract-headline-lists ast))
-         (data  (if group
-                    (schedule/group-tasks-by-date tasks)
-                  tasks)))
-    (with-temp-file json-file
-      (let ((json-encoding-pretty-print t))
-        (insert (json-encode data))))))
+                (data  (if group
+                           (schedule/group-tasks-by-date tasks)
+                         tasks)))
+         (with-temp-file json-file
+           (let ((json-encoding-pretty-print t))
+             (insert (json-encode data)))))))
 
 ;; ----------------------------
 ;; Convenience commands
