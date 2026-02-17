@@ -1,1 +1,68 @@
-null
+{
+  "nil": [
+    {
+      "category": "8:30 - 10:00",
+      "items": [
+        "Watch TV\n"
+      ]
+    },
+    {
+      "category": "7:30 - 8:30",
+      "items": [
+        "Blank period for extra time to push things back\n"
+      ]
+    },
+    {
+      "category": "6:00 - 7:00",
+      "items": [
+        "Project\n- Numerical Hamiltonian\n- Website\n  - One idea is to create a kinda to do website based upon my schedule of that day.\n- Writing\n- Other\n",
+        "Numerical Hamiltonian\n",
+        "Website\n- One idea is to create a kinda to do website based upon my schedule of that day.\n",
+        "One idea is to create a kinda to do website based upon my schedule of that day.\n",
+        "Writing\n",
+        "Other\n"
+      ]
+    },
+    {
+      "category": "5:45 - 6:00",
+      "items": [
+        "Math discussion post\n"
+      ]
+    },
+    {
+      "category": "5:00 - 5:45",
+      "items": [
+        "Eat\n"
+      ]
+    },
+    {
+      "category": "4:00 - 5:00",
+      "items": [
+        "Read\n- The Karamazov Brothers\n- Numerical Hamiltonian\n",
+        "The Karamazov Brothers\n",
+        "Numerical Hamiltonian\n"
+      ]
+    },
+    {
+      "category": "1:00 - 4:00",
+      "items": [
+        "Do Calculus review exam\n"
+      ]
+    },
+    {
+      "category": "11:00 - 1:00",
+      "items": [
+        "Exercise\n",
+        "Eat Lunch\n"
+      ]
+    },
+    {
+      "category": "9:00 - 11:00",
+      "items": [
+        "Wake-up\n",
+        "Prepare for the day\n",
+        "Hair-cut\n"
+      ]
+    }
+  ]
+}

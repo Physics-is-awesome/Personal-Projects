@@ -1,5 +1,5 @@
 \chapter{Logic}
-% Insert quote here
+“One must be able to say at all times—instead of points, lines, and planes—tables, chairs, and beer mugs.” | David Hilbert
 % Extra line
 \singlespacing
 \section{Introduction}
@@ -35,12 +35,41 @@ An astute observer can find that these mean the same thing, my is more of an exp
 \begin{definition}
     Axiom: a statement accepted as true as the basis for argument or inference.
 \end{definition}
-\section{Formal Logic}
-Let us start with formal logic, a system of symbols to be able to represent logic. Then build from there.
-\subsection{Classical logic}
-The most basic form of logic is classical logic, the examination of simple singular objects.
+
+
+
+
+
+
+
+
+
+
+
+
+\section{***** }
+I am currently a little stuck on how to write this chapter, so I will return at a later point.
 \subsubsection{Propositional logic}
 The most basic form of classical logic, but instead of telling you now, I will develop it.
+\subsubsection{Axiom System for the Propositional Calculus}
+For this simple system a number of axioms must be assumed:
+\begin{itemize}
+    \item $A \implies (B \implies A) $
+    \item $(A \implies (B \implies C)) \implies ((A \implies B) \implies (A \implies C)) $
+    \item (\neg B \implies \neg A) \implies (A \implies B) $
+
+
+\end{itemize}
+Then one rule of inference is needed. Modus Ponens(MP)
+
+From $A$ and $A \implies B $ infer $B$
+
+This defines all tautologies and thus the larger system as a whole.
+\subsubsection{Defining Tautologies}
+A tautology is simply a statement form that is always true, regardless of the truth values of the statement letters.
+
+An example would be the law of the excluded middle. $(A \lor (\neg A)). This is a statement that is true by definition and there is no case where
+it can be false. Axioms in logic are generally tautologies(such is the way are the once mentioned in the previous subsubsection).
 \subsubsection{Truth Tables}
 Negation is the first an simplest form. The symbol is $\neg$, so $\neg A$ is the negation of A.
 
@@ -77,3 +106,5 @@ $A \implies B$ means "if A, then B" meaning that A needs to happen for B or that
     F \quad T \quad \quad \quad  F \quad \quad \\
     F \quad F \quad \quad \quad  T \quad \quad
 \end{align*}
+
+There are a couple of other operators used in prepositional logic, but for not I will move on and if needed bring those back up at a later point.
