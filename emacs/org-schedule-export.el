@@ -36,37 +36,42 @@ Return nil if TS is nil."
 ;; ----------------------------
 
 (defun schedule/org-extract-headline-lists (ast)
-  "Extract headlines and their list items.
-
-Each level-2+ headline becomes a category.
-Each '-' list item under it becomes a task."
-  (let (results)
+  "Extract level-2 headlines and their direct list items."
+  (let ((results (make-hash-table :test #'equal)))
     (org-element-map ast 'headline
       (lambda (hl)
-        (let ((level (org-element-property :level hl))
-              (title (org-element-property :raw-value hl)))
-          ;; Only classify ** and deeper
-          (when (>= level 2)
-            (let (items)
-              ;; Search only inside this headline
-              (org-element-map hl 'item
-                (lambda (it)
-                  (push
-                   (org-element-interpret-data
-                    (org-element-contents it))
-                   items)))
-              (when items
-                (push
-                 `((category . ,title)
-                   (items . ,(nreverse items)))
-                 results))))))
-      (nreverse results))))
-
-
-;; ----------------------------
-;; Grouping (by scheduled date)
-;; ----------------------------
-
+        (when (= (org-element-property :level hl) 2)
+          (let ((title (org-element-property :raw-value hl))
+                (items '()))
+            (org-element-map
+                (org-element-contents hl)
+                'item
+              (lambda (it)
+                (let ((parent (org-element-property :parent it)))
+                  (when (eq (org-element-type parent) 'plain-list)
+                    (let ((text (schedule/org-item-text it)))
+                      (when text
+                        (push text items))))))
+              nil
+              nil)
+            (when items
+              (puthash
+               title
+               (append (gethash title results)
+                       (nreverse items))
+               results))))))
+    (let (out)
+      (maphash
+       (lambda (key value)
+         (push
+          `((category . ,key)
+            (items . ,(delete-dups value)))
+          out))
+       results)
+      (nreverse out))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                        ; Grouping (by date)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun schedule/group-tasks-by-date (tasks)
   "Group TASKS alist by scheduled date."
   (let (table)

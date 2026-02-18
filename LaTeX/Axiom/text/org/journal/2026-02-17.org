@@ -1,0 +1,45 @@
+:PROPERTIES:
+:ID:       f07ba197-b5da-442b-9046-19830c33c305
+:END:
+#+title: 2026-02-17
+#+filetags: daily
+
+* Bible reading
+** Old testament
+Why is Joseph testing with them even after hearing what they had to say while also giving them money
+** New Testament
+The kingdom of God takes in all, but not all remain.
+
+Interesting how such a radical take on ones word is used.
+** Psalm
+God rescues you and protects you from the enemies that are greater than you
+** Proverbs
+Pursue wisdom over all other virtues
+
+* Ideas for projects
+While I am still not in the headspace for in-depth research like before. I can still do things.
+* Schedule
+** Coding
+- Simple Julia
+- Play around with parallel computing
+- Learn some optimization
+** Writing
+- Continue Axiom Project
+- More on the metaphysical implications of duelist frame works
+- More physics writing outside of metaphysics
+  - Deriving basic equations in other formalism's(Nambu, metriplectic, etc)
+  - Classifications of poisson manifolds
+  - Understanding of Lie-Poisson reductions
+  - Chaos theory and integradability
+  - Numerical theory
+  - Infinite dimensional Hamiltonian systems
+  - Noether's theorem
+    - Understanding on metaphysical lens
+    - understanding mathematically
+    - General relativity breaking it
+  - Constructing 4-bracket metriplectic
+  - Metriplectic VS Generic
+  - Contact Geometry
+- Review papers
+** Math/Physics
+- continue reading my books
