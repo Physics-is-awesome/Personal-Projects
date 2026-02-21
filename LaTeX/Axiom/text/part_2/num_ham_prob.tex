@@ -1,5 +1,5 @@
-\chapter{Numerical Hamiltonian Problems}
-\section{Chapter 1: Hamiltonian Systems}
+\section{Numerical Hamiltonian Problems}
+\subsection{Chapter 1: Hamiltonian Systems}
 
 MacKay and Meiss have compiled great papers on the subject in 1987, Marsen (1992) offers a more geometric introduction.
 
@@ -13,7 +13,7 @@ $$ \dv{y}{t} =J^{-1} \grad H $$
 Where, $\grad $ is the gradient operator and $J$ is skew-symmetric Matrix
 
 
-\section{Chapter 2: Symplecticness}
+\subsection{Chapter 2: Symplecticness}
 
 As mentioned, Hamiltonian problems are exeptional. Most systems do not allow for area preservation(energy conservation, time symmetry, etc), which is a requirment of Hamiltonian systems.
 That is why exploration into other systems like Nambu, Metriplectic, etc is needed.
@@ -32,14 +32,14 @@ Explicit methods requires s number of evaluations per steps while implicit provi
 
 After reading this I wrote a program in Julia to compare the time it takes for both an explicit RK and Implicit to solve a ODE. It was more challenging than it should have been.
 
-\section{Chapter 4: Order Condition}
+\subsection{Chapter 4: Order Condition}
 
-More so COmputer science stuff, not so importaint at the moment but something to look at later.
+More so Computer science stuff, not so important at the moment but something to look at later.
 
-\section{Chapter 5: Implementation}
+\subsection{Chapter 5: Implementation}
 Really just the stuff I did earlier when writing my own implicit RK.
 
-\section{Chapter 6: Symplectic Integration}
+\subsection{Chapter 6: Symplectic Integration}
 
 If $ b_i a_{ij} + b_j a{ji} - b_i b_j = 0 $ for $i,j = 1,...,s$. Then the method is symplectic. They have a nice proof that I can use as a reference.
 
@@ -47,15 +47,66 @@ Most all symplectic methods are implicit.
 
 They go through solutions of various families of symplectic RK integration.
 
-\section{Chapter 7: Symplectic Order Conditions}
+\subsection{Chapter 7: Symplectic Order Conditions}
 
 I still don't get order conditions. I will end it at one point.
 
-\section{Chapter 8: Numerical Experimentations}
+\subsection{Chapter 8: Numerical Experimentations}
 
 Page 115 lists multiple symplectic numerical methods, the rest of the chapter examines them. Too much for me to write but useful and interesting
 information nonetheless.
 
 One thing I will say is that they claimed that Calvo is clearly the best and very little improvement is likely possible.
 
-\section{Chapter 10: Properties of Symplectic Integrators}
+\subsection{Chapter 10: Properties of Symplectic Integrators}
+\subsubsection{Backward error analysis}
+How much must the numerical problem be perturbed so that the numerical problem is equal to the analytical.
+This is especially useful in uncertain models, in which perturbation is the best we can do.
+
+This only holds if the numerical solution of time $t_n$ is computed by iterating $n$ times $1$ in the same symplectic maps. Thus, variable-step integrations fail.
+
+\subsubsection{Alternative Approach}
+There is another method through repeating periodically; though, this system is now non-autonomous and is discontinous.
+
+\subsubsection{Conserved Energy and Quantities}
+While there are exceptions for unique cases, generally one must choice whether to have conserved energy or sympletic structure. Obviously, choosing must
+be done by the researcher, but generally sympletic is superior for the fact that it does not confine the nature of the dynamics.
+
+There is a great deal of research into methods that exactly conserve H. This is not covered in the book.
+
+There are several ways to come with close approximations of H though.
+
+\subsubsection{KAM}
+KAM theory proves that symplectic methods can show that nonlinear effects are not destabilizing.
+
+\subsection{Chapter 11: Generating Functions}
+Mentioned earlier, $S$ can be used to express symplectic mappings and transformations. $S$ is a single real value function. This function it called
+the \emp{generating function}.
+
+\subsubsection{First kind}
+Let $(p*,q*) = \phi(p, q)$ be a sympletic transformation defined in a simply connected $\Omega$ domain. For each closed path $\gamma$:
+$$ \int_\gamma p dq-\int_\gamma p*dq* = 0$$
+Where $pdq$ is the differential form.
+
+Making it so that
+$$ dS= pdq - p*dq* $$
+
+Further assume that $q$ and $q*$ are functions independent of $\Omega$. If this is true we can express $S(p, q) $ as function $S^1$ of q and q*.. Thus,
+\[
+\begin{aligned}
+p &= \frac{\partial S^1}{\partial q},
+\end{aligned}
+\qquad
+\begin{aligned}
+p* &= \frac{\partial S^1}{\partial q*}
+\end{aligned}
+\]
+
+\subsubsection{Third kind}
+What happended to \emp{second}, I don't know.
+
+If q and q* are not independent. Then,if p and q* are independent you can express $S^3(p, q*). The rest is self-explanitory.
+
+\subsubsection{All kinds}
+One can use the Poincare generating function.
+\subsubsection{Hamiltonian-Jacobi}

@@ -1,0 +1,36 @@
+:PROPERTIES:
+:ID:       3a3102c0-e0b1-4fd5-a9b5-a4c3ade0d056
+:END:
+#+title: 2026-02-18
+#+filetags: daily
+
+* Plans
+My current plan, is to set weeks(or however long it takes to complete) with a theme.
+
+With a:
+- Coding Project
+- Reading Book
+- Mathematical/Physics Project/Paper reading
+- Writing on my own ideas
+
+Here is what I am thinking to my first set:
+
+** Set 1
+- Coding: Simple Lie Poisson reduction for orbit
+- Reading: Continue reading Numerical Hamiltonian Problems
+- Math: Derive Noether's Theorem for Hamiltonian Mechanics
+- Writing: Metaphysics of Noether's Theorem
+** Set 2:
+? I will figure it out later
+
+More ideas:
+
+Coding:
+- Compare Metriplectic to traditional Resistive-MHD
+        - Check things like error, CPU time, etc
+- Omega-X
+        - Develop SymPy to check Jacobi Identity and degenercy
+
+Math:
+- Entropy as a geometric quantity
+- Hamiltonian/Other SuperNova
