@@ -81,7 +81,7 @@ KAM theory proves that symplectic methods can show that nonlinear effects are no
 
 \subsection{Chapter 11: Generating Functions}
 Mentioned earlier, $S$ can be used to express symplectic mappings and transformations. $S$ is a single real value function. This function it called
-the \emp{generating function}.
+the \emph{generating function}.
 
 \subsubsection{First kind}
 Let $(p*,q*) = \phi(p, q)$ be a sympletic transformation defined in a simply connected $\Omega$ domain. For each closed path $\gamma$:
@@ -103,10 +103,46 @@ p* &= \frac{\partial S^1}{\partial q*}
 \]
 
 \subsubsection{Third kind}
-What happended to \emp{second}, I don't know.
+What happended to \emph{second}, I don't know.
 
-If q and q* are not independent. Then,if p and q* are independent you can express $S^3(p, q*). The rest is self-explanitory.
+If q and q* are not independent. Then,if p and q* are independent you can express $S^3(p, q*)$. The rest is self-explanitory.
 
 \subsubsection{All kinds}
 One can use the Poincare generating function.
 \subsubsection{Hamiltonian-Jacobi}
+This is another way to generate functions by turning dynamics into single nonlinear partial differential equations throught the equation:
+
+\{
+\pdv{S^3}{t}(\mathbf{p}, \mathbf{q^{*}}, t)+H(\mathbf{p}, \mathbf{q}, t) = 0
+\}
+While in writing this I use the third kind, it can be used for any kind.
+\subsubsection{Symplectic Integrators on Generating Functions}
+They talk about a lot of different research, not going into detail about any of it
+
+\subsection{Chapter 12: Lie Formulism}
+This being something that I have research well in the past is relatively simple. The Poisson Bracket:
+\[
+\pb_ham
+
+\]
+is defined by a couple of rules
+\begin{itemize}
+    \item Bileaniarity
+    \item Skew-Symmetry
+    \item Jacobi Condition
+    \item Leibiz' rule
+\end{itemize}
+By introducing 2d-dimensional vectors the equation becomes
+\[
+\pb{F}{G}= \grad{F^T}J^{-1}\grad{G}
+\]
+Where J is the skew-symmetry matrix.
+
+From here we can see that this works well the Hamiltonain equations of motion as
+\[
+\dot{y} = \pb{y}{H}
+\]
+
+Also, the hamiltonain is canonical $\iff$ the Poisson Bracket of any two functions remains invariant under changes in variables.
+
+\subsubsection{Lie Operators \& series}
