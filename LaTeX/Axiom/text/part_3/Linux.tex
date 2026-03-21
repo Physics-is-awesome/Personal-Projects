@@ -15,4 +15,246 @@ I am thinking of choicing alacritty
 While I plan to put all of my Emacs stuff in the GitHub to transer, what I am thinking
 is for this time to use NeoVim and then from there decide which to use.
 
-\section{}
+\section{AI summary}
+
+Rather than write the rest of it I had ChatGPT write a summary:
+
+\subsection{Core System Setup}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt update && sudo apt upgrade -y
+
+sudo apt install -y \
+build-essential cmake make ninja-build \
+git curl wget \
+htop tmux openssh-client openssh-server
+\end{lstlisting}
+
+\subsubsection{Purpose}
+
+\begin{itemize}
+    \item \texttt{build-essential}: Provides compilers and standard libraries
+    \item \texttt{cmake}: Cross-platform build system
+    \item \texttt{tmux}: Persistent sessions for long simulations
+    \item \texttt{ssh}: Remote access for distributed workflows
+\end{itemize}
+
+\subsection{Compilers}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt install -y gcc g++ gfortran clang
+\end{lstlisting}
+
+\subsubsection{Why Multiple Compilers?}
+
+Different compilers provide:
+
+\begin{itemize}
+    \item Different optimization strategies
+    \item Better compatibility with legacy codes
+    \item Access to vectorization and architecture-specific tuning
+\end{itemize}
+
+\subsubsection{Usage Example}
+
+\begin{lstlisting}
+gfortran -O3 -march=native simulation.f90 -o sim
+\end{lstlisting}
+
+\subsection{Scientific Libraries}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt install -y \
+libopenblas-dev liblapack-dev \
+libfftw3-dev \
+libhdf5-dev \
+libopenmpi-dev openmpi-bin
+\end{lstlisting}
+
+\subsubsection{Mathematical Role}
+
+\begin{itemize}
+    \item \textbf{BLAS/LAPACK}: Linear algebra (matrix solves, eigenvalues)
+    \item \textbf{FFTW}: Fast Fourier transforms
+    \item \textbf{HDF5}: Structured scientific data storage
+    \item \textbf{MPI}: Parallel distributed computation
+\end{itemize}
+
+\subsubsection{MPI Example}
+
+\begin{lstlisting}
+mpirun -np 4 ./simulation
+\end{lstlisting}
+
+\subsection{Python Scientific Environment}
+
+\subsubsection{Installation (Conda)}
+
+\begin{lstlisting}
+conda create -n physics python=3.11
+conda activate physics
+
+conda install numpy scipy matplotlib pandas numba sympy h5py
+\end{lstlisting}
+
+\subsubsection{Role in Workflow}
+
+Python acts as:
+
+\begin{itemize}
+    \item Data analysis layer
+    \item Visualization interface
+    \item Rapid prototyping environment
+\end{itemize}
+
+\subsubsection{Example}
+
+\begin{lstlisting}
+import h5py
+import numpy as np
+
+f = h5py.File("output.h5", "r")
+data = np.array(f["density"])
+\end{lstlisting}
+
+\subsection{Fortran Development}
+
+\subsubsection{Tools}
+
+\begin{lstlisting}
+pip install fpm
+\end{lstlisting}
+
+\subsubsection{Why Fortran?}
+
+\begin{itemize}
+    \item Efficient array operations
+    \item Strong numerical performance
+    \item Widely used in legacy HPC codes
+\end{itemize}
+
+\subsection{Visualization}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt install gnuplot paraview
+\end{lstlisting}
+
+\subsubsection{Purpose}
+
+\begin{itemize}
+    \item \textbf{gnuplot}: Quick plotting
+    \item \textbf{ParaView}: Large-scale simulation visualization
+\end{itemize}
+
+\subsection{LaTeX Environment}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt install texlive-full
+\end{lstlisting}
+
+\subsubsection{Purpose}
+
+LaTeX is used for:
+
+\begin{itemize}
+    \item Research papers
+    \item Technical documentation
+    \item Mathematical derivations
+\end{itemize}
+
+\subsection{Editors}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt install emacs
+\end{lstlisting}
+
+\subsubsection{Usage Philosophy}
+
+\begin{itemize}
+    \item Emacs: Integrated research environment
+\end{itemize}
+
+\subsection{Containers and Reproducibility}
+
+\subsubsection{Installation}
+
+\begin{lstlisting}
+sudo apt install docker.io
+\end{lstlisting}
+
+\subsubsection{Purpose}
+
+\begin{itemize}
+    \item Reproducible environments
+    \item Dependency isolation
+    \item Portable experiments
+\end{itemize}
+
+\subsection{Workflow Architecture}
+
+\subsubsection{Full Pipeline}
+
+\begin{enumerate}
+    \item Write simulation code (Fortran/C++)
+    \item Compile with optimized libraries
+    \item Run locally or via MPI
+    \item Output data in HDF5 format
+    \item Analyze using Python
+    \item Visualize results
+    \item Document in LaTeX
+\end{enumerate}
+
+\subsection{Directory Structure}
+
+\begin{lstlisting}
+~/projects/
+~/simulations/
+~/data/
+~/papers/
+~/notes/
+\end{lstlisting}
+
+\subsection{Advanced Topics}
+
+\subsection{Performance Optimization}
+
+\begin{itemize}
+    \item Use \texttt{-O3 -march=native}
+    \item Profile with \texttt{perf} or \texttt{gprof}
+    \item Optimize memory access patterns
+\end{itemize}
+
+\subsubsection{Parallel Scaling}
+
+\begin{itemize}
+    \item Domain decomposition
+    \item MPI communication patterns
+    \item Load balancing
+\end{itemize}
+
+\subsubsection{Reproducibility Strategy}
+
+\begin{itemize}
+    \item Version control (git)
+    \item Environment locking (conda)
+    \item Containerization (Docker)
+\end{itemize}
+
+
+\section{3/20/26}
+
+I had some trouble with having different scalling for different displays. I ended up figuring out to change the GNOME from X11 to Wayland.
+
+I was not able to make sure that the cursor switching works as I wanted, as far as I can tell there is nothing I can do to fix that.
