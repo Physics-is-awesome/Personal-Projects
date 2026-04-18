@@ -84,23 +84,18 @@ Mentioned earlier, $S$ can be used to express symplectic mappings and transforma
 the \emph{generating function}.
 
 \subsubsection{First kind}
-Let $(p*,q*) = \phi(p, q)$ be a sympletic transformation defined in a simply connected $\Omega$ domain. For each closed path $\gamma$:
+Let $(p^*,q^*) = \phi(p, q)$ be a sympletic transformation defined in a simply connected $\Omega$ domain. For each closed path $\gamma$:
 $$ \int_\gamma p dq-\int_\gamma p*dq* = 0$$
 Where $pdq$ is the differential form.
 
 Making it so that
-$$ dS= pdq - p*dq* $$
+$$ dS= pdq - p^*dq^* $$
 
 Further assume that $q$ and $q*$ are functions independent of $\Omega$. If this is true we can express $S(p, q) $ as function $S^1$ of q and q*.. Thus,
-\[
-\begin{aligned}
-p &= \frac{\partial S^1}{\partial q},
-\end{aligned}
-\qquad
-\begin{aligned}
+\begin{align}
+p &= \frac{\partial S^1}{\partial q}, \\
 p* &= \frac{\partial S^1}{\partial q*}
-\end{aligned}
-\]
+\end{align} 
 
 \subsubsection{Third kind}
 What happended to \emph{second}, I don't know.
@@ -112,9 +107,9 @@ One can use the Poincare generating function.
 \subsubsection{Hamiltonian-Jacobi}
 This is another way to generate functions by turning dynamics into single nonlinear partial differential equations throught the equation:
 
-\{
+\[
 \pdv{S^3}{t}(\mathbf{p}, \mathbf{q^{*}}, t)+H(\mathbf{p}, \mathbf{q}, t) = 0
-\}
+\]
 While in writing this I use the third kind, it can be used for any kind.
 \subsubsection{Symplectic Integrators on Generating Functions}
 They talk about a lot of different research, not going into detail about any of it
@@ -122,8 +117,7 @@ They talk about a lot of different research, not going into detail about any of 
 \subsection{Chapter 12: Lie Formulism}
 This being something that I have research well in the past is relatively simple. The Poisson Bracket:
 \[
-\pb_ham
-
+\pbHam
 \]
 is defined by a couple of rules
 \begin{itemize}
@@ -134,7 +128,7 @@ is defined by a couple of rules
 \end{itemize}
 By introducing 2d-dimensional vectors the equation becomes
 \[
-\pb{F}{G}= \grad{F^T}J^{-1}\grad{G}
+\pb{F}{G}= \grad{F^T}J^{-1} \grad{G}
 \]
 Where J is the skew-symmetry matrix.
 
@@ -143,6 +137,23 @@ From here we can see that this works well the Hamiltonain equations of motion as
 \dot{y} = \pb{y}{H}
 \]
 
-Also, the hamiltonain is canonical $\iff$ the Poisson Bracket of any two functions remains invariant under changes in variables.
+Also, the hamiltonain is canonical iff the Poisson Bracket of any two functions remains invariant under changes in variables.
 
 \subsubsection{Lie Operators \& series}
+Powers of lie operators can be expanded to compositions of lie operators, or vise versa. This can be used as an equivalent to a derivative as a function of time for Hamiltonian systems.
+
+Using the exponential operator on the lie operator, one can find the taylor series expansion of a flow(for integration) by choosing G to be one of the coordinate functions.
+\subsubsection{Multiplication of exponentials}
+Composing two exponential lie oporators repersents the composition of flows; specifically $\phi_{t-F_1}(\phi_{t-F_2})$ in that order.
+
+\subsubsection{Baker-Campbell-Hausdorff formula}
+If one wishes to find $e^xe^y=e^z$ and X and Y are non-communters,it can be found through the infinite series:
+\[
+Z = X + Y + \frac{1}{2} \pb{x}{y} + \frac{1}{12} \pb{X}{\pb{x}{y}} - \frac{1}{12} \pb{Y}{\pb{X}{Y}} + ...
+  \]
+\subsubsection{Fractional-Step Method}
+I don't get this...
+
+\subsection{Chapter 13: Higher Order Methods}
+
+After reading my book on Lie Algebra I should come back to this

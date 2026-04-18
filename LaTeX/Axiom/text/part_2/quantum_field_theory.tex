@@ -1,0 +1,56 @@
+\section{MIT 8.323 Relativistic Quantum Field Theory 1}
+
+\subsection{Lecture 1: Classical Field Theories and Principle of Locality}
+The first part goes over trivial procceses in field theory and general mathematics. The main note on this section would be the principle of Locality:
+\[
+L = \int d^3 x \mathcal{L} \left(\phi_a , \partial_t \phi_a , \partial_i \phi_a  \right)
+  \]
+
+  Where $\phi_a(\vec{x}, t)$: general fields.
+$\mathcal{L}$ is a function of $\phi$ and its derivatives. $\mathcal{L}$ is called the Lagrangian density.
+
+For this form it constrains all dynamics so that all actions must be local. It is used by a single integral to enforce this. Another constraint is one will only use the first derivative in time. This is because including a second order time derivative will make an equation of motion with an initial condition with an acceleration which includes arbitrary complications without need. This rule is less important and fundamental but is used to make things easier. Lastly, in this class, being that it is relativistic one won't need additional spacial derivatives, but in classical models this in not the case.
+
+Canonical momentum density is exactly what one would expect.
+\[
+\Pi_a = \frac{\partial \mathcal{L}}{\partial \phi_a}
+  \]
+  Hamiltonian is defined the same way.
+
+  One brief note on notation, in this x is simply a label for a degree of freedom, there can be infinite such degrees of freedom. Also, the teacher is using Einstein's notation that repeated indices will be summed.
+
+
+\subsubsection{Equations of motion}
+He gives an example through:
+\[
+  \delta s = 0
+\]
+\[
+S = \int dt L
+  \]
+\[
+0 = \delta s = \int d^4 x \left[ \frac{\partial \mathcal{L}}{\partial \phi_a} \delta_a + \frac{\partial \mathcal{L}}{\partial(\partial_\mu \phi_a)} \delta(\partial_\mu \phi_a\right]
+  \]
+  One can simplify this through integration by parts
+
+  As for boundary conditions. One will choose $\delta \phi_a $ so that boundary conditions will vanish. Thus one will not need to worry about that.
+
+This thus implies that $ \frac{\partial \mathcal{L}}{\partial \phi_a} - \partial_\mu \left( \frac{\partial \mathcal{L}}{\partial(\partial_\mu \phi_a)} \right) = 0$.
+
+From now on all things will be translationally invariant and Lorentz invariant.
+
+He briefly goes over the simplest form of a quantum field, a scalar field.(Pion or higgs)
+
+It follows a very similar model:
+\[
+S = \int d^4 x \left[ -1/2, \partial_\mu \phi, \partial^\mu \phi - V(\phi) \right]
+  \]
+
+  Transnational symmetry means that all parameters of $V(\phi)$ must be constant. V is the same as the Lagrangian density
+
+Using this equation one can once again find the Hamiltonian Density and thus Hamiltonian. To give a simple equation of motion.
+
+He goes through a famous Klein-Gordan:
+\[
+\partial^2 \phi - m^2 \phi = 0
+  \]
