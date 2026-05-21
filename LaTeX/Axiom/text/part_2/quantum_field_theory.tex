@@ -54,3 +54,59 @@ He goes through a famous Klein-Gordan:
 \[
 \partial^2 \phi - m^2 \phi = 0
   \]
+\subsection{Lecture 2: Symmetries and Conservation Laws}
+
+I forgot to save my notes last time, so those are gone. It was generally pretty simple going over Noether theorem and defining types of symmetries at the beginning.
+
+Some how it deleted again... oh well, moving on.
+
+\subsection{Lecture 3: Why Quantum Field Theory}
+
+Non-Relativistic Schrodinger equation
+
+\[
+\partial^2 \psi - m^2 \psi = 0
+  \]
+  Simplest scalar field theory
+\[
+S= - \frac 12 \int dx (\partial_\mu \phi \partial^\nu \phi + m^2 \phi^2)
+  \]
+  Implies
+\[
+\partial^2 \phi -m^2 \phi = 0
+  \]
+
+  This changes $\phi(t, x)$ where x becomes an eigenvalue rather than a coordinate.
+
+In relativistic quantum mechanics, there are several challenges. For one, no way to define a positive probability density. Also, there exists negative energy states. You must describe a fixed number of particles without changing. As equations change as wavefunctions change. This troubles with relativity as energy can create particles, adding additional difficulty. Finally, there is a fundamental asymmetry between the parameter t and the eigenvalues of x.
+
+Therefore, relativistic quantum mechanics one cannot give a fundamental description.(at best an approximate, no particle creation or annihilation) The solution of this is quantum field theory, simply the quantization of classical field theory.(using t and x as parameters not eigenvalues) Field theory can also arise as a limit of discrite systems.
+
+In classical field theory, one takes the originally discrite Lagrangian and defines $\phi(x_n,t)$ to be the discrite parts. From here a simple Taylor expanse can be used to change all of the interaction terms to in the form of the new continuum. Finally one may derive the field-theoretic Euler-Lagrange equation.
+
+Quantization of harmonic oscillator in Heisenberg picture.
+
+\[
+L=\frac 1 2 \dot{x} - \frac{\omega^2}{2}x^2
+  \]
+\[
+p=\dot{x}
+  \]
+\[
+H=\frac{p^2}{2}+\frac 1 2 \omega^2x^2
+  \]
+\[
+\ddot{x}+\omega^2x=0
+  \]
+  The quantum solution is exactly the same, exept x becomes an operator:
+\[
+\hat{x}(t)= \hat{A}\cos{\omega t} + \hat{B} \sin{\omega t}
+  \]
+  From here one can define the hilbert space to define through $ [\hat{a}, \hat{a^+} ] i$
+\[
+|h>= \frac{1}{\sqrt{n!}}(\hat{a^+})^n | 0>
+  \]
+
+  One can then use this to quantize a field theory. First, find the most general solution of the EOM. Second, promote the integration constants to constant operators to give full time evolution. Impose canonical quantization conditions$\{q,p \}=1$ thus, $ [\hat{q}, \hat{p} ]= ih$. Finally, use this to develop Hilbert Space.
+
+\subsection{Lecture 4: Canonical Quantization of a Free Scalar Field Theory}

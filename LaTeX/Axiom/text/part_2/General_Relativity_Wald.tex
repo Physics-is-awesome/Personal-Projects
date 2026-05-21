@@ -1,0 +1,219 @@
+\section{General Relativity by Robert M. Wald}
+
+\subsection{Manifolds and Tensor Fields}
+\subsubsection{Manifolds}
+Spacetime is a four-dimensional continuum and by that nature a manifold is simply a multi-dimensional continuum.
+
+When going over this concept they first present an open ball, where  all points distance from a chosen center is always strictly less than some radius. Essentially the inside of some interval, circle, sphere, etc. Then an open set in $\mathbb{R}^n$ is any set that can be expressed as a union of open balls. This make $\mathbb{R}^n$ a topological space.
+
+Essentially a manifold is a set made up of peices that "look like" open subsets of $\mathbb{R}^n$. These peices can be "sewn together" smoothly. This can be more precisely defined a n-dimensional, $C^{\infty}$, real manifold M is a set together with a collection of subsets $\{ O_\alpha \}$ that satisfies the following properties: $O_\alpha$ covers the entire manifold, all points can be mapped onto another subset of $\mathbb{R}^n$, such subsets must be differentiable.
+
+These maps $\phi_\alpha$ are generally called charts by mathematicians and coordinate systems by physicist. They further define the maps to be homeomorphic, or that all mappings perserve topological properties.
+
+In Euclidean space they map a sphere into a two dimensional manifold; because, pieces can be smoothly sewn together. This then satisfies the above conditions.
+
+\subsubsection{Vectors}
+
+Because traditional vectors do not work in geometric curvature, vectors will be instead used as directional derivatives, rather than an intrinsic structure. These directional derivatives are characterized by their linearity and "Leibnitz" rule. Letting F denote collections of smoothly differentiable functions from M to R, $v: F \to \mathbb{R}$. Also, they give a proof that dim V = n = dim M. They also define the vector transformation law which is defined as:
+
+$$v^{'v}=\sum_{\mu=1}^n v^\mu \frac{\partial x^{'v}}{\partial x^\mu}$$
+
+\subsection{Tensors; the Metric Tensor}
+
+To define a tensor one must first define a dual vector space. A dual vector space is a space of the functional transformations from vectors to linear measurements. A double vector space takes those linear measurements and turns them into scalars. This double dual space is isomorphic to the original vector space. Reconstructing all measurements. This double dual space can be used to reconstruct the vector space using the dual vector space.
+
+Now to define a tensor, T, of type (k,l):
+\[
+T: V^* \times ... \times V^* \times V \times ... \times V \to \mathbb{R}
+\]
+In other words, given k dual vectors and l ordinary vectors, T produces a number. A number that if one where to fix the values of all of the other vectors and dual vectors, it is a linear map on the remaining variable. Thus, according to this definition, a tensor of type (0,1) is a dual vector. Of type (1, 0) a double dual vector. Because double dual vectors identify with traditional vectors, they are simply vectors. From this identification one can construct higher types of tensors. (1,1) is a multilinear map from V to V or for the other side.
+
+There are two important operations on tensors. The first being called the contraction. Defined as $C: \lambda(k,l) \to \lambda (k-1, l-1)$. Thus if T is a tensor of type (k,l), then:
+\[
+CT= \sum_{\sigma=1}^n T(..., v^{\sigma^*},...;...,v_\sigma,...)
+  \]
+  Where $v_\sigma$ is the basis of V and $v^{sigma^*}$ is its dual basis. These vectors are inserted into the ith and jth slot of T.(note this is specifically the contraction of tensor of type (1,1)).
+The next operation being the outer product if T and T'. Denoted as $T \otimes T^{'}$, by the following rules. Given (k+k') dual vectors $v^{k+1*},...,v^{k+k^{'*}}$ and the equivalent for l vectors. $T \otimes T^{*'}$ is defined as the product of $T(v^{1*},...,v^{k*};w_1,...,w_l)$ and $T(v^{k+1*},...,v^{k+k'*};w_{l+1},...,w_{l+l'})$. Thus, one way of constructing tensors is to take the outer product of vectors and dual vectors. A tensor of this would be called simple. From this any tensor of type (k,l) can be expressed as a sum of simple tensors.
+\[
+    T= \sum_{\mu_1,...,v_l=1}^n T^{\mu_1...\mu_k}_{v_1,...,v_l}v_{\mu_1} \otimes ... \otimes v^{v_l^*}
+  \]
+  The basis expansion of coefficens are called components of the tensor.
+
+  This discussion above refers to arbitrary finite-dimensional vector spaces. Now let us move onto where V is the tangent space $V_p$ at point p of a manifold M. In this $V_p^*$ is refereed to as the contangent space. Where at this point the vectors are cotangent vectors. Another term would be in V they are contravariant vectors and V* as covariant vectors.(remember $dx^\mu$ is a symbol that merely is defined as $dx^\mu(\frac{\partial}{\partial x^v})=\delta^\mu_v$).
+
+Finally, we have the defining property of all tensors, tensor transformation law.(though a multilinear map on vectors and dual vectors also works)
+\[
+T'^{\mu_1 \dots \mu_k}{}_{\nu_1 \dots \nu_l}
+=
+\frac{\partial x'^{\mu_1}}{\partial x^{\alpha_1}}
+\dots
+\frac{\partial x'^{\mu_k}}{\partial x^{\alpha_k}}
+\frac{\partial x^{\beta_1}}{\partial x'^{\nu_1}}
+\dots
+\frac{\partial x^{\beta_l}}{\partial x'^{\nu_l}}
+T^{\alpha_1 \dots \alpha_k}{}_{\beta_1 \dots \beta_l}
+  \]
+(for future notice this in Einstein summation)
+
+Now we have a tensor field. I will also add that coovariant vector field is as smooth as contravariant vector field. The tensor field's smoothness is defined the same way.
+
+Now one introduces a metric. Intuitively the metric gives the "infinitesimal square distance" associated with "infinitesimal displacement." As mentioned earlier this displacement is defined by the tangent vector. Thus a metric g, should be a linear map from $V_p \times v_p$ into numbers, ie a tensor of type (0,2). In addition, the metric must be symmetric and nondegenerate. Meaning $g(v_1,v_2)= g(v_2,v_1)$ and $g(v,v_1)=0$. Where $v_1 = 0$.
+
+In a coordianate basis, we may expand a metric in terms of its components as:
+\[
+g= sum_{\mu,v} g_{\mu \nu} dx^\mu \otimes dx^{\nu}
+  \]
+  Sometimes $ds^2$ is used in place of g to represent the metric tensor. Given a metric g, we can always find an orthonormal basis. The number of + and - signs occurring is called the signature of the metric. The Lorentzian is defined as - + + +.
+
+\subsubsection{Abstract Index Notation}
+In this indices do not represent components or numbers but rather the type of tensor. Repeated indices imply contraction(as lables not coordinate slots.)
+
+Also, (ab) implies symmetry and [ab] implies antisymmetry.
+
+Lastly, repeated index implies summation automatically.
+
+\subsection{Curvature}
+Generally curvature is defined as extrinsic curvature of a "surface" embedded in a higher dimensional space. There is also intrinsic curvature.
+
+Essentially, this intrinsic curvature can be defined through parallel transport. From here a geodesic is a curve whose tangent is parallel-transported along itself, or the "straightest possible" curve. A space is curved if a parallel geodesic is no longer parallel. One can use the definition of a derivative to define parallel transport as when the derivative along a given curve is 0. Thus the definition of curvature can be defined in terms of failure of successive differentiation on tensor fields to commute. Another thing to add is that given a metric manifold there exists a unique notion of parallel transport in which perserves the inner product of all pairs of vectors.
+
+\subsubsection{Derivative Operators and Parallel Transport}
+
+A derivative operator $\Delta$(sometimes called a covariant derivative) takes every differentiable tensor field of type (k,l) to a smooth tensor field of type (k, l+1) and satisfies linearity, Leibnitz rule, commutativity with all contraction, consistency, and torsion free(this fifth one is sometimes dropped).
+
+Given this one can derive an expression for the commutator of two vector fields.
+\[
+    [\nu, w]^b = \nu^a \Delta_a w^b - w^a \Delta_a v^b
+  \]
+
+  Next, the Christoffel symbol can be found as
+\[
+\Delta_a t^b = \partial_a t^b + \Gamma^b_{ac}t^c
+  \]
+  Now as mentioned earlier, parallel transport can be defined as
+\[
+t^a \Delta_a T^{b_1...}_{c_1...}=0
+  \]
+
+  If one choices a coordinate system it can then be defind as:
+\[
+t^a \partial_a v^b + t^a \Gamma^b_{ac}v^c = 0
+  \]
+  Or in terms of components in the coordinate system:
+\[
+\frac{dv^\nu}{dt} + \sum_{\mu , \nu} t^\mu \Gamma^\nu_{\mu \lambda}v^\lambda = 0
+  \]
+
+  While many forms of derivative operators can be defined from the general structure of a manifold, but metric manifolds privilege a specific kind.
+
+  In this case the Christoffel symbol can be defined by:
+
+\[
+  \Gamma^c_{ab} = \frac 12 g^{cd}\left(\hat{\Delta}_a g_{bd}+ \hat{\Delta}_b g_{ad} - \hat{\Delta}_d g_{ad} \right)
+  \]
+
+  Where $\hat{\Delta}$ refers to an arbitrary derivative operator.
+
+\subsubsection{Curvature}
+
+The Riemann Curvature Tensor is defined by:
+\[
+\Delta_a \Delta_b \omega_c - \Delta_b \Delta_a \omega_c = R_{abc}^d \omega_d
+  \]
+
+  From here the total change in the vector v can be found by:
+\[
+\delta v^a = \Delta t \Delta s v^d T^c S^b R_{cbd}^a
+  \]
+  Where s and t repersent infintesimal changes within the metric during the transport.
+
+  Now the key properties of the Riemann tensor are
+\[
+R_{abc}^d = - R_{bac}^d
+\]
+\[
+R_{[abc]}^d = 0
+\]
+\[
+R_{abcd}=-R_{abdc}
+\]
+And the Bianchi identity holds
+
+Decomposing the Riemann tensor into "trace part" and a "trace tree part" can be usful. As a trace over the first two or last two can to vanish
+\[
+R_{abc}^b=R_{ac}=R_{ca}
+\]
+The scalar curvature is further defined as
+\[
+R=R_a^a
+\]
+The "trace free part" is called the Weyl Tensor $C_{abcd}$ and is defined for manifolds $n >= 3$ by the equation
+\[
+R_{abcd}= C_{abcd} + \frac{2}{n-2}
+\]
+
+The Riemann Curvature Tensor is defined by:
+\[
+  \Delta_a \Delta_b \omega_c - \Delta_b \Delta_a \omega_c = R_{abc}^d \omega_d
+\]
+From here the total change in the vector v can be found by:
+\[
+\delta v^a = \Delta t \Delta s v^d T^c S^b R_{cbd}^a
+  \]
+
+Where s and t repersent infintesimal changes within the metric during the transport.
+
+Now the key properties of the Riemann tensor are
+\[
+R_{abc}^d = - R_{bac}^d
+\]
+\[
+R_{[abc]}^d = 0
+\]
+\[
+R_{abcd}=-R_{abdc}
+\]
+And the Bianchi identity holds
+
+Decomposing the Riemann tensor into "trace part" and a "trace tree part" can be usful. As a trace over the first two or last two can to vanish
+\[
+R_{abc}^b=R_{ac}=R_{ca}
+  \]
+  This defines the Ricci Tensor $R_{ac}$. From here the scalar Curvature, R, is defined as the trace of the Ricci tensor.
+\[
+R=R_a^a
+\]
+
+The "trace free part" is called the Weyl Tensor, $C_{abcd}$, and when diminsions are greater than 3.
+\[
+    C_{abcd}
+= R_{abcd}
+- \frac{2}{n-2}\left(g_{a[c}R_{d]b} - g_{b[c}R_{d]a}\right)
++ \frac{2}{(n-1)(n-2)}R\, g_{a[c}g_{d]b}.
+  \]
+  Because it behaves easily in conformal transformations it is sometimes referred to as the conformal tensor.
+
+  Next, Einstein tensor is found from the twice contracted Bianchi identity:
+\[
+G_{ab}=R_{ab}- \frac{1}{2}R g_{ab}
+  \]
+  This tensor is used to ensure the consistency of Einstein's equations.
+
+\subsubsection{Geodesics}
+One can define a geodesic as a curve whose tangent, $T^a$ satisfies this equation
+\[
+T^a \Delta_a T^b = 0
+  \]
+  Actually, one does not need to force the same length so this weaker condition may be true
+\[
+T^a \Delta_a T^b = \alpha T^b
+  \]
+  Where $\alpha$ is an arbitrary function on the curve.
+
+Thus, this means that a geodesic must be affine parameterized. Thus in a coordinate basis this becomes.
+\[
+\frac{d^2 x^\mu}{dt^2}+ \sum_{\sigma, \nu} \Gamma^\mu_{\sigma \nu} \frac{dx^\sigma}{dt} \frac{dx^\nu}{dt}=0
+  \]
+  Next, in order for simpler calculation, a Remmanian Normal coordinate can be used in which all geodesics are straight lines. It follows that the Christoffel symbol will vanish in this case.
+
+  In another form in which the derivative operator arises from the metric. One will use the Gaussian normal coordinate system. It is most useful when given a hypersurface.

@@ -63,9 +63,8 @@
 (package! simple-httpd)
 
 ;; LaTeX helpers
-(package! auctex)
-(package! company-auctex)
 (package! cdlatex)
+(package! auctex)
 
 ;; Org-babel languages / Jupyter
 (package! jupyter)

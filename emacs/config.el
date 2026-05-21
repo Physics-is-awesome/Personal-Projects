@@ -81,8 +81,8 @@
 ;; PATHS — Your LaTeX book + Org-roam directory
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq axiom-root "~/Personal-Projects/LaTeX/Axiom/text/")
-(setq org-roam-directory (file-truename "~/Personal-Projects/LaTeX/Axiom/text/org/"))
+(setq axiom-root "~/Code/Personal-Projects/LaTeX/Axiom/text/")
+(setq org-roam-directory (file-truename "~/Code/Personal-Projects/LaTeX/Axiom/text/org/"))
 (setq org-roam-dailies-directory "journal/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,7 +91,7 @@
 (use-package! org-roam
   :custom
   ;; Set your Org-roam directory
-  (org-roam-directory "~/Personal-Projects/LaTeX/Axiom/text/org")   
+  (org-roam-directory "~/Code/Personal-Projects/LaTeX/Axiom/text/org")
   :config
   ;; Keep the database in sync automatically
   (org-roam-db-autosync-mode)
@@ -194,7 +194,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun axiom/link-chapter ()
-  "Insert a link to a LaTeX chapter file within ~/Personal-Projects/LaTeX/Axiom/text/."
+  "Insert a link to a LaTeX chapter file within ~/Code/Personal-Projects/LaTeX/Axiom/text/."
   (interactive)
   (let* ((root (concat axiom-root "text/"))
          (file (read-file-name "Choose chapter: " root)))
@@ -235,7 +235,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (after! projectile
-  (add-to-list 'projectile-project-search-path "~/Personal-Projects/LaTeX/"))
+  (add-to-list 'projectile-project-search-path "~/Code/Personal-Projects/LaTeX/"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TREEMACS
@@ -253,11 +253,11 @@
   (let ((chapters-dir (concat "~/Personal-Projects/LaTeX/Axiom/org/chapters/")))
     ;; Create the chapters directory if it doesn't exist
     (make-directory chapters-dir t)
-    
+
     ;; Collect all .tex files from main/ and text/ recursively
     (let ((tex-files (append
-                      (directory-files-recursively "~/Personal-Projects/LaTeX/Axiom/main/" "\\.tex$")
-                      (directory-files-recursively "~/Personal-Projects/LaTeX/Axiom/text/" "\\.tex$"))))
+                      (directory-files-recursively "~/Code/Personal-Projects/LaTeX/Axiom/main/" "\\.tex$")
+                      (directory-files-recursively "~/Code/Personal-Projects/LaTeX/Axiom/text/" "\\.tex$"))))
       ;; Loop through all .tex files
       (dolist (file tex-files)
         (let* ((slug (file-name-base file))
@@ -292,8 +292,8 @@ no Org metadata directives."
   (require 'ox)
   (require 'ox-latex)
 
-  (let* ((org-dir (expand-file-name "~/Personal-Projects/LaTeX/Axiom/text/org/journal/"))
-         (export-file (expand-file-name "~/Personal-Projects/LaTeX/Axiom/text/part_5/daily-notes.tex"))
+  (let* ((org-dir (expand-file-name "~/Code/Personal-Projects/LaTeX/Axiom/text/org/journal/"))
+         (export-file (expand-file-name "~/Code/Personal-Projects/LaTeX/Axiom/text/part_5/daily-notes.tex"))
          (files (directory-files-recursively org-dir "\\.org$"))
          (out-buf (get-buffer-create "*daily-export*"))
          (count 0))
@@ -397,4 +397,21 @@ no Org metadata directives."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(load! "../Personal-Projects/emacs/org-schedule-export.el")
+(load! "~/Code/Personal-Projects/emacs/org-schedule-export.el")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                        ; AuCTeX
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq TeX-save-query nil)
+(setq TeX-PDF-mode t)
+
+(after! tex
+  ;; Ensure "Check" exists before Doom tries to modify it
+  (unless (assoc "Check" TeX-command-list)
+    (add-to-list 'TeX-command-list
+                 '("Check"
+                   "chktex %s"
+                   TeX-run-command
+                   nil t))))
