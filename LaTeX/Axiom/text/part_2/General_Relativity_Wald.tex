@@ -216,4 +216,234 @@ Thus, this means that a geodesic must be affine parameterized. Thus in a coordin
   \]
   Next, in order for simpler calculation, a Remmanian Normal coordinate can be used in which all geodesics are straight lines. It follows that the Christoffel symbol will vanish in this case.
 
-  In another form in which the derivative operator arises from the metric. One will use the Gaussian normal coordinate system. It is most useful when given a hypersurface.
+  In another form in which the derivative operator arises from the metric. One will use the Gaussian normal coordinate system. It is most useful when given a hypersurface. They satisfy the important property that geodesics remain orthogonal to all the hypersurfaces.
+
+  For a curve on a manifold the length can be derived to be:
+  \[
+l = \int (g_{ab}T^a T^b)^{1/2}dt
+\]
+Where T is tangent to the curve and t is the curve parameter.
+
+Obviously this is very similar to the traditional length formula.
+
+For Lorenzian space, a curve is said to be timelike if the norm of its tangent is negative everywhere. Null if equal to zero. Spacelike if positive.( for signature(-+++) )
+
+When it is null, the length is obviously zero. If it is timelike, we change the sing in the square root and use the term proper times. $\tau$
+\[
+\tau = \int (-g_{ab}T^aT^b)^{1/2}dt
+\]
+
+Note, since a geodesic tangent is parallel transported and thus the norm is constant. Meaning they will not change signatures.
+
+Next, to find the curve whose length does not change to first order under arbitrary smooth deformations. More concisely put, the extremized length. For this we will take the example of a spacelike curve in coordinate basis.
+\[
+l=\int_a^b \left(\sum_{\mu, \nu]}g_{\mu \nu}\frac{dx^\mu}{dt}\frac{dx^\nu}{dt}  \right)^{1/2} dt
+\]
+
+Where $C(a)=p$ and $C(b)=q$ are the endpoints of the curve. The extremization problem is obviously mathematically identical to extremization problem in action or in most all cases.
+\[
+\delta l=\int_a^b \left(\sum_{\mu, \nu}g_{\mu \nu}\frac{dx^\mu}{dt}\frac{dx^\nu}{dt}  \right)^{1/2} \sum_{\alpha, \beta} \left( g_{\alpha \beta}\frac{dx^\alpha}{dt}\frac{d(\delta x^\beta)}{dt} + \frac{1}{2} \sum_\sigma \frac{\partial g_{\alpha \beta}}{\partial x^\sigma} \delta x^\sigma \frac{dx^\alpha}{dt}\frac{dx^\beta}{dt} \right) dt
+\]
+
+Because the length is paramerterized independently, we may assume the origional curve was parameterized so that
+
+\[
+g_{ab}T^aT^b = 1 = \sum_{\mu, \nu} g_{\mu \nu} \frac{dx^\mu}{dt}\frac{dx^\nu}{dt}
+\]
+
+Thus the equation can be simplified to
+\[
+0 = \int_a^b \sum_{\alpha \beta} \left( g_{\alpha \beta}\frac{dx^\alpha}{dt}\frac{d(\delta x^\beta)}{dt} + \frac{1}{2} \sum_\sigma \frac{\partial g_{\alpha \beta}}{\partial x^\sigma} \delta x^\sigma \frac{dx^\alpha}{dt}\frac{dx^\beta}{dt} \right) dt
+\]
+
+It can be further simplified, but essentially the main point is that a curve extremizes the length between its endpoints if and only if it is a geodesic. Similar proof can be used to find that the geodesic equation (with affine parameterization) can be obtained from variation of the Lagrangian
+\[
+L= \sum_{\mu, \nu} g_{\mu \nu} \frac{dx^\mu}{dt}\frac{dx^\nu}{dt}
+\]
+
+The final task of this section is to derive the geodesic deviation equation. Let $\gamma_s(t)$ denote a smooth one-parameter family of geodesics. $\Sigma$ denote the two-dimensional submanifold spanned by the curve. Let s and t be coordinates of $\Sigma$. Vector field $T^a = (\partial / \partial t)^a$ is tangent to the family of geodesics and, thus, satisfies $T^a \nabla_a T^b = 0 $. Vector field $X^a=(\partial / \partial s)^a$ repersents the deviation vector. There is ``gauge freedom'' in $X^a$. In the sense that $X^a$ changes if one changes the affine parameterization.
+
+One may ensure that X and T are orthogonal using the metric. Further ensuring that S is made in such a way that $X^a T_a =0$.
+
+Next $\nu^ = T^b \nabla_b X^a$ gives the rate of change along a geodesic of the displacement. Thus the relative velocity. Thus,
+\[
+a^a=T^c \nabla_c v^a = T^c \nabla_c(T^b \nabla_b X^a)
+\]
+
+Is the relative acceleration.
+\[
+a^a = -R_{cbd}^a X^b T^c T^d
+\]
+This, using the Riemann tensor, is known as the geodesic deviation equation.
+
+Thus, one can find curve if $R_{abc}^d = 0$.
+
+\subsubsection{Methods of Computing Curvature}
+
+To begin, one must choose the coordinate system. Express the derivative operator $\nabla_a$ in terms of the ordinary derivative $\partial_a$ of this coordinate system and the Christoffel symbol $\Gamma^c_{ab}$. For a dual vector field $\omega_a$, we have:
+\[
+\nabla_b \omega_c = \partial_b \omega_c - \Gamma^d_{bc} \omega_d
+\]
+thus,
+\begin{align}
+  \nabla_a \nabla_b \omega_c = \partial_a(\partial_b \omega_c - \Gamma^d_{bc} \omega_d), \\
+  &\quad - \gamma^e_{ab}(\partial_e \omega_c - \Gamma^d_{ec}\omega_d) \\
+  &\quad - \Gamma^e_{ac}(\partial_e \omega_c - \Gamma^d_{bd} \omega_d)
+\end{align}
+
+Thus, the Riemann curvature tensor can be expressed:
+\[
+R_{abc}^d \omega_d = [-2 \partial_{a}\Gamma^d_{bc} + 2 \Gamma^e_{ca} \Gamma^d_{be}] \omega_d
+\]
+
+This can be simplified to for the coordinate system:
+\[
+R_{\mu \nu \rho}^\sigma = \pdv{x^\nu} \Gamma^\sigma_{\mu \rho} - \pdv{x^\mu}\Gamma^\sigma_{\nu \rho} + \sum_\alpha (\Gamma^\alpha_{\nu \rho} \Gamma^\sigma_{\alpha \nu} - \Gamma^\alpha_{\nu \rho} \Gamma^\sigma_{\alpha \mu})
+\]
+
+The Ricci tensor can then be obtained by contracting the above equation.
+
+There are some other importaint points. One can write the coordinate basis for components, $g_{\mu \nu}$, of the metric as a matrix. Then the components $g^{\mu \nu}$ will then obviously be the inverse. We can define g to be the determinate of $g_{\mu \nu}$.
+
+Then, the natural volume elementof the manifold is $\sqrt{|g|}dx^1....dx^n$.
+
+A simple formula may be derived for the contracted Chrisoffel symbol.
+\[
+\Gamma^a_{a \mu} = \sum_\nu \Gamma^\nu_{\nu \mu} = \frac 1 2 \sum_{\nu, \alpha} g^{\nu \alpha} \pdv{g_{\nu \alpha}}{x^\mu}
+\]
+
+Thus,
+\[
+\Gamma^a_{a \mu} = \frac 1 2 \frac{1}{g} \pdv{g}{x^\mu}
+\]
+
+This is useful as $\Gamma^a_{ab}$ is used in the Ricci Tensor as well as formulating the divergence of an arbitrary vector field.
+
+\subsubsection{Orthonormal Basis (Tetrad) Methods}
+
+In tensor calculations an orthonormal basis is in some cases advantagous, thus one develops a nonholonomic or noncoordinate, orthonormal basis of smooth vector field $(e_\mu)^a$ that satisfies:
+\[
+(e_\mu)^a(e_\nu)_a= \eta_{\mu \nu}
+\]
+
+where $\eta_{\mu \nu}= diag(-1,..,-1,1,..,1)$. In four dimensions, $(e_\mu)^a$ is called a tetrad. It is useful in the equation
+\[
+\sum_{\mu, \nu}\eta^{\mu \nu}(e_\mu)^a(e_\nu)_b = \delta^a_b
+\]
+
+Where $\delta$ is the identity map of the vectors and $\eta^{\mu \nu}$
+
+Calculation by tetrad has sufficent differences than the coordinate basis method. In both methods three key ingrediants are needed. 1: derivative operator that is compatable with the metric, $\Delta_a g_{bc} = 0$. 2: the derivative operator is torsion free. 3: the Riemann tensor is related to the derivative operator.
+
+\subsubsection{Einstein's Equations}
+\subsubsubsection{Special}
+Energy is the time component of the 4-vector momentum.
+
+A perfact fluid's Stress-energy tensor can be defined as
+\[
+T_{ab} = \rho u_a u_b + P(\eta_{ab}+ u_au_b)
+\]
+
+where $u^a$ is a unit timelike vector field representing the 4-velocity of the fluid. $\rho$ and P are the mass energy density and pressure of the fluid measured in its rest frame.
+
+a cool trick is that one can define the Euler's equations using non-relativistic limits.
+
+The stress energy of the Lorentz force:
+\[
+T_{ab}= \frac{1}{4 \pi} \left( F_{ac}F_b^c - \frac{1}{4}\eta{ab}F_{de}F^{de}   \right)
+\]
+
+\subsubsection{General}
+
+In general theory of Relativity, while it is possible to define background observers in such a way to define gravity for Earth. When time symmetry does not hold, such in 3-body problems, this is not the case and tidal forces are the only ``force'' with a meaningful definition.
+
+From the simple exploration of physical energy conservation in gravitational fields where the dimensions is small compared to the curvature of space, it can be found that all matter obeys the equation of motion:
+\[
+\nabla^a T_{ab}=0
+\]
+
+Through logical examinations the equation comes to be
+\[
+G_{ab}=R_{ab}-\frac{1}{2}Rg_{ab}=8 \pi T_{ab}
+  \]
+
+  Using a trace we find that
+\[
+R= - 8 \pi T
+  \]
+  and thus:
+\[
+R_{ab}= 8 \pi \left(T_{ab} - \frac{1}{2} T g_{ab}   \right)
+  \]
+
+
+  Thus, the entirety of GR can be summed up as followed. \emph{Spacetime is a manifold M on which there is defined a Lorentz Metric $g_{ab}$. The curvature of the metric is related to matter distribution via the Einstein's equation}.
+
+\subsubsection{Linearized Gravity}
+
+I am not sure what to write here...
+
+\section{Homogeneous, Isotropic Cosmology}
+...
+
+\section{The Schwarzschild Solution}
+\subsection{Derivation}
+For an object to be static, the time-like killing vector field must satisfy the following equation:
+
+\[
+\xi_{a}\Delta+b \xi_{C}=0
+  \]
+
+  From here, the fact that this shows that spacetime is camveriant in the time dimension leads to the metric can be defined as
+
+\[
+ds^2=-V^2(x^1,x^2,x^3)dt^2+ \sum_{\mu,\nu = 1}^3 h_{\mu \nu}(x^1,x^2,x^3)dx^\mu dx^\nu
+  \]
+
+  Where $V^2=-\xi_a \xi^a$, and the absence of $dt$ $dx^\mu$ cross terms expresses the orthogonality of $\xi^a$ and $\sigma$.
+
+From here time translation and reflection are here. In most cases something that is time invarient will also be time reflected but not when rotation is involved. If one takes it to be spherically symmetric:
+\[
+    ds^2 = r^2(d\theta^2+\sin^2\theta d\phi^2)
+  \]
+
+  In curved space, r does not have to be in relation to the radius, but for the purposes of this, we will take it as such.
+
+
+  the rest...
+
+
+
+  Now that we have the metric, we see that the solution is asymptotically flat, ie, as r approches infinity spacetime approches flat. Allowing the interpretation of an isolated body. Where C is equivalent to $-2M$.(Remember, natural units)
+
+  A striking feature is that the metric components become singular in both $r=2m$ and $r=0$. This is caused by either a breakdown of coordinate, or a singularity of the spacetime structure. We will see later that the singularity of 2M is simply a breakdown of coordinates while at 0 it is seen as a physical singularity.
+
+  It can also be found that for all spherically symmetric spacetimes with $R_{ab}=0$ are static.
+
+\subsection{Interior Solutions}
+
+Now take a static, spherical, stress energy tensor
+\[
+T_{ab}= \rho u_a u_b + P(g_{ab}+u_au_b)
+  \]
+
+  Where $u^a$ must point in the same direction as the static killing vector.
+
+  We can now take three independent forms of $T_{00}$, $T_{11}$, and $T_{22}$ using the metric derived earlier. To get h to be
+\[
+h(r)= \left(1- \frac{2m(r)}{r}   \right)^{-1}
+  \]
+
+  Here to have staticity, where $h \geq 0$, $r \geq 2m(r)$
+
+Where m(r) isn't exactly the proper mass but rather difference between the gravitational binding mass and the proper mass.
+
+
+From here they derive the Tolman-Oppenheimer-Volkoff equation or TOV. Which is the hydrostatic equilibrium with relativistic corrections. This equation comes with a limit where pressure required goes towards infinity as is the case of the singularity.
+
+\subsection{Geodesics}
+
+
+Not too much other than deriving gravitational lensing
+
+\subsection{Kruskal Extention}

@@ -3,6 +3,7 @@
 
 \section{Introduction}
 Here we will derive the basic principles of Epistemology that will later be expanded upon by the next chapter on the philosophy of science.
+\section{Ontology}
 
 \subsection{Statements}
 
@@ -27,6 +28,26 @@ An addition to traditional logic are adding relations like narrower, broader, co
 With these in mind we satisfy De Morgan Laws and Boolean algebra infinite distribution with all of the rules we need for the construction of statements.
 Other similar methods can be used, but this minimal set traditionally holds.
 
+
+\subsection{Events}
+
+As we have already defined an agent observing objects with observable properties. A new axiom would be as the property of time tends to move forwards, properties tend to change. The position in time state space in which said changes happens is defined to be the \emph{event}
+
+\subsection{Relations}
+
+As we have already defined causal order, a simple extrapolation of simple logic
+\[
+  P \rightarrow Q
+  \]
+\[
+\therefore \forall P \exists Q
+  \]
+
+  If P causes Q, than if P happens then Q happens. A simple relation between the two.
+
+  There are other simple derivations to get other relations; biconditional, common causal variable, and coincidental.
+
+
 \section{Verifying Statements}
 
 Now we must talk about how to verify these statements for the development of knowledge.
@@ -37,13 +58,181 @@ technically true by definition. For they rely on the statements, Axioms, taken t
 
 These rules must be furfiled by how we defined a statement to be. Being Boolean and thus susceptible to the relations of formal logic.
 
-This brings us to the end, very little knowledge can be gained based upon the limited axioms we have already developed(much of this knowledge has already
-been explored).
+this can be trivially proved from our earlier axiom that reality obeys such logical rules.
 
+One can use these for several examples. Say an understanding of the laws of gravitation, one can derive the tragectories of objects flying on the moon with only information of the mass, radius, and air resitince on the moon. Or derive General Relativity from special relativity and the principle of equivalence.
 \subsection{Induction}
 
 This brings us to our next form of developing logic, induction. From our earlier Axiom of UoN(uniformity of Nature), induction arises. Allowing us to
-use past observations to inform natural laws and models. Finding that predictive power is evidence for the validity of a model. There are other rules and
-ideas combined with this that will be addressed in the following chapter.
+use past observations to inform natural laws and models. Finding that predictive power is evidence for the validity of a model.
 
-There is also abduction which is closely combined with induction, this will also be addressed in the next chapter.
+Essentially, past actions are valid evidence for future ones.
+
+There is also abduction which is closely combined with induction, this will also be addressed in the next sub-section.
+
+\subsection{Abduction}
+
+While these both give us information. It doesn't give the why, only the fact it happened(or could). The development of theories, causal order is beyond their scope unless it is completely obvious from earlier theories(which is technically still abduction in most cases, unless solely deductive with no inductive reasoning).
+
+Abduction is the use of models, models being human made ideas that are meant to represent the world. Whether they are meant to be ontologically true or just predecive, at the end they are simply predictive. One creates models and evaluates them based upon a set of criteria to influence where they are on a hierarchy of models.
+
+\subsection{Statement Functions}
+
+Statement functions can be identified as variation within a statement, such as the mass of the ball is x, where $5 kg < x < 6 kg$ in this, there are infinitely many individual statements. When attempting to validate it through induction, one cannot truly validate or invalidate all possible statemements as all experiments(acting on an object in a way to measure a property.)
+
+
+\subsection{Probability Space}
+
+We take a manifold of a metric space. This manifold satisfies
+\[
+P(\Omega)=1
+  \]
+\[
+(\Omega, F, P)
+  \]
+
+  Where $ \Omega$ is defined as sample space, $F$ is events, and $P$ is Probability measure.
+
+From here the capacity of probability space is quite clear
+
+\subsection{Probability Rules}
+
+From here many things are proved
+\[
+P(\emptyset) = 0
+  \]
+\[
+P(A^c)=1-P(A)
+\]
+and
+\[
+P(A \cup B) = P(A) + P(B) - P(A \cap B)
+  \]
+
+  Further, variables become a metric function
+\[
+X: \Omega \to \mathbb{R}
+  \]
+
+  Once these variables are defined:
+
+\[
+P(X \in B)=P(X^{-1}(B))
+  \]
+
+  This makes it so the pushforward measure is the probability distribution. Elementry probability distributions are all simply particular pushforward methods.
+
+  After that, the expectation can be clearly defined through the Lebesgue integral
+\[
+    E(X) = \int_\Omega X dP
+  \]
+  Where variance follows as
+\[
+Var(X)= E((X-E(X))^2)
+\]
+
+\subsection{Bayes}
+
+Simple derivation brings
+\[
+P(A \cap B) = P(A | B)P(B) = P(B |A)P(A)
+  \]
+
+  This simple theorem holds much of modern science. As P(A), where how strongly evidence should be treated is based upon the likelyhood of said thing happening with or without A being true.
+
+
+\section{Information}
+
+Information is a defined non-material existence, being as it exists in conclusion of a person. Properties of either a material object or non-material object can both be described as information
+
+\subsection{Information of Distinction}
+
+Information is simply a way to distinguish between states, possible and existant.
+
+Formally,
+
+Suppose
+
+\[
+S={s_1,s_2,\ldots}
+\]
+
+is the set of possible states.
+
+Information requires
+
+\[
+\exists s_i\neq s_j.
+\]
+
+Without distinguishable alternatives, no information exists. If every possible observation produces the same result, the system conveys nothing.
+
+Suppose a nous initially considers
+
+\[
+\Omega={s_1,s_2,\ldots,s_n}.
+\]
+
+An observation transforms
+
+\[
+\Omega
+\longrightarrow
+\Omega'
+\]
+
+where
+
+\[
+\Omega'\subseteq\Omega.
+\]
+
+Information is therefore the reduction of admissible possibilities. Knowledge will later be defined as appropriately justified reductions that correspond to reality.
+
+\subsection{Formulisms of Information}
+
+\subsubsection{Shannon Information}
+Claude Shannon deliberately removed meaning from information.
+
+Suppose an event occurs with probability
+
+\[
+p.
+\]
+
+Its self-information is
+
+\[
+I=-\log p.
+\]
+
+Rare events contain more information because they eliminate more uncertainty.
+
+A probability of 1 contains no information.
+
+Nothing new has been learned.
+
+Entropy becomes
+\[
+H(X)=-\sum_i p_i\log p_i.
+\]
+
+Entropy measures expected uncertainty before observation.
+
+Information is the decrease in uncertainty after observation.
+
+\subsubsection{Algorithmic Information}
+
+Algorithmic information defines information by the length of the most compressible form.
+
+\subsubsection{Semantic Information}
+
+The traditional view includes the syntax and semantics of a statement, what properties are transported through activity; ie talking, painting, mesurement, etc.
+
+\subsubsection{Programme}
+
+While all of these formulisms work in their respective fields and are all incredibly important; for the purposes of this programme, using Shannon is most efficient. As it works best for physics, scientific studies, and mathematical repsersentation.
+\section{Justification}
+
+
+\section{Belief}

@@ -2,6 +2,8 @@
 
 \section{Scope and Goals}
 
+As a kid, I had always wanted a YouTube Channel. Now I will be working towards that, on a bit more pratical level. For the purposes of learning more personally, leveling up my skill as a
+
 \section{Getting Started}
 
 \subsection{Ideas}
@@ -10,11 +12,866 @@ At some point I want a dive into Kerr Black holes but I am not ready for that.
 
 \begin{itemize}
   \item Numerical Hamiltonian
-  \item The metaphysical implications of Hamiltonian Mechanics
+  \item A Physical Look Into Hamiltonian Mechanics
   \item Hidden Assumptions in Modern Physics
   \item Journey through General Relativity
+  \item Positive Mass Warp Drive
+  \item Axioms of Hamiltonian Mechanics
+  \item Understanding of Metriplectic Dynamics
+  \item Gravitational Waves
+  \item MagnetoHydrodynamics Propulsion
+  \item MagnetoHydrodynamics in a nebulua
+  \item Deeper Numerical Methods
+  \item Scientific Programme
+  \item Destroying a Universe with a punch
+  \item Best way to simulate a solar system
 \end{itemize}
 
-\subsection{Journey Through Relativity: Part 1, Tensors and Manifolds}
 
-\subsubsection{Overview}
+\section{Introduction to Symplectic Integrators}
+
+\subsection{General overview of direction}
+\begin{itemize}
+\item Introduction to me
+\item Motivation
+\item Hamiltonian Mechanics introduction
+\item Geometric perspective
+\item Symplectic Euler compared to traditional Euler
+\item Leapfrog/Verlet
+\item Practicule guidence
+\end{itemize}
+
+\subsection{Opening}
+
+Before I begin this video; I am not an expert. Must of my understanding comes from Problems In Hamiltonian Dynamics by (.....). This is more for my own education than others, for a better understanding of the concepts and development of my teaching abilities. I highly recommened continue to learn far beyond this simple introduction I will lay out.
+(picture of the book)
+\subsection{Motivation}
+Symplectic Numerical methods are focus inheritily on the structure and methods of Hamiltonian mechanics. Thus, to understand them, one must understand why. Why it is used at all. At first glance, it seems quite contrived. Hamiltonian Mechanics is quite mathematically abstract and complicated. Beyond that, expanding it in differing ways such as dissipative or entropic spaces requires creative solutions. Thus, begs the question, why is it such a developed field?
+
+(put really complex hamiltonian)
+
+The short answer is that Hamiltonian Mechanics geometry enforces energy conservation in a way others formulisms do not. The long answer... is well this video.
+
+(put graph showing energy conservation)
+\subsection{Hamiltonian Mechanics Review}
+First, a quick review on Hamiltonian Mechanics. If you are comfortable feel free to skip ahead.
+
+A hamiltonian system is defined by the function H(q,p,t) - the hamiltonian - which repersents something analogus to total energy. Not exactly though, hopefully in a future video we will get to that, but for not thinking of it in energy works great for this purpose.
+\[
+H(q,p,t) = T + V
+\]
+Here q repersents generalized position, which is the minimum amount of set parameters that fully spesify where a system is in configuration space. Where configuration space is a space whose points repersent all possible configurations. Meaning that generalized position is not confined to distance, but also things like angles, diminsionless quantaties, or what ever other convenient quantities that can be used.
+
+The q, repersents generalized momenta. Which holds the same rules as position does, but repersenting momenta instead of position.
+
+The evolution can thus be derived to be
+\[
+\frac{dq}{dt} = \frac{\partial H}{\partial p}
+\]
+\[
+\frac{dp}{dt} = -\frac{\partial H}{\partial p}
+\]
+Let us look at a concrete example: a simple pendulum
+
+(picture of pendulumn)
+
+\[
+H(q,p) = \frac{p^2}{2m} + \frac{1}{2} kq^2
+\]
+
+Such, one can take the partial derivatives to find:
+\[
+\frac{dq}{dt} = \frac{p}{m}
+\]
+\[
+\frac{dp}{dt} = -kq
+\]
+
+In phase-space, the space of all generalized pairs, the system traces out a tragectory. For harmonic ossilators these are ellipses. Each ellipse corresponds to a different energy level.
+(show phase-space)
+
+Here are some key points.
+
+- energy remains constant along the tragectories. As tragectories are defined by conserved energy
+
+- the phase-space volume is conserved. This is essentially
+(shade in one region)
+
+-finally, the most importaint for this, the manifold retains a symplectic structure. Which is defined at the 2-form $ \omega = dq \wedge dp$. This will be disgussed further shortly.
+
+\subsection{Why standard models fail}
+To understand the symplectic methods, one must find their motivation. Why traditional methods fail in certain senerios, no matter the type. To understand this, we will look at the simplest integrator. Forward Euler
+
+\[
+q_{n+1} = q_n + h * \frac{\partial H}{\partial q}_n
+\]
+\[
+p_{n+1}=1_n +h * \frac{\partial H}{\partial q}_n
+\]
+Where h is the time step.
+
+Let us apply this to our harmonic ossilater and see what happens... Tragectory spirals outwards! This is simply because traditional methods aren't made to conserve energy, they are meant to model physics. The main reason is that tiny errors add up without the ability to contain them. Also, traditional methods add unphysical correction terms that over time lead to unphysical effecs. Being dissipate in certain areas and adding energy in others. Adding artificial energy to the system in order to have temporary  Now, obviously higher order corrections help with these problems and making the models more physical helps, but these problems are fundemental. Adding higher order corrections simply increases the computational workload without ever fully resolving the problem.
+
+Even sofisticated methods like RK4 have this problem. It is accurate to the 4th order, but that means that the error per step is $O(h^5)$. This is tiny, but adds up. For something like a celestial simulation over millions or even billions of years, this creates distorted simulations.
+
+(Log-log plot showing error growth)
+
+\subsection{Symplectic Integrators}
+(illistration of symplectic maps)
+
+Symplectic integrators fix this problem by peserving the symplectic structure I mentioned earlier.
+
+\[
+\omega = dq \wedge dp
+\]
+
+The symplectic form is a mathematical object that mesures oriented areas in phase-space. For a simple system with one degree of freedom in the position and momentum each one gains this equation.
+
+This is a 2-form, when integrated over any region of phase space, you get an oriented area.
+(physical deformation)
+
+As the hamiltonian flow evolves, the region over phase-space gets stretched, rotated, and deformed. But, the symplectic form remains perserved.
+
+From this basic axiom, one can derive something called the Shadowing Theorem, that says:
+
+A tragectory computed by symplectic integrator, while not exactly true, stays close to the tragecory of a slightly modified Hamiltonain.
+
+(visual: compared integration to true)
+
+Meaning, standard integrators essentially create a new equation that is close to the origional.
+
+Symplectic integrators create another hamiltonian that is exactly equal to the origional hamiltonain plus the order of the error.
+
+(energy conservation plot)
+
+Such, the energy does not increase monotonically, it ocilates within a bounded region. Over exponentially long time, the error grows logorithmicly rather than linearly.
+
+\subsection{Symplectic Euler's method}
+
+To compare, we will once again take the simpliest possible case.
+
+Take the traditional Forward Euler
+\[
+q_{n+1} = q_n + h * \frac{\partial H}{\partial q}_n
+\]
+\[
+p_{n+1}=1_n +h * \frac{\partial H}{\partial q}_n
+\]
+
+Now turn it into what is called a backward Euler
+\[
+q_{n+1} = q_n + h * \frac{\partial H}{\partial q}_n
+\]
+\[
+p_{n+1}=1_n +h * \frac{\partial H}{\partial q}_n
+\]
+Notice what has changed, we updated p using the old position but the momentum by using the new momentum. One thing to note, backwards or implicit integration is commonly used outside of symplectic integration, it is simply a general requirments for symplectic integration. There are some special cases where explcit numerical methods satisfy the requirments of a symplectic integrator. Another requirment being that one using a Hamiltonian or Hamiltonian like formulism such as Numbu mechanics.
+
+Now let us see why it is symplectic:
+\[
+H(q,p) = T(p) + V(q)
+\]
+
+where T is kinetic energy and V potential.
+
+The symplecti Euler step can be decomposed into pure position-step, which is the flow of the potential. The a pure momentum step, which is exactly the flow of kinetic energy. The composition of these is the exact flow of the Hamiltonian, which is by definition symplectic.
+
+The exact requirments are quite involved and mathematically difficult to derive, so an independent video on the topic is reqiured. For the purposes of this video the general rules described and the types of integrators are suffient.
+
+Let us implement this for the harmonic oscillator.
+
+In this, the orbit remains stable. Energy oscilates but doesn't drift.
+
+One can also make the equation implicit by updating q before p.
+
+\subsection{The LeapFrog/Verlet Method}
+
+The most commonly used sympletic integrator is the leapfrog method. It is second order accurate.
+
+The core idea: Evaluate positions and momenta at staggered time points.
+
+(equation)
+
+(visual)
+
+Think of it as half-step momentum backward. Full step position forward, using the half step. Then half-step momentum backward again.
+
+This is symmetric: if you run it backward, you get the exact same algorithm. This time-reversibillity is what gives second order accuracy.
+
+There is an equivlent position formulism that is often more convenient.
+(equation)
+
+Where v is velocity and a is acceleration. Note, that while it uses variables commonly used in Newtonian dynamics, it is still fundementally hamiltonian.
+(visual)
+One can compare performence after 1000 orbits. For a timestep of 0.01 Forward euler has energy error of 15.3\%, symplectic euler 0.8\%, and leapfrog 0.002\%.
+
+As you can see much smaller, as the error scales by the square of the time step. Allowing for larger time steps for the similar accurecy.
+
+A derivation of this equation is outside of the scope of this video but is an interesting idea that may be develed into in the future.
+
+\subsection{Splitting Method}
+
+To build higher order symplectic integrators, one must learn operator splitting.
+
+The key idea: if you can write the Hamiltonian as a sum
+\[
+H=H_A + H_B
+\]
+
+and you know how to integrate each piece exactly, you can build approximate integrators by composing these exact functions of these two.
+
+where $\phi_A(h)$ is the exact flow generated by H_A over time h.
+and $\phi_A$ is the exact flow over H_B.
+
+Then the true hamiltonian flow is:
+\[
+\phi_H(h) = \exp\!\left(h\{H,\cdot\}\right)
+\]
+
+where $\{\cdot, \cdot \}$ denotes the Poisson Bracket.
+
+The simpliest approximation is obtained by composing the two exact flows, this is known as the Lie-Totter splitting, this method is first otrder accurate. Higher order methods can be built using splitting, such as the 4th-order Forest-Ruth:
+
+\[
+\psi_4(h)=\psi_2(\theta h) \circ \psi_2((1-2 \theta)h) \circ \psi_2(\theta h)
+\]
+
+A derivation of this is outside the scope of this video but is something we will get into.
+
+\subsection{Beyond the Basics}
+Symplectic integration goes far beyond the introduction given in this video.
+
+\begin{itemize}
+\item Dynamics on a manifold
+\item veriational integration
+\item Backward error analysis
+\item Adaptive symplectic methods
+  \item Methods for Hamiltonian adjacent frameworks(ie. Nambu, metriplectic, etc)
+\end{itemize}
+
+Some of these I would like to explore in future videos but many of them are currently beyond my expertice.
+
+\section{Physical Interpretations of Hamiltonian Dynamics and Byond}
+
+\subsection{Planning}
+
+\begin{enumerate}
+  \item Opening
+  \item What is the Hamiltonian
+  \item What physically is phase space
+  \item Dissipation and the Non-Hamiltonian World
+  \item Beyond Symplectic: Metriplectic and Generic
+  \item Beyond Symplectic: Contact Geometry and Geometrization of Irreversibility
+  \item Beyond Symplectic: Poisson Manifolds, Casimirs, and Nambu
+  \item Structural Realism
+  \item Open Problems
+\end{enumerate}
+
+\subsection{Opening}
+
+Often in higher level mathematical physics, you will here many phrases thrown around with generally little to no explanation. ''the hamiltonian is analougus to total energy but isn't literally'', ''Hamiltonian mechanics forbids dissipation'', and many more.
+
+These complex ideas are pushed aside for latter, well if you are like me, you think that later is now, so that is the purpose of this video.
+
+This video will require a good intuitive and understanding of Hamiltonian mechanics and the basic structural underpinnings. Also, be warned, this is a fun project, mistakes are entirely possible.
+
+\subsection{What is the Hamiltonian?}
+
+In most courses, you will be introduced to the Hamiltonian functions through this equation
+\[
+H = V + T
+\]
+where the Hamiltonian is the addition of kinetic and potential energy, and is thus the total energy.
+
+A few years later you may here terms like generator of the flow, with only the explanation that H is a function that generates the correct observables, what ever those are.
+
+So, how do these definitions fit together, and what do they even mean.
+
+Essentially, the idea is that H uses Noether's theorem's time translation to make it so that the Hamiltonian is always equal to:
+
+\[
+\pdv{A}{t} = \left{A,H  \right}
+  \]
+  where H is the observable. An observable is a pretty self explanatory concept. Something that can be physically observed; momentum, energy, velocity, entropy, or even non-physics measurements like personality. Though classical Hamiltonians have trouble with entropy as we will get into.
+
+  As you can figure out with some careful playing; the Hamiltonian is only equal in a special case; in classical systems where the observables are position and momenta. In other cases, it no longer is that. It could be something else, or simply a number with no traditional physical analogy.
+
+
+
+\subsection{What is Phase Space?}
+Now, to actually use the Hamiltonian, knows we need phase space. So, what physically is that.
+
+Well, a good analogy is imagine the universe is frozen in time, what information do you need to predict what happens next?
+
+
+Now that is just an analogy, if you are watching this video I suspect you want something more than that.
+
+Well, we must first start with a state, which is really just a property, the properties needed for physics. Newton defined these properties through forces, mass, position, time, and their respective derivatives to arbitrary orders.
+
+Hamilton, defined it through configuration momenta and position. It really can be anything but as we will motivate later in most physical systems these are the generally the most useful. Then, he found you are able to for every possible physical state, there could be one point in this phase space of position and momenta that corresponds to it. Such as a 2D body can be ploted in 4D space through
+\[
+(x,y,p_x,p_y)
+\]
+
+There, objects no longer viewed as moving through space but rather tragectories in phase space. Generally this view is considered to be a mathematically significant but metaphysically trivial change, but some people disagree, which is something that will be covered later in the video.
+
+\subsection{Is Momentum more Fundamental than Velocity}
+
+The question of which is more fundemental; momentum or velocity seems quite arbitrary, and in many ways it is, but we will look into it regardless.
+
+In traditional Newtonian Mechanics; momentum is traditionally derived by velocity, but the inverse is just as true.
+
+In hamiltonian mechanics, this isn't the case. Momentum is more than just mass and velocity, it also includes think like electric fields or even other fundemental forces like gravity in some cases. In quantum mechanics this connection becomes even more muddled for obvious reasons.
+
+Now to really answer the question. I am sad to say that it depends on what you are looking for. Velocity is much more intuitive, but momentum is a generator of translations and naturally connected with symplectic structures. Likely not a very satisfying answer, but the only one I have.
+
+
+\subsection{Hamiltonian Mechanics and Teleology}
+
+
+\subsection{Noether's Theorem}
+
+
+\subsection{Canonical Transformations}
+
+\subsection{The Question of Dualism}
+
+\subsection{Hamiltonian Branch offs}
+
+\subsection{Hamiltonian and Dissipation}
+
+\subsubsection{Metriplectic and Others}
+
+\subsection{Structural Realism}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variational Integrator for RMHD}
+
+\subsection{Planning}
+\begin{enumerate}
+  \item Opening
+  \item Introduction
+  \item RMHD
+  \item Formal Lagrangian
+  \item Conservation Laws
+  \item Electron Inertia
+  \item Symmmetrisation
+  \item Discrete Action Principle
+  \item Discrete Conservation Laws
+  \item Numerical Methods
+  \item Validation
+  \item Random Testing
+\end{enumerate}
+
+I am thinking for random testing either a video of one of the earlier simulations or do something random.
+
+
+\subsection{Opening}
+
+Before I begin, as always, I am not an expert. Most of my information comes from the paper ``Variational Integrators for Reduced Magnetohydrodynamics'', by Michael Kraus, Emanuele Tassi, and Danueka Grasso. For more information their paper will be in the description. Anyways, on to the video.
+
+\subsection{Introduction}
+
+For all purposes, the subject of this video is the creation of a numerical method that takes a simplified model of magnetized plasma and preserves the conservation laws with greater accuracy than most other methods. The tool used to do so is called a variational integrator. That descretizes the action, as in the action in Lagrandian Mechanics, rather than the equations of motion.
+\subsection{Variational Integrators}
+Variational integrators work in the inverse of traditional methods. In traditional methods you start with the model
+\[
+F = kx
+\]
+then define the equations of motion
+\[
+\ddot{x} + \frac{k}{m}x = 0
+  \]
+
+  From here one descretizes the equation of motion.
+
+  For variational derivatives one takes the action:
+\[
+S[q] = \int_{t_0}^{t_1} L(q, \dot{q}) dt
+  \]
+
+  The nature selects where
+\[
+  \delta S = 0
+  \]
+
+  From here derivation of things such as
+  \begin{itemize}
+    \item Euler-Lagrange
+    \item Hamiltonian
+    \item Conservation laws
+  \end{itemize}
+  From here instead of discretizing the differential equation, one discretizes the lagrangian
+\[
+S_d = \sun_{k=1}^{N-1} L_d(q_k, \dot{q_{k+1}})
+  \]
+  Where
+\[
+L_d \approx \int_{t_k}^{t_{k+1}}L dt
+  \]
+
+  From here, varing across the sequence rather than a smooth curve gives you the Discrete Euler-Lagrange Equation. Here the equation is already an algorithm, no additional methods needed(though we will use some in this video)
+\subsection{RMHD}
+
+To do this, we must define what RMHD is, to do that we must first define MHD. MHD treates plasma as a single conductive fluid coupled with a magnetic field. While it is a massive simplification of ``Billions of charged particles'' it is still quite accurate and obviously much less computationally expensive.
+
+RMHD, further simplifies, for a spesific, useful physical situation. In plasma with a strong backgroud magnetic field, like in a tokamak, where the field mostly points one way (call it "toroidal") and everything interesting happens in the plane perpendicular to it. Under those conditions, the fast physics along the strong field direction basically stops mattering, and you're left with an effectively two-dimensional problem.
+
+With only four fields remaining as useful:
+\begin{itemize}
+  \item $\phi$, the stream function, describes how the fluid flows
+  \item $\omega$, the vorticity, how the flow swirls
+  \item $\psi$, the magnetic potential
+  \item \textbf{j}, the current density, how the magnetic field swirls
+\end{itemize}
+
+The equation then simplifies to:
+\[
+  \omega_t \pb{\phi}{\omega} + \pb{j}{\psi} = 0, \quad - \Delta \phi = \omega
+\]
+
+\[
+\psi_t + \pb{\phi}{\psi}= 0, \quad - \Delta \psi = j
+  \]
+  With the poisson bracket being simply two dimensional so that
+
+\[
+\pb{\phi}{\omega} = \phi_x \omega_y - \phi_y \omega_x
+  \]
+
+  Here, is can be seen that RMHD has Casimir Invariants, quantaties that are conserved, not from traditional physical symmetries but from the structure of the Lie algebras. There are families with infinite many subsets, for the pusposes of thisl we will focus on Magnetic helicity(how tangled the magnetic fields are) and Cross helicity(how aligned the flow is with the magnetic field)
+
+
+  Now, for this paper to work, rather than use Hamiltonian structure, it uses Lie-Poisson, Hamilton's weird cousin. It still conserves energy but standard symplectic methods simply do not work.
+
+  This is because fluid mechanics observables do not naturally describe motion along a phase space, but live on a Lie Algabra with symmetries within it. So the Poisson operator changes with the state rather than is a constant symplectic structure.
+
+\subsection{Formal Lagrandian}
+
+From here comes a snag, variational integrators need a Lagrandian, an action to discreize. But, for RMHD, there is no obvious Eulerian-Lagrandian. So what does one do?
+
+They make one up. There is a trick called a formal lagrandian. Essentialy, take every equation equation in your system and multiply is by a made up variable called an auxiliary variable that has no physical meaning. Then add them up
+\[
+L = \xi\left(\omega_t + \{\phi,\omega\} + \{j,\psi\}\right)
+    + \mu\left(\omega + \Delta\phi\right)
+    + \chi\left(\psi_t + \{\phi,\psi\}\right)
+    + \zeta\left(j + \Delta\psi\right)
+ \]
+
+ Here four variables $ \xi, \mu, \chi, \zeta $, are all ghost variables that only exist to make the arithmatic work.
+
+This helps by giving stationary variables to allow for one to vary along the physical variables using Hamilton's Principle leading to a brand new ``adjoint equation.''
+
+Leading to the Euler-Lagrandian:
+\[
+\frac{\partial L}{\partial \varphi_a}\!\left(\varphi, \varphi_t, \varphi_x, \varphi_y\right)
+-
+\frac{\partial}{\partial x^\mu}
+\left(
+  \frac{\partial L}{\partial (\partial_\mu \varphi_a)}\!\left(\varphi, \varphi_t, \varphi_x, \varphi_y\right)
+\right)
+= 0
+\quad\text{for all } a.
+
+  \]
+
+  Where $\varphi$ denotes all of the variables. Many of the auxillary variables can be found to be to be functions of the origional variables. So that $\varphi$ can be defined as
+\[
+\varphi = (\omega, \psi, \phi, j, \psi \omega, 0,0)
+  \]
+
+\subsection{Conservation Laws}
+
+Now, the whole puspose of the creation of the Lagrandian was to apply Noether's theorem. We restrict our attention to conservation laws which are generated by vertical
+transformations, that is transformations which only affect the field variables but leave the base space invariant. From here with some complex math I won't get into, it is found that the symmetries are
+\begin{itemize}
+  \item Magnetic Helicity
+  \item $L^2$ norm of $\psi$
+  \item Cross Helicity
+  \item Energy
+\end{itemize}
+
+\subsection{Electron Inertia}
+This current RMHD, has a defect. It does not include magnetic reconnection, field line snapping and reconnecting. Which tend to be one of the most importaint studies in plasma physics. So, we will add a small correction, electron inertia. Real electrons have mass, just a small one, ones you treat them as such a new term develops in Ohm's law, one that allows reconnection.
+Thus the new model changes $\psi$ to $\overline{\psi}= \psi+d^2_e j$ to give the electron canonical momentum where $d_e$ denotes the electron skin depth.
+
+That's it, that is the whole mortification. From here, small bit of derivation shows that the Hamiltonian stays the same, so does the Casimir invariants and the conservation laws, only expressed in for of $\overline{\psi}$ rather than $\psi$.
+
+\subsection{Symmetrisation}
+
+Before we can put anything into our computer, there is some tedious house keeping needed. Our formal Lagrandian has a second derivative, which is highly challenging to discretize directly and even more costly to compute. To do this we use symmetrisation, essentially integration by parts but for functional rather than function's. We do this on the terms that produce the Laplancians, and get an equivalent Euler-Lagrange equation that only depends on the first order derivative of the fields.
+
+
+Further care can be taken when discretising the Poisson Bracket. It can be seen through integration by parts when assuming appropriate boundary conditions that the cyclic permutations of the functions in the integrandare all identical
+
+Insted of selecting on of those forms, a convex combination can be considered.
+\[
+\int \xi \pb{\phi}{\omega} dx dy = \int \left[\alpha \xi \pb{\phi}{\omega} + \beta \phi \pb{\omega}{\xi} + \gamma \omega \pb{\xi}{\phi}   \right]
+  \]
+  Where $\alpha = \beta = \gamma = \frac{1}{3}$ to conserve symmetry. From here we find the motified Lagrangian
+
+\begin{align}
+L^{\prime\prime\prime}(\varphi, \varphi_t, \varphi_x, \varphi_y)
+&= \frac{1}{2}\,\varphi_t^{T}\Lambda\,\varphi \\
+&\quad + \frac{1}{3}\left(
+    \xi\{\phi,\omega\} + \phi\{\omega,\xi\} + \omega\{\xi,\phi\}
+\right) \\
+&\quad + \frac{1}{3}\left(
+    \xi\{j,\psi\} + j\{\psi,\xi\} + \psi\{\xi,j\}
+\right) \\
+&\quad + \frac{1}{3}\left(
+    \chi\{\phi,\psi\} + \phi\{\psi,\chi\} + \psi\{\chi,\phi\}
+\right) \\
+&\quad + \mu\,\omega - \nabla\mu\cdot\nabla\phi
+      + \zeta\,j - \nabla\zeta\cdot\nabla\psi .
+\end{align}
+
+
+\subsection{Discrete Action Principle}
+
+As mentioned earlier we will discretize the action rather than the equation of motion, for simplicity we will use Veselove-type finite difference to split into two space and one time. But the extention to more elaborate approaches is fairly straight forwards from here.
+
+Here we can quite easily find that
+\begin{alighn}
+  \int_{x_i}^{x_{i+1}} dx \int_{y_i}^{y_{i+1}}dy L(\varphi, \varphi_t, \varpi_x, \varphi_y)
+&\approx
+L_h\!\Big(
+    \varphi_{i,j}(t), \varphi_{i+1,j}(t), \varphi_{i+1,j+1}(t), \varphi_{i,j+1}(t), \\
+&\qquad\quad
+    \dot{\varphi}_{i,j}(t), \dot{\varphi}_{i+1,j}(t),
+    \dot{\varphi}_{i+1,j+1}(t), \dot{\varphi}_{i,j+1}(t)
+\Big).
+\end{alighn}
+
+A large deal of algebra allows us to get to the point of employing the Hamilton-Pontryagin Principle. Which states when transfering from Lagrandian to Hamiltonian we should not assume velcity and momentum's relation but derive it after the fact of treating them as independent.
+
+The using what is called the Arakawa's discretization for the Poisson bracket, which is given by
+\begin{align}
+A_{i,j}(\phi,\omega)
+&= \frac{1}{3} \Big(
+    A^{++}_{i,j}(\phi,\omega)
+  + A^{+\times}_{i,j}(\phi,\omega)
+  + A^{\times+}_{i,j}(\phi,\omega)
+\Big).
+\end{align}
+
+Where the bracket is the averaging of the $A^{++}$, the centered difference of both X and y. $A^{+ \times}$, the diangonal interaction. And $A^{\times +}$, another diangonal rotated relative to the other.
+
+Using these principles and a lot of mathematics we gain these massive equations.
+
+\begin{align}
+0 &=
+\frac{\omega^{n+1}_{i,j} - \omega^{n}_{i,j}}{h_t}
++ \frac{1}{4}\Big[
+    A_{i,j}(\phi^{n+1}, \omega^{n+1})
+  + A_{i,j}(\phi^{n},   \omega^{n+1})
+  + A_{i,j}(\phi^{n+1}, \omega^{n})
+  + A_{i,j}(\phi^{n},   \omega^{n})
+\Big] \nonumber \\
+&\quad + \frac{1}{4}\Big[
+    A_{i,j}(j^{n+1}, \psi^{n+1})
+  + A_{i,j}(j^{n},   \psi^{n+1})
+  + A_{i,j}(j^{n+1}, \psi^{n})
+  + A_{i,j}(j^{n},   \psi^{n})
+\Big], \tag{86a}
+\
+
+\[1em]
+0 &=
+\frac{\psi^{n+1}_{i,j} - \psi^{n}_{i,j}}{h_t}
++ \frac{1}{4}\Big[
+    A_{i,j}(\phi^{n+1}, \psi^{n+1})
+  + A_{i,j}(\phi^{n},   \psi^{n+1})
+  + A_{i,j}(\phi^{n+1}, \psi^{n})
+  + A_{i,j}(\phi^{n},   \psi^{n})
+\Big], \tag{86b}
+\
+
+\[1em]
+\omega^{n+1}_{i,j} &=
+- \Delta_x \phi^{n+1}_{i,j}
+- \Delta_y \phi^{n+1}_{i,j}, \tag{86c}
+\
+
+\[1em]
+j^{n+1}_{i,j} &=
+- \Delta_x \psi^{n+1}_{i,j}
+- \Delta_y \psi^{n+1}_{i,j}. \tag{86d}
+\end{align}
+
+If you wish to see the derivation out, I would reccomend reading the paper.
+
+\subsection{Discrete Conservation Laws}
+
+
+Using the same methodology we can find our earlier conservation laws
+
+Total energy
+\[
+E
+= \frac{hx\,hy}{2}
+  \sum_{i,j} \left( \phi_{i,j}\,\omega_{i,j} + \psi_{i,j}\,j_{i,j} \right)
+= \text{const.}
+  \]
+
+  Magnetic Helicity
+\[
+C_{\mathrm{MH}}
+= hx\,hy \sum_{i,j} \psi_{i,j}
+= \text{const.}
+  \]
+
+  $L^2$ norm of $\psi$
+\[
+C_{L^2}
+= hx\,hy \sum_{i,j} \psi_{i,j}^{\,2}
+= \text{const.}
+  \]
+
+  And cross Helicity
+\[
+  C_{\mathrm{CH}}
+= hx\,hy \sum_{i,j} \omega_{i,j}\,\psi_{i,j}
+= \text{const.}
+\]
+
+\subsection{Numerical Methods}
+
+So now we have out implicit forms tangled in non-linearity.
+
+To solve this we use Newton's Method linearize the residual, solve the resulting linear system, update your guess, repeat until the residual is essentially zero. That linear system at each Newton step gets handed off to GMRES, an iterative Krylov-subspace solver, and to make GMRES converge fast, they build a custom, physics-informed preconditioner — following earlier work by Chacón and collaborators — that exploits the specific structure of the vorticity and Ohm's law equations.
+
+The elliptic bits — inverting the Laplacian to get the varibles — get handled by whatever general-purpose elliptic solver you have on hand (they use PETSc); if your domain happens to be doubly periodic, there's an even cleaner trick available, since periodic boundary conditions mean the discrete Laplacian is exactly diagonalized by a Fast Fourier Transform, so you can invert it directly and exactly in Fourier space, no iteration required.
+
+
+I mimic this in python by setting up a file to create the initial condition, the operators of the spectral solver and Arakawa's method, and integrator file to run it through the actual equations derived earlier.
+
+\subsection{Validation}%
+                       %
+Here I make sure my model matches the paper through Orszag-Tang Vortex
+
+(image)
+
+Current sheet
+
+(image)
+
+Current sheet with Electron Inertia
+
+(image)
+
+Here the models match that of the paper, and matches within machine persicion the analytical solution.
+
+\subsection{Random Test}
+
+Now that we have a working model, let's use it for something cool. Here is Kinetic-Alfven Trublence
+
+(movie here)
+
+
+
+\section{Why: Developing Physics}
+
+
+\subsection{Planing}
+
+Essentially, one person teaching another parabolic tragectories but the student keeps asking why in a generally eurdite way. Analogous to Socratic Dialog.
+\begin{enumerate}
+  \item Introduction to Parabolic tragectories
+\end{enumerate}
+
+
+\subsection{Introduction}
+
+Here we set the stage, a stage. An introductory physics teacher is having a one-on-one lesson with a young student. A highly intelligent student that wants to get to the base of everything. The most fundemental of the fundemental.
+
+
+\section{Can you Destroy a Universe with a Force?}
+
+\subsection{Introduction}
+
+I am sure everyone knows of the extreme forces created by fictional characters. Blowing up planets, stars, galaxies, and even Universes. Now these obviously aren't physically realistic, but it begs the question, how much? What would such extreme forces actually look like?
+
+\subsection{Planck Force}
+
+To start with this, we will start with the theoretical highest force that still works with modern physics. The Planck Force. To explain this, the Planck Units are essentially normalizing and using units and physics starting with only the speed of light, gravitational constant, and Planck's Constant. Beyond the simple exersice of mathematical reasoning and the possibility of simpler mathematics. As is the case with other Natural Units, these units have been found to also coincide with when both quantum effects and gravity become significant. Making traditional theories fall apart, as no one knows how these two things will interact.
+
+Using this method, the force unit becomes
+\[
+\frac{c^4}{G}
+  \]
+  Obviously an extremely large number, in newtons it is roughly two times ten to the power of 44.
+
+  Many have conjectured that this is the largest possible force that can occur. Others have disputed. Others have found that according to traditional General Relativity it is simply a fourth of the Planck Force.
+
+  Until a theory of Quantum Gravity has been resolved, no one will know.
+
+\subsection{Striking the Earth with a Planck Force}
+
+While obviously, without a theory of quantum gravity, no one really know what will happen with a Planck Force, but using General Relativity to guess should be fun.
+
+I used Einstein's toolkit, a very helpful open source numerical general relativistic code base, and added a thorn to strike an object at a point with a force. Then I edited their Neutron Star simulation to be Earth adjacent, obviously not exact but with such extreme cases I doubt it would make much of a difference.
+
+Doing this, was surprisingly difficult. I thought it would be the easiest part of this video, but I was wrong.
+
+after running it I go this
+
+(Insert movie)
+
+While you likely can't read the numbers, and they are very strange units at that. So I will explain, very quickly the of contact very quickly explodes into a vacum at relativistic speeds. Then, as the relativistic mass adds up, gravity slowly overcomes the pressure wave. Collapsing it into a small point. A point roughly the size of a single mesh in the simulation. Thus, including things such as the likely fusing of particles, neutron degenerate matter, or if it would collapse into a black hole would require a more advanced simulation.
+
+There is another problem. The force being so great would lead to particles reaching super-luminal speeds before the next time step. Leading to the simulation coming to errors as the mass become imaginary. The creators of the toolkit obviously came to a solution, but I am not exactly sure what their solution is. Thus, how accurate this simulation is, is knowledge beyond mine.
+
+I tried to decrease the computational complexity and decrease the time-step substantially. I made the simulation symmetric so that I only had to simulate one eighth of the Earth, 2 dimensional rather than 3d, and increase the size of the mesh.
+
+I eventually got to a single time step being one ten trillionth of a second. Still getting the same warning. So, I eventually had to accept the fact that I don't know. I would think that a collapse would happen but not into a black hole. Likely a mini-star that would eventually explode out, but that is something that I can't confirm.
+
+To do so would require much more than my computer and messing with Einstien toolkit.
+
+\subsection{Assumptions about a Universe}
+
+While that was rather disappointing, there is still the question of the universe. Which is surprisingly much simpler.
+
+Anyways, the we need to make assumptions about said universe.
+
+One, our current observable universe, 93 billion light years in diameter, is the size we will use. Assuming that matter outside of such volume would have a negligible effect on the simulation.
+
+Two, we assume that spacetime is mostly flat. Most observations put that the universe has an extremely small overall curvature, but the small change likely wouldn't change the results of the simulation much.
+
+Three, take dark energy to be constant, such as a vacum energy model. While recent studies despute this, they have trouble coming up with exact values so for now I will leave it as is to simplify.
+
+Four, with dark matter, we take the estimated values of both Hubble's estimations of dark matter and Shoe's as well.
+
+Five, we take a relatively isotropic density in the universe. Meaning a relatively constant one, rather than variable.
+
+Six, when we later talk about the energy of the force, assume that it is some kind of magic or from another universe. As it is ``creating'' or adding energy to the universe that was not there previously.
+
+Now that we have these.
+
+\subsection{Modeling a Universe}
+
+Now, how to actually destroy a universe. Being filled with so much empty space it is pretty obvious you can't just punch it and blow it up. The small quarks in the plasma might hit a couple of things, but would be pretty useless and definitely wouldn't make it to other galaxies. So, that leads us to our solution. In the previous simulation, the Earth collapsed from gravity, so it is conceivable that a more intense force would collapse into a black hole.
+
+So, first we work backwards. To get force we can take energy, and to get energy we can find the analogous mass needed to overcome dark energy.
+
+Starting with the FRW Friedmann equation:
+\[
+H(a)^2= H_0^2 \left( \Omega_{r0}\,a^{-4} + \Omega_{m0}\,a^{-3} + \Omega_{\Lambda 0} \right)
+\]
+Here we will compress the parentheses into $E(a)$ for simplification.
+
+Next, we take the Schwarzschild-de Sitter metric function for a relatively flat expanding space time.
+
+\[
+f(r) = 1 - \frac{2GM}{c^2r}-\frac{\Lambda r^2}{3}
+  \]
+  Here, one can take the derivative and find when that derivative is equal to 0 to find the point in which the universe becomes static to be
+
+\[
+    r_c = \left(frac{3GM}{\Lambda c^2}   \right)^{\frac{1}{3}}
+  \]
+
+  Then solving for mass when the radius is the current size of the universe we get
+\[
+M_{crit} = \frac{\Lambda c^2}{3G}R^3_{obs} = \frac{\Omega_{\Lambda 0}H^2_0}{G}R^3_{obs}
+  \]
+
+  Now for the exact solution we take
+
+\[
+ds^2 = -c^2dt^2 + \frac{R'(r,t)^2}{1+2E(r)/c^2}dr^2 + R(r,t)^2 d \Omega^2
+
+  \]
+
+  Here we take the Lemaitre-Tolman-Bondia metric, an exact solution for Einstein's equation for a lump of matter with no assumed symmetry.
+
+  (show algebraic manipulation)
+
+  Here we see that the structure of the shell makes no difference, only the total mass of it.
+
+  From here simple algebra shows allows us to to find the energy needed to lead to an eventual collapse and the function that can be solved to find when it crosses.
+
+  To actually solve, we need values. For the hubble constant and the mass and energy of the universe. Using the two values from Hubble telescope and Shoe, we use Bayes uncertainty to create a Monte Carlo simulation to find the list of values.
+
+\subsection{Results}
+
+From here, we run the simulation. Getting the below results
+
+(results)
+
+with the total energy needed to over come
+
+\subsection{Interprating the Results}
+
+Now, the purpose of this, wasn't to find the energy, but rather the force. I know most people watching this know the general work formula, but in the case of relativity, this doesn't always work. Though, with a couple of simplifications, we will end up with a just as simple formula.
+
+We start with a practically flat spacetime to make the calculations simple.
+
+From here, the fact of the conservation of energy and momentum, makes it so that the stress energy tensor, which has both energy and momentum is clear. Derived to be
+\[
+\nabla_\mu T^{\mu \nu}= f^\nu
+  \]
+
+  Where we take the contravairiant derivative of the stress energy tensor to get the force.
+
+  where we can expand to
+\[
+f^\nu = \pdv{T^{0\nu}}{x^0} + \pdv{T^{1\nu}}{x^1} + \pdv{T^{2\nu}}{x^2} + \pdv{T^{3\nu}}{x^3}
+  \]
+
+  where we can take the first term to find that this is simply the energy added by the force by volume. Then the other three terms simplify to be
+
+\[
+f^i = \frac{1}{c}\pdv{T^{0i}}{t} + \partial_j T^{ij}
+  \]
+
+  which s essentially the change in momentum density plus the momentum flowing through boundary.
+
+  To simplify the calculations, we will focus just on the energy density portion. The result would be the same just differing math. Say the change in energy is 3.6 times ten to the power of 71. This force is spread through a volume of 1 meter, energy density and thus force would be 3.6 times 10 to the power of 71 Newtons.
+
+  As I have mentioned, this is an extreme simplification, but when working with energies such as these, there is really no physical object that would lead to the initial energy or the pressure gradient to have any non-negligible effect.
+
+  So now we have the force. 36 followed by 70 zeros Newtons.
+
+  About 67 orders of magnitude beyond the average punch of 1,000 Newtons. About 66 orders of magnitude above the highest ever recorded punch of ~69,000 Newtons.
+
+  For comparasion, this is 25 orders of magnitude above the estimated energy release of the big bang.
+
+  On the order of comics, the best feat that I could come up with a real number too, not estimations based on the wacky comic physics would be superman pulling a chain of planets as very quick speeds. With other people's estimates coming at $10^{38}$ to $10^{40}$ newtons. Still on the upper end being 31 orders of magnitude away. Humans are closer to the superman's feat than superman is to the calculated feat.
+
+
+\subsection{General Questions}
+
+There are a couple of questions that I can anticipate. If gravity moves at the speed of light, how would that changes things. The answer is not an insane amount. Red shifting and losing energy is only for waves, the constant gravity would not lose energy. Our model make sure the gravity overcomes dark energy by definition. The main change would be the change in the radius of the universe and the possibility of parts of the currently observable universe going past the cosmic horizen where gravity would never be able to reach it. The two aspects conteract one another, and since we are working with such large numbers I assume they wouldn't change much. Though, as always, I could always be wrong.
+
+
+  Thank you for watching
+
+
+\section{Over Engineering Celestial Mechanics: WHCKL model}
+
+\subsection{Planning}%
+\begin{enumerate}
+  \item Introduction
+  \item Scope
+  \item Deriving WH
+  \item WH Maping
+  \item Deriving Symplectic correctors
+  \item using variations
+  \item Splitting method
+  \item Lazy Kernel
+  \item General Improvements
+  \item Comparing to other methods
+  \item video of solar system
+\end{enumerate}
+
+\subsection{Introduction}
+
+(general animate introduction)
+
+Hi everyone
+
+\subsection{Scope}
+
+Essentially the scope and goals of this project are to develop a celestial mechanics numerical model that is mathematically complex enough to be a challenge. To slightly constrain the scope, the goal will be to allow for highly efficient long term keplarian celestial mechanics. On the order of millions of even billions of years with relative accuracy.
+
+After some research, the clear, for very long term celestial mechanics the clear modern winner is Wisdom-Holman
