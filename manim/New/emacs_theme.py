@@ -217,3 +217,13 @@ def fringe():
         [x, -config.frame_height / 2 + 0.2, 0], [x, config.frame_height / 2 - 0.2, 0],
         color=REGION, stroke_width=2, stroke_opacity=0.8,
     )
+from manim import *
+
+class Packages:
+    def __init__(self):
+        self.tex_template = TexTemplate()
+        self.tex_template.add_to_preamble(r"\usepackage{amsmath}")
+        self.tex_template.add_to_preamble(r"\usepackage{amssymb}")
+        self.tex_template.add_to_preamble(r"\usepackage{physics}")
+        self.tex_template.add_to_preamble(r"\usepackage{siunitx}")
+

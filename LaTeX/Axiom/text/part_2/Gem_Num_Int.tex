@@ -1,0 +1,78 @@
+\chapter{A Concise Introduction to Geometric Numerical Integration}
+
+For this I will skip around as I already have knowledge on the subject.
+
+\section{Variational Integrator}
+
+Essentially, finding the discrete Lagrangian
+\[
+L_h(q_n, q_{n+1}, h) \approx \int_{t_n}^{t_{n+1}} L(q(t), \dot{q}(t))
+  \]
+
+  Then summing them over a discrete curve with N points
+
+\[
+    S_h(\{q_n\}^N_{n=0}) = \sum_{n=0}^{N-1}L_h (q_n, q_{n+1}, h)
+  \]
+
+  Now assume continuous and find the variation of this sum held fixed.
+
+\section{Volume-Preserving Methods}
+
+Volume preservation is used in many places; particle tracking in in-compressible flows, perturbations in Hamiltonian systems.
+
+Take a divergence free function of velocity. Then a volume perserving flow can be described by this satisfed by the derivative $X(t) = \frac{\partial \varphi_t(x)}{\partial x}(x_0)$
+\[
+\dot{X} = A(t)X
+  \]
+\[
+X(0) = I
+\]
+Known as the variational equation. Here $A(t) = f'(x(t))$ repersenting the Jacobian matrix of f evaluated at $x(t) = \varphi_t(x_0)$.
+
+Thus, if X is divergence free, then the determinate is equal to 1. All Hamiltonians are divergence free.
+
+
+If one takes a numerical look. X becomes using the implicit midpoint rule.
+
+\[
+X_{n+1} = (I - \frac{h}{2} A)^{-1}(I+\frac{h}{2}A) X_n
+  \]
+
+  So the numerical flow is volume-perserving if.
+
+\[
+det \left(\pdv{X_{n+1}}{X_n}  \right) = 1
+  \]
+
+
+\section{Lie Group Method}
+ Assume another differential equation of the same type as before, but A(t) and I are $d \times d$ matricies
+
+With this equation, despite its simplisity, closed form solutions only exist in particular situations. In scalers(d=1), it is trivial. For $d > 1$, it is true when $A(t)$ and $\int^t_0 A(s) ds$ commute.
+
+In non-communtable cases expressed
+\[
+X(t)  = \exp(\Omega(t))
+  \]
+  One can derive the differential equation
+\[
+  \dot{\Omega} = d \exp^{-1}_\Omega(A(t))
+ \]
+\[
+\Omega(0)
+  \]
+
+  where
+\[
+    d \exp^{-1}_\Omega = \sum^\infty_{k=0} \frac{B_k}{k!} ad^k_\Omega (A)
+  \]
+  Here $B_k$ are Bernoulli Numbers and $ad^k$ is shorthand for iterative commutators.
+
+  Solving, one gets a very long infinite series that I will just look up if needed(Magnus Expansion)
+
+  I think I am going to more on now.
+
+\section{Time-Splitting PDE}
+
+This is simply the same as traditional splitting but using time with evolution equations.

@@ -1,0 +1,9 @@
+&control
+  case_name='blast2d'
+  scheme='sp'
+  kdeg=2
+  nxyz=400,400,1
+  use_oe=.true.
+  use_pp=.true.
+  cfl=0.10
+/

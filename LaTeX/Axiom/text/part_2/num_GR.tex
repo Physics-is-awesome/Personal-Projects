@@ -1,0 +1,218 @@
+\chapter{Introduction to 3+1 Numerical Relativity}
+\section{3+1 formulism}
+\subsection{3+1 split}
+The 3+1 split of the metric can be defined as
+
+\[
+    g_{\mu \nu} =
+\begin{pmatrix}
+-\alpha^2 + \beta_k \beta^k & \beta_i \\
+\beta_j & \gamma_{ij}
+\end{pmatrix}
+\]
+
+\[
+    g^{\mu \nu} =
+\begin{pmatrix}
+-1 / \alpha^2  & \beta_i/\alpha^2 \\
+\beta_j/ \alpha^2 & \gamma_{ij} - b^i b^j / \alpha^2
+\end{pmatrix}
+\]
+The volume can then be expressed as
+\[
+\sqrt{-g} = \alpha \sqrt{\gamma}
+  \]
+  with g and y being the determinate of the tensors.
+
+  The spacial metric $\gamma_{ij}$is simply defined at the metric induced on each hypersurface $\Sigma$ by the full spacetime
+
+\[
+  \gamma_{\mu \nu} = g_{\mu \nu} + n_\mu n_\nu
+  \]
+
+  This spacial metric is a full four-tensor but when written in adapted coordinates its time component becomes trivial. This spacial metric is simply the projection operator on the spacial hypersurface.
+
+  The lapse function is
+\[
+\alpha = (- \grad t \cdot \grad t)^{1/2}
+  \]
+  The unit normal vector space can be writen as
+\[
+n^\mu = -\alpha \grad^\mu t
+  \]
+
+  Where the minus sign enforces that the unit vector is future pointing.
+
+\subsection{Extrinsic Curvature}
+
+The extrinsic curvature tensor $K_{\alpha \beta}$is a measure of the change of the normal vector under such parallel transport.
+
+Before we do that the projection operator onto the spacial hypersurface:
+\[
+P^\alpha_\beta := \delta^\alpha_\beta + n^\alpha n_\beta
+  \]
+  which is simply the induced spacial metric.
+
+  Using this, the extrinsic curvature tensor is
+\[
+K_{\mu \nu} := -P^\alpha_\mu \grad_\alpha n_\nu
+  \]
+
+  The tensor is symmetric
+
+  In the coordinate system created the Hamiltonian and Momentum constraints take the form:
+\[
+R + K^2 - K_{ij}K^{ij} = 16 \pi \rho
+  \]
+\[
+D_j(K^{ij}- \gamma^{ij}K) = 8 \pi j^i
+  \]
+  with
+\[
+\rho := n^\mu n^\nu T_{\mu \nu}, \qquad j^i := -P^{i\mu}n^\nu T_{\mu \nu}
+  \]
+
+\subsection{The ADM evolution Equation}
+
+With a lot of math I am not going to write down the Hamiltonian density can be defined as
+\[
+\mathcal{H} = - \sqrt{\gamma} \left[\alpha (R+k^2 -K_{ij}K^{ij}) + 2 \beta_i D_j (K^{ij} - \gamma^{ij} K)  \right]
+  \]
+
+  Then the hamiltonian is obviously
+\[
+H := \int \mathcal{H} d^3x
+  \]
+  Variations of this hamiltonian with respect to $\alpha$ and $\beta^i$ yields the Hamiltonian and Momentum constraints.
+
+The evolution equations for the gravitational field now follow to be
+
+\[
+\dot{\gamma_{ij}} = \fdv{\mathbf{H}}{\pi^{ij}} \qquad \dot{\pi^{ij}} = - \fdv{\mathbf{H}}{\gamma_{ij}}
+  \]
+  where gamma is the spacial metric and pi is the cononical momenta.
+
+
+\subsection{BSSNOK formulation}
+
+ADM are only weakly hyperbolic and those are highly unstable. BSSN is also called conformal ADM
+
+Consider the conformal rescalling of the spacial metric of the form(where, Conformal rescaling means multiplying a metric by a positive function)
+\[
+\tilde{\gamma_{ij}} := \psi^{-4} \gamma_{ij}
+  \]
+
+  This can be any arbitrary chosen scalar field, but a convienent choice would be a factor that the conformal metric has a unit determinate, that is
+\[
+\psi^4 = \gamma^{1/3} \quad \implies \quad \psi = \gamma^{1/12}
+  \]
+  With $\gamma$ being the deterimate of $\gamma_{ij}$.
+
+There are some other values to be taken into account when using differing spacetimes.
+
+The BSSNOK also seperates the extrinsic curvature into its trace K and its tracefree part
+\[
+A_{ij} = K_{ij} - \frac{1}{3}\gamma_{ij}K
+  \]
+
+  Which under conformal rescalling
+\[
+\tilde{A_{ij}} = \psi^{-4}A_{ij}
+  \]
+
+  The crucial point is that BSSNOK intorduces three auxiliary variables known as the conformal connection functions.
+\[
+\tilde{\Gamma^i} = \tilde{\gamma^{jk}} \tilde{\Gamma^i_{jk}} = - \partial_j \tilde{\gamma^{ij}}
+  \]
+
+
+  After some more math the equation simplifies to the evolution equations
+\[
+\dv{t}\tilde{\gamma_{ij} = -2\alpha \tilde{A_{ij}}}
+  \]
+\[
+\dv{t} \phi = -1/6 \alpha K
+  \]
+
+  \[
+\frac{d}{dt}\tilde{A}_{ij}
+= e^{-4\phi}
+\left\{
+ -D_i D_j \alpha
+ + \alpha R_{ij}
+ + 4\pi\alpha\big[\gamma_{ij}(S-\rho) - 2S_{ij}\big]
+\right\}^{\mathrm{TF}}
++ \alpha\left(K\tilde{A}_{ij} - 2\tilde{A}_{ik}\tilde{A}^{k}{}_{j}\right)
+\]
+
+
+
+
+
+\[
+\frac{d}{dt}K
+= -D_i D^i \alpha
++ \alpha\left(\tilde{A}_{ij}\tilde{A}^{ij} + \frac{1}{3}K^2\right)
++ 4\pi\alpha(\rho + S)
+\]
+
+
+
+\[
+\frac{d}{dt}\tilde{\Gamma}^i
+= \tilde{\gamma}^{jk}\,\partial_j\partial_k \beta^i
+ + \frac{1}{3}\tilde{\gamma}^{ij}\,\partial_j\partial_k \beta^k
+ - 2\,\tilde{A}^{ij}\,\partial_j \alpha
+ + 2\alpha\left(
+     \tilde{\Gamma}^i_{\;jk}\tilde{A}^{jk}
+     + 6\tilde{A}^{ij}\partial_j\phi
+     - \frac{2}{3}\tilde{\gamma}^{ij}\partial_j K
+     - 8\pi\tilde{j}^i
+   \right)
+\]
+
+\section{Gravitational Waves}
+
+\subsection{Gauge invariant Perturbations of Schwarzchild}
+
+When referring to multipoles, if the transformation is $(-1)^l$ then it is even or polar. It is odd or axial is it is instead $(-1)^{l+1}$.
+
+The authors define the Zerilli-Mathews tensor harmonics, useful tensors for looking at quadropoles. It works spesifically for even tensors
+\[
+Z^{l,m}_{ab} := D_aD_b T^{l,m} + \frac{1}{2}l(l+1) \Omega_{ab}Y^{l,m}
+  \]
+  where the scalar sphere harmonics are eigenfunctions of the laplance operator on the sphere. The above tensor is in fact traceless, we can also find its divergence to be given by
+\[
+D^b Z^{l,m}_{ab} = -\frac{1}{2}(l-1)(l+2)Y^{l,m}_a
+  \]
+
+  Odd tensors can only be constructed in one way
+\[
+X^{l,m}_{ab} = \frac{1}{2}(D_aX^{l,m}_b + D_b S^{l,m}_a)
+  \]
+
+  With the divergence being
+\[
+D^b X^{l,m}_{ab} = -\frac{1}{2}(l-1)(l+2)X^{l,m}_a
+  \]
+
+  This can be expanded into multipoles that find that the vector harmonics vanish at monopoles while the tensor ones vanish at both mono and di - poles.
+
+  Next the Regge-Wheeler gauge is a choice that $G^{l,m}=H_A^{l,m}=0$ and K and $H_{AB}$ stay the same.
+
+  Here we have the even and odd parity master equation. I won't write it down but I am sure I can look it up quite easily.
+
+\subsection{Gravitational Radiation in the TT Gauge}
+
+I don't want to write all of this, it is relatively simple math(not really), but a lot of it.
+
+\subsection{Energy and Momentum of GRW}
+
+Take the second order pertubation to derive the Ricci Tensor as
+\[
+R_{\mu \nu} = \epsilon R^{(1)}_{\mu \nu} + \epsilon^2 R^{(2)}_{\mu \nu}
+  \]
+
+  Where $R^{(n)}_{\mu \nu}$ can be derived through F rather simply.
+
+This can be used to construct a psuedo-tensor that can then be used to find the real tensors.

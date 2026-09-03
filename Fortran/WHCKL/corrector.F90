@@ -4,6 +4,7 @@ module symplectic_corrector
     use init_val
     use kepler
     use interaction
+    use transform
 
     implicit none
 
@@ -53,12 +54,12 @@ contains
 
 
     !===========================================================
-    ! Z(a,b)
+    ! Z(a,b) = K(a) I(-b) K(-2a) I(b) K(a)
     !
-    ! Z(a,b) =
-    !
-    ! K(a) I(-b) K(-2a) I(b) K(a)
-    !
+    ! K(x): Kepler drift by x. I(x): interaction kick by x. Both
+    ! now operate purely on Jacobi coordinates (qj/pj) -- no
+    ! coordinate-frame switch is needed between them (see
+    ! jacobi_interaction_kick in interaction.F90).
     !===========================================================
 
     subroutine corrector_Z(state, a, b)
@@ -70,13 +71,9 @@ contains
 
 
         call kepler_step(state, a)
-
-        call interaction_step(state, -b)
-
+        call jacobi_interaction_kick(state, -b)
         call kepler_step(state, -2.0_real64*a)
-
-        call interaction_step(state, b)
-
+        call jacobi_interaction_kick(state, b)
         call kepler_step(state, a)
 
     end subroutine corrector_Z

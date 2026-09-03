@@ -98,6 +98,20 @@ contains
 
     !-----------------------------------------------------------
     ! Work from the outside inward
+    !
+    ! Inverting cartesian_to_jacobi's recurrence gives, at each
+    ! step (with M_total = M_i, M_inner = M_{i-1} before Rsum is
+    ! reduced):
+    !
+    !   q_i = Q_i * (M_inner/M_total) + Rsum/M_total
+    !   p_i = P_i + (m_i/M_total) * Psum
+    !
+    ! (derived by solving cartesian_to_jacobi's Q_i/P_i equations
+    ! for q_i/p_i in terms of R_i, M_i instead of R_{i-1}, M_{i-1};
+    ! verified by round-tripping cartesian_to_jacobi ->
+    ! jacobi_to_cartesian on test cases). The previous version was
+    ! missing the (M_inner/M_total) factor on the position term and
+    ! divided the momentum term by M_inner instead of M_total.
     !-----------------------------------------------------------
 
     do i = state%n, 2, -1
@@ -111,7 +125,7 @@ contains
       ! Cartesian position
       !-------------------------------------------------------
 
-      state%q(:,i) = state%qj(:,i) + Rsum / M_total
+      state%q(:,i) = (M_inner / M_total) * state%qj(:,i) + Rsum / M_total
 
 
       !-------------------------------------------------------
@@ -119,7 +133,7 @@ contains
       !-------------------------------------------------------
 
       state%p(:,i) = state%pj(:,i) &
-        + (m_current / M_inner) * Psum
+        + (m_current / M_total) * Psum
 
 
       !-------------------------------------------------------

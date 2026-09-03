@@ -1,0 +1,22 @@
+&control
+ case_name = 'wb3d',
+ scheme = 'sp',
+ basis_type = 'P',
+ kdeg = 2,
+ nxyz = 4, 4, 4,
+ rk_order = 3,
+ use_oe = .false.,
+ use_pp = .false.,
+ use_ibp = .true.,
+ cfl = 0.15,
+ tfinal = 0.05,
+ pois_tol = 1.0e-12,
+ pois_maxit = 5000,
+ G_override = -1.0,
+ mu_override = -1.0,
+ pp_eps = 1.0e-13,
+ oe_beta = 1.0,
+ nout = 0,
+ verbose = .true.,
+ hK_diam = .false.
+/

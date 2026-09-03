@@ -1,0 +1,135 @@
+\chapter{The Relativistic Boltzmann Equation}
+
+\section{Special Relativity}
+
+It is convenient to define the four-velocity of a particle as
+\[
+U^\alpha = \dv{x^\alpha}{\tau}
+  \]
+
+  Where $\tau$ is proper time, which is scalar invariant. The contra and co variant four velocity as
+
+\[
+(U^\alpha) = \left(\frac{c}{\sqrt{1-v^2/c^2}}, \frac{V}{\sqrt{1-v^2/c^2}} \right)
+  \]
+
+  \[
+(U_\alpha) = \left(\frac{c}{\sqrt{1-v^2/c^2}}, \frac{-V}{\sqrt{1-v^2/c^2}} \right)
+  \]
+
+\subsection{Minkowski Force}
+
+Four velocity is defined in the same manner
+
+Then the four momentum contravariant component is given as
+
+\[
+(p^\alpha) = (\frac{E}{c}, \mathbf{p})
+  \]
+
+  Here we can derive the famous $E=mc^2$
+
+  Taking the acceleration we get the Minkowski force's contravariant components
+
+\[
+    (K^\alpha) = (\frac{\mathbf{F} \cdot \mathbf{v}}{c(1-v^2/c^2)^{\frac{1}{2}}},\frac{\mathbf{F}}{(1-v^2/c^2)^{\frac{1}{2}}} )
+ \]
+
+\subsection{Electrodynamics in free space}
+
+\subsubsection{Maxwell Equations}
+
+The electromagnetic field tensor is defined through:
+\[
+F^{\alpha \beta} = (-\mathbf{E},c \mathbf{B})
+  \]
+  This tensor is antisymetric.
+
+  With its transormation laws being
+\[
+    F^{'\alpha \beta} = \lambda^\alpha_\gamma \lambda_\delta^\beta F^{\gamma \delta}  \]
+\[
+    F^{\alpha \beta} = \bar{\lambda^\alpha}_\gamma \bar{\lambda_\delta^\beta} F^{'\gamma \delta}
+  \]
+
+  \[
+\begin{gathered}
+p^\mu p_\mu=-m^2c^2
+\qquad\text{(mass shell)},\\
+F^{\mu\nu}=\partial^\mu A^\nu-\partial^\nu A^\mu
+\qquad\text{(EM field)},\\
+\partial_\mu F^{\mu\nu}=\mu_0J^\nu,\qquad
+\partial_\mu{}^\star F^{\mu\nu}=0
+\qquad\text{(Maxwell)},\\
+\frac{dp^\mu}{d\tau}=qF^{\mu\nu}u_\nu
+\qquad\text{(Lorentz force)},\\
+dP=\frac{d^3p}{p^0}
+\qquad\text{(invariant measure)},\\
+J^\mu=\sum_s q_s\int p^\mu f_s\,dP
+\qquad\text{(kinetic current)},\\
+p^\mu\partial_\mu f
++qF^{\mu\nu}p_\nu\frac{\partial f}{\partial p^\mu}
+=C[f]
+\qquad\text{(relativistic Boltzmann)},\\
+T^{\mu\nu}=\int p^\mu p^\nu f\,dP
+\qquad\text{(kinetic stress-energy)}.
+\end{gathered}
+\]
+
+\section{Relativistic Boltzmann Equation}
+\subsection{Single Non-degenerate Gas}
+
+Note that momentum and number of particles in an volume element are scalar invariant.
+
+We make the volume element
+
+\[
+d \mu = d^3xd^3p
+  \]
+
+  We can approximate the Jacobian to be
+\[
+J = 1 + \pdv{F^i}{p^2} \Delta t + O[(\Delta t)^2]
+  \]
+
+  We assume the following
+  \begin{itemize}
+    \item Only binary collisions are considered(reasonable if the gas is dilute)
+    \item Molecular Chaos assumption
+          \item One particle distribution function does not vary much over the time interval
+  \end{itemize}
+
+  Remember the momentum four vector is
+\[
+p^\alpha = (p^0, \mathbf{p})
+  \]
+
+  where $p^0$ is
+\[
+p^0 = \sqrt{\abs{p}+m^2c^2}
+  \]
+
+  where $p^0$ is the energy component and $\mathbf{p}$ is the 3-vector spacial momentum vector.
+
+
+This is all pretty trivial and can be looked up later. I am going to skip ahead.
+
+\section{Vlasov}
+
+\subsection{The Vlasov-Maxwell system}
+
+The Vlasov can be written in form
+\[
+p^\mu \pdv{f}{x^\mu} - \Gamma^\sigma_{\mu \nu}p^\mu p^\nu \pdv{f}{p^\sigma} = 0
+  \]
+  Here the phase space isnot a product of the two spaces but rather a sub-manifold of the tangent bundle.
+
+  Thus the derivative is taken in the direction tangent to the manifold $g_{\mu \nu}p^\mu p^\nu = m^2 c^2$.
+
+One can couple with Einstien's field quation by applying the stress energy tensor to be:
+\[
+T_{\mu \nu} = c \int p_\mu p_\nu f \sqrt{g} \frac{d^3p}{p_0}
+  \]
+  Creating the Vasov-Einstein system.
+
+  \subsection{The Threshold of Black hole formation}
