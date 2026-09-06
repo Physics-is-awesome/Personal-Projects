@@ -1,0 +1,22 @@
+&control
+ case_name = 'expl3d',
+ scheme = 'sp',
+ basis_type = 'P',
+ kdeg = 2,
+ nxyz = 24, 24, 24,
+ rk_order = 3,
+ use_oe = .true.,
+ use_pp = .true.,
+ use_ibp = .true.,
+ cfl = 0.10,
+ tfinal = 0.15,
+ pois_tol = 1.0e-12,
+ pois_maxit = 5000,
+ G_override = -1.0,
+ mu_override = -1.0,
+ pp_eps = 1.0e-12,
+ oe_beta = 1.0,
+ nout = 10,
+ verbose = .true.,
+ hK_diam = .false.
+/

@@ -1,0 +1,4 @@
+case (C_EXPL3D)
+	r = radius(x)
+	if (r < blast_r0) p = expl_alpha*p
+end select

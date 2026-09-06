@@ -184,7 +184,7 @@ class S1(Scene):
         self.play(Write(h))
         self.wait(5)
         self.play(Transform(h, MathTex(r"H = A + B", font_size=36, color=FG).move_to(h.get_center())))
-        self.wait(35)
+        self.wait(42.5)
 
         self.play(FadeOut(header, splitting_methods, h, *outer_nodes, *lines, circle_1))
 
@@ -203,17 +203,17 @@ class S2(Scene):
                              ("Deriving WH", PURPLE), ("}", FG_DIM)], font_size=36)
         place_header(header)
         self.play(Write(header))
-
-        ahar = MathTex(r"H(q,p) = \frac{p^2}{2m} + \frac{1}{2}m \omega^2q^2 + \lambda q^4", font_size=26, color=FG_DIM)
+        self.wait(10)
+        ahar = MathTex(r"H(q,p) = \frac{p^2}{2m} + \frac{1}{2}m \omega^2q^2 + \lambda q^4", font_size=26, color=FG)
         ahar.next_to(header, DOWN, buff=0.4, aligned_edge=LEFT)
         self.play(Write(ahar))
         self.wait(3)
 
-        # N-Body Hamiltonian in Inertial Cartesian Coordinates
+        
         nonlinear = MathTex(r"\int \frac{dp}{dH} dt \qquad \int \frac{dq}{dH} dt", font_size=44, color=RED)
         nonlinear.move_to(ORIGIN)
         self.play(Write(nonlinear))
-        self.wait(15)
+        self.wait(7)
 
         kinetic = MathTex(r"\frac{p^2}{2m}", font_size=44, color=FG).move_to(ORIGIN + LEFT * 2.5)
         potential = MathTex(r"\frac{1}{2}m \omega^2q^2 + \lambda q^4", font_size=44, color=FG).move_to(ORIGIN + RIGHT * 2.5)
@@ -272,7 +272,7 @@ class S2(Scene):
         Operator = MathTex(r"L_H f = \{f, H\}", font_size=36, color=FG)
         Operator = Operator.move_to(ORIGIN)
         self.play(Write(Operator))
-        self.wait(13.0)
+        self.wait(3.0)
         Operator_Expanded = MathTex(r"L_H  = L_T + L_V", font_size=36, color=FG)
         Operator_Expanded.move_to(Operator.get_center())
         self.play(ReplacementTransform(Operator, Operator_Expanded), run_time=1.5)
@@ -287,7 +287,7 @@ class S2(Scene):
 
         self.play(ReplacementTransform(VGroup(z_matrix, Operator_Expanded), differential), run_time=1.5)
 
-        self.wait(5)
+        self.wait(20)
 
         self.play((differential.animate.shift(UP * 1.5)))
 
@@ -296,7 +296,7 @@ class S2(Scene):
         self.play(Write(wrong_commute))
         self.wait(5)
 
-        commute = MathTex(r"[L_T, L_V] \neq 0", font_size=36, color=TEAL)
+        commute = MathTex(r"[L_T, L_V] \neq 0", font_size=36, color=RED)
         commute.next_to(wrong_commute, DOWN, buff=0.5)
         self.play(Write(commute))
         self.wait(5)
@@ -304,12 +304,15 @@ class S2(Scene):
         solve_q = MathTex(r"[L_T, L_V]q = -\frac{V'(q)}{m} - 0", font_size=36, color=TEAL)
         solve_q.next_to(commute, DOWN, buff=0.5)
         self.play(Write(solve_q))
-        self.wait(5)
+        self.wait(10)
         self.play(FadeOut(VGroup(differential, wrong_commute, commute, solve_q)))
         error = MathTex(r"e^{h(L_T + L_V)} = e^{hL_T} e^{hL_V} + \mathcal{O}(h^2)", font_size=36, color=RED)
         error.move_to(ORIGIN)
         self.play(Write(error))
-        self.wait(5)    
+        self.wait(14)
+        self.play(FadeOut(error, header))
+
+            
 # =============================================================================
 # S03 -- Deriving Strang Splitting
 # =============================================================================
@@ -329,11 +332,11 @@ class S3(Scene):
         origional = MathTex(r"H = T + V", font_size=36, color=FG)
         origional.next_to(header, DOWN, buff=0.55, aligned_edge=LEFT)
         self.play(Write(origional))
-        self.wait(17.0)
+        self.wait(2.0)
         split = MathTex(r"H = A + B", font_size=36, color=FG)
         split.next_to(origional, DOWN, buff=0.5, aligned_edge=LEFT)
         self.play(ReplacementTransform(origional, split), run_time=1.5)
-        self.wait(24.0)
+        self.wait(2.0)
 
         self.play(FadeOut(split))
 
@@ -347,7 +350,7 @@ class S3(Scene):
         taylor = MathTex(r"z(t+h) = \underbrace{\left[I + h(A+B) + \frac{h^2}{2}(A^2 + AB + BA + B^2) \right]}z + O(h^3)", font_size=36, color=FG)
         taylor.next_to(differential, DOWN, buff=0.5, aligned_edge=LEFT)
         self.play(Write(taylor), run_time=1.5)
-        self.wait(10.0)
+        self.wait(8.0)
 
         three_comp = MathTex(r"S(h)= e^{ahA}e^{bhB}e^{ahA}", font_size=34).move_to(ORIGIN + UP * 2)
         self.play(ReplacementTransform(VGroup(taylor, differential), three_comp), font_size=36, color=FG, run_time=1.5)
@@ -355,12 +358,12 @@ class S3(Scene):
         expand = MathTex(r"e^{ahA} = I + ahA + \frac{a^2h^2}{2}A^2+O(h^3) \qquad e^{bhB} = I bhB + \frac{b^2h^2}{2}B^2+ O(h^2)", font_size=30).move_to(ORIGIN + LEFT * 1.5)
     
         self.play(Write(expand), run_time=1.5)
-        self.wait(10.0)
+        self.wait(8.0)
 
         multiple = MathTex(r"S(h) = I + h(2aA +bB) + O(h^3)", font_size=36)
 
         self.play(ReplacementTransform(expand, multiple), run_time=1.5)
-        self.wait(10.0)
+        self.wait(5.0)
 
         solution = MathTex(r"I + h(A+B)+ O(h^3)", font_size=36) 
         self.play(multiple.animate.shift(LEFT * 3.0))
@@ -372,13 +375,12 @@ class S3(Scene):
         a_b = MathTex(r"a = \frac{1}{2} \qquad b = 1").move_to(ORIGIN + UP * 1)
 
         self.play(ReplacementTransform(VGroup(multiple, solution), a_b), run_time=1.5)
-
-        self.wait(10.0)
+        self.wait(11.0)
 
         strang = MathTex(r"S(h) = e^{\frac{h}{2}A}e^{hB}e^{\frac{h}{2}A}").move_to(ORIGIN)
         strang.next_to(a_b, DOWN, buff=0.5, aligned_edge=LEFT)
         self.play(Write(strang), run_time=1.5)
-        self.wait(10.0)
+        self.wait(8.0)
         self.play(FadeOut(VGroup(header, a_b, strang)))
 
         # ============================================================================
@@ -419,20 +421,20 @@ class S4(Scene):
                              ("Adjoint Formulism", PURPLE), ("}", FG_DIM)], font_size=30)
         place_header(header)
         self.play(Write(header))
-        self.wait(3.0)
+        self.wait(6.0)
 
         self_adj = MathTex(r"\psi_h = \psi^{\star}_h = (\psi_{-h})^{-1}", font_size=36, color=FG)
         self.play(Write(self_adj))
-        self.wait(3.0)
+        self.wait(6.0)
 
-        defining_inverse = MaThTex(r"\psi = x^1 \circ x^2 \text{then} \psi^{\star} = x^2 \circ x^1")
+        defining_inverse = MathTex(r"\psi = x^1 \circ x^2 \text{then} \psi^{\star} = x^2 \circ x^1")
 
         defining_inverse.next_to(self_adj, DOWN, buff=0.5, aligned_edge=LEFT)
         self.play(Write(defining_inverse))
-        self.wait(3.0)
+        self.wait(20.0)
         # haven't finished this section yet, but I will continue to work on it later
         ######################################################################
-        self.play(FadeOut(header))
+        self.play(FadeOut(header, defining_inverse, self_adj))
 
 # =============================================================================
 # S5 -- Higher Order Splitting and Composition
@@ -448,17 +450,17 @@ class S5(Scene):
         place_header(header)
         self.play(Write(header))
 
-        strang_text = Tex('"it is a meta-theorem of numerical analysis that second order methods often achieve the right balance between accuracy and complexity." - Strang', font_size=30, color=FG_DIM)
+        strang_text = Tex('"it is a meta-theorem of numerical analysis that second order methods often achieve the right balance between accuracy and complexity." - Strang', font_size=38, color=FG)
         strang_text.next_to(header, DOWN, buff=0.5, aligned_edge=LEFT)
         self.play(Write(strang_text))
-        self.wait(10)
+        self.wait(30)
 
         self.play(FadeOut(strang_text))
         strang = MathTex(r"S^{[2]}_h = \varphi_{h/2} \circ \varphi_{h} \circ \varphi_{h/2}", font_size=36, color=FG)
         strang.move_to(ORIGIN + UP * 1.0)
         self.play(Write(strang))
 
-        self.wait(10)
+        self.wait(7)
 
         comp = MathTex(r"\psi_h = S_{\gamma_s h} \circ S_{\gamma_{s-1} h} \circ ... \circ S_{\gamma_1 h}", font_size=36, color=FG)
 
@@ -495,6 +497,7 @@ class S5(Scene):
             r"\end{align*}", font_size=36, color=FG)
 
         self.play(ReplacementTransform(VGroup(sym, gamma), general), run_time=1.5)
+        self.wait(30)
         self.play(FadeOut(header))
 
         
