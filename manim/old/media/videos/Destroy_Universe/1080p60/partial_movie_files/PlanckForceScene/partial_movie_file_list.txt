@@ -1,0 +1,9 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/359178136_2601959947_223132457.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_3979603034_1809537164.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_2574473371_1840597137.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_46227276_4119129205.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_2574473371_4191367073.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_725394822_1004095297.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_2872842549_3942076056.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/Destroy_Universe/1080p60/partial_movie_files/PlanckForceScene/2965620676_61118140_825333220.mp4'

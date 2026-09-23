@@ -1,0 +1,10 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/4185961352_3703477827_766881332.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_221228137_3374489130.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_1947662525_2017985182.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_1432596116_3826760345.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_1749739634_843444229.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_310540274_2430697122.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_969530393_984453924.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_310540274_3749372906.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/DG/1080p60/partial_movie_files/S5/2247593372_1615434036_811603454.mp4'

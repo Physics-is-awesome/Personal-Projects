@@ -57,25 +57,25 @@ module mod_params
   integer, parameter :: C_EXPL3D  = 9
 
   !======================= namelist controlled ==========================
-  character(len=24) :: case_name  = 'wb2d'
+  character(len=24) :: case_name  = 'blast2d'
   character(len=8)  :: scheme     = 'sp'     ! 'sp'  structure preserving (3.36)
                                              ! 'std' standard LDG        (3.11)
   character(len=1)  :: basis_type = 'P'      ! 'P' : P^k  (paper) , 'Q' : Q^k
   integer  :: kdeg       = 2                 ! polynomial degree k
-  integer  :: nxyz(3)    = (/ 20, 20, 20 /)
+  integer  :: nxyz(3)    = (/ 24, 24, 1 /)
   integer  :: rk_order   = 3                 ! 1,2,3 SSP-RK   (Sec. 3.5)
-  logical  :: use_oe     = .false.           ! OE damping     (Sec. 3.6)
-  logical  :: use_pp     = .false.           ! positivity limiter
+  logical  :: use_oe     = .true.           ! OE damping     (Sec. 3.6)
+  logical  :: use_pp     = .true.           ! positivity limiter
   logical  :: use_ibp    = .true.            ! D2tilde (3.24) vs D2 (3.17e)
-  real(dp) :: cfl        = 0.15_dp
-  real(dp) :: tfinal     = -1.0_dp           ! <0 : case default
+  real(dp) :: cfl        = 0.10_dp
+  real(dp) :: tfinal     = 1.0_dp           ! <0 : case default
   real(dp) :: pois_tol   = 1.0e-14_dp
   integer  :: pois_maxit = 50000
   real(dp) :: G_override = -1.0_dp
   real(dp) :: mu_override= -1.0_dp
   real(dp) :: pp_eps     = 1.0e-13_dp
   real(dp) :: oe_beta    = 1.0_dp            ! multiplier on beta_e
-  integer  :: nout       = 0
+  integer  :: nout       = 10
   logical  :: verbose    = .true.
   logical  :: hK_diam    = .false.           ! .true. : h_K = diam(K)  (Sec. 5)
                                              ! .false.: h_K = min_m dx_m
@@ -241,16 +241,31 @@ contains
 
     !----------------------------------------------- Example 5.4 --------
     case ('blast2d')
-       icase = C_BLAST2D ; ieq = EQ_BESSEL
-       call require_dim(2)
-       kap = one ; gam = two ; Ggrav = one ; lam = one
-       pol_n = one ; pnu = two
-       call set_aLE()
-       xlo(1:2) = -half ; xhi(1:2) = half
-       bc_fluid = BC_TRANS ; bc_pois = BC_EXACT
-       blast_r0 = 0.1_dp ; blast_dp = 100.0_dp
-       use_oe = .true. ; use_pp = .true.
-       if (tfinal < zero) tfinal = 0.05_dp
+      icase = C_BLAST2D
+      call require_dim(2)
+
+      gam   = 4.0_dp/3.0_dp
+      Ggrav = one
+      kap   = one
+      lam   = one
+      pol_n = 3_dp ! was one
+      pnu   = two
+
+      call set_aLE()
+
+      xlo(1:2) = -one
+      xhi(1:2) =  one
+
+      bc_fluid = BC_TRANS
+      bc_pois  = BC_EXACT
+
+      blast_r0 = 0.15_dp
+      blast_dp = 10.0_dp
+
+      use_oe = .true.
+      use_pp = .true.
+
+      if (tfinal < zero) tfinal = 0.5_dp
 
     !  the five-ball perturbation of [29], T = 0.02
     case ('blast2d5')
@@ -341,9 +356,11 @@ contains
        Kpol = one ; rho0 = one ; Ggrav = one
        gam = two ; pnu = two
        kap = Kpol ; lam = rho0 ; pol_n = one
+
        alph = sqrt(four*pi*Ggrav/(two*Kpol))
        aLE = one/alph
        xlo(1:3) = -half ; xhi(1:3) = half
+
        bc_fluid = BC_TRANS ; bc_pois = BC_EXACT
        expl_alpha = 10.0_dp ; blast_r0 = 0.1_dp
        use_oe = .true. ; use_pp = .true.

@@ -1,6 +1,5 @@
 module primitive_recovery_mod
   use kinds_mod, only: dp
-  use eos_mod, only: pressure, eps_from_rho_p
   implicit none
   private
   public :: con2prim, rho_floor, p_floor

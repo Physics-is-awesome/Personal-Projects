@@ -26,7 +26,6 @@ program main_tov
 
   call init_params()
   call setup_grid()
-
   tov_Gamma = 2.0_dp
   tov_K = 100.0_dp
   rho_c = 1.28e-3_dp
@@ -90,5 +89,6 @@ program main_tov
       end block
     end if
   end do
+  call output_finalize()
 
 end program main_tov

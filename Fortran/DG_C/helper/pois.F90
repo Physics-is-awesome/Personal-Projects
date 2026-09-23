@@ -103,6 +103,7 @@ contains
 
     gh = zero
 
+    !$omp parallel do default(shared) private(ic,q,m,a,pin) schedule(static)
     do ic = 1, ncell
        do q = 1, nqv
           pin = eval_v(ph(:,ic), q)
@@ -113,7 +114,9 @@ contains
           end do
        end do
     end do
+    !$omp end parallel do
 
+    !$omp parallel do default(shared) private(ic,m,area,s,sgn,jc,q,pin,pout,phat,a,x) schedule(static)
     do ic = 1, ncell
        do m = 1, nd
           area = dxi(m)                       ! |E|/|K| = 1/h_m
@@ -140,6 +143,7 @@ contains
           end do
        end do
     end do
+    !$omp end parallel do
   end subroutine ldg_grad
 
   !=====================================================================
@@ -156,6 +160,7 @@ contains
 
     aph = zero
 
+    !$omp parallel do default(shared) private(ic,q,m,a,gq) schedule(static)
     do ic = 1, ncell
        do q = 1, nqv
           do m = 1, nd
@@ -168,7 +173,9 @@ contains
           end do
        end do
     end do
+    !$omp end parallel do
 
+    !$omp parallel do default(shared) private(ic,m,area,s,sgn,jc,q,gin,gout,pin,pout,ghn,a,x,gD) schedule(static)
     do ic = 1, ncell
        do m = 1, nd
           area = dxi(m)
@@ -199,6 +206,7 @@ contains
           end do
        end do
     end do
+    !$omp end parallel do
   end subroutine ldg_apply
 
   !---------------------------------------------------------------------

@@ -128,7 +128,8 @@ contains
        else
           Y = Uw
        end if
-    end if
+     end if
+
   end subroutine post_stage
 
   !=====================================================================
@@ -170,7 +171,9 @@ contains
           r0 = zero
           if (jeans_delta) r0 = eval_v(rhoe(:,ic), q)
           etot = etot + cvol*wv(q)*(e + half*(r - r0)*ph)
-       end do
+          print *, " total energy"
+          print *, etot
+        end do
     end do
   end function total_energy
 

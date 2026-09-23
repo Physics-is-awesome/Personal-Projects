@@ -32,6 +32,7 @@ At some point I want a dive into Kerr Black holes but I am not ready for that.
   \item ADM
   \item Symplectic geometry: A physicist's perspective
   \item DG
+  \item Deriving Gravitational Wave Memory
 \end{itemize}
 
 
@@ -1276,11 +1277,11 @@ There are many other ways to find higher order splitting, a more detailed observ
   \item General Introduction to DG
   \item Physical Model Model
   \item Deriving Projection
-  \item Standard LDG
-  \item Structure preserving DG
+  \item Structure preserving LDG
   \item Time Discretization
   \item Ossilation Elimination
   \item Structure Preserving Properties
+  \item The Code itself(Flowchart)
   \item Results
 \end{itemize}
 \subsection{Introduction}
@@ -1290,6 +1291,1026 @@ Hi, welcome to Discontinuous Galerkin Method: a focus on Self-Gravitating Euler 
 
 \subsection{Scope}
 
-Here we address the scope of this video. It is meant as an introduction into DG, using an example to help facilitate understanding. For both the purposes of expanding your mind and my own, I have chosen a particularly challenging one I have recently read about.
+Here we address the scope of this video. It is meant as an introduction into DG, using an example to help facilitate understanding. For both the purposes of challenging myself, I have chosen a particularly challenging one I have recently read about.
 
-Taking a self-gravitating fluid and using the structure preserving capacity of DG to preserve positivity, ie that pressure, mass, energy, etc are all positive at all points, and well balanced, ie compressible fluid that admits hydrostatic equilibrium
+Taking a self-gravitating fluid and using the structure preserving capacity of DG to preserve positivity, ie that pressure, mass, energy, etc are all positive at all points, and well balanced, ie compressible fluid that admits hydrostatic equilibrium. For this video I won't go to far into the math of these more advanced subjects.
+
+Also, for the rest of the video I will refer to the DG are ``DG''
+
+\subsection{Introduction to DG}
+
+Before we get into the math, we will take a more intuitive look before we get into the math. A good way to start is to look at the whole family tree. I assume anyone who is watching this has heard of and understands finite difference models; approximate spacial derivatives with stencils on point values. Further, we get to finit volume which trackes cell averages and evolve them via fluxes computed at cell faces from a Riemann solver. Then we come to continuous finite element or Galerkin who represents the solution as one global piecewise-polynomial function, continuous across element boundaries. Higher order and structural preserving methods are baked into the equations. The separation between DG and CG is that these polynomials are discontinuous, exactly as you would expect. The reason for this is that in many cases, the physical situations are partially discontinuous. Think of an explosion in a fluid, it takes time for the explosion to effect outer areas of the fluid, more time than would be found through a continuous polynomial.
+
+essentially, we divide the space into elements
+\[
+\Omega = \cup_e \Omega_e
+  \]
+
+  We approximate the solution to the differential equation using polynomials
+\[
+u_h(x,t) \sum_{j=0}^N u_j(t) \phi_j(x)
+  \]
+
+  Next we write the PDE in its weak form
+\[
+  \pdv{u}{t} + \grad \cdot \mathbf{F} = S(u)
+\]
+
+
+Multiply the test function $\phi$ then integrate by parts
+
+\[
+\int_\Omega \phi \pdv{u}{t} dV - \int_\Omega \grad \phi \cdot \mathbf{F} dV + \int_{\partial \Omega} \phi \mathbf{F} \cdot \mathbf{n} ds = S(u)
+  \]
+
+  They communicate between elements via fluxes, that can be defined via your physical system
+
+  Then we can generalize the fluxes into the residuals from the weak form equation used previously used to rearange into
+
+  \begin{equation}
+\mathbf{R}(\mathbf{U})
+=
+\mathbf{R}_{\mathrm{vol}}
++
+\mathbf{R}_{\mathrm{surf}}
++
+\mathbf{R}_{\mathrm{src}}
+\end{equation}
+
+\begin{equation}
+\mathbf{R}_{\mathrm{vol}}
+=
+\int_K
+\nabla\boldsymbol{\phi}
+\cdot
+\mathbf{F}(\mathbf{u}_h)
+\,dV
+\end{equation}
+
+\begin{equation}
+\mathbf{R}_{\mathrm{surf}}
+=
+-\int_{\partial K}
+\boldsymbol{\phi}
+\,\mathbf{F}^{*}
+\,dS
+\end{equation}
+
+\begin{equation}
+\mathbf{R}_{\mathrm{src}}
+=
+\int_K
+\boldsymbol{\phi}
+\,\mathbf{S}(\mathbf{u}_h)
+\,dV
+\end{equation}
+
+\begin{equation}
+\mathbf{R}(\mathbf{U})
+=
+\int_K
+\nabla\boldsymbol{\phi}
+\cdot
+\mathbf{F}(\mathbf{u}_h)
+\,dV
+-
+\int_{\partial K}
+\boldsymbol{\phi}
+\,\mathbf{F}^{*}
+\,dS
++
+\int_K
+\boldsymbol{\phi}
+\,\mathbf{S}(\mathbf{u}_h)
+\,dV
+\end{equation}
+
+\begin{equation}
+M\frac{d\mathbf{U}}{dt}
+=
+\mathbf{R}(\mathbf{U})
+\end{equation}
+
+from here, using the basis functions from the mesh we get the mass matrix which is the matrix representation of the inner product on your finite-dimensional approximation space.
+
+From here, the derivative of the functions as a function of time can be derived via
+\[
+\pdv{u}{t} = M^{-1}rhs(u_h)
+  \]
+
+  Now, listening to all of this may seem fairly confusing, this is doubled by my admitted brevity, but I allow this brevity as I am going to take a concrete example as mentioned previously.
+
+\subsection{Physical Model}
+
+As mentioned earlier, we take the Euler-Poisson for a self-gravitating fluid, such as a toy model of a star. While keeping the simplicity of the model, I add a personal challenge by adding constraints of energy conservation and positivity. Using the general Euler-Poisson equation
+\[
+\text{insert long equation here}
+  \]
+
+  Then adding Polytropic steady-states and Lane-Emden equations in order to enforce EOS and positivity.
+
+\[
+\text{equation}
+  \]
+
+  I know I once again was very brief, but that is simply because the actual equations don't matter too much, just the general shape and view of them so that we can create the code.
+
+\subsection{Mesh and Projection}
+
+
+We start by assuming a uniformly space square/cube meshing
+
+(image of square meshing)
+
+We can then define $n^+, n^-$ as the normal of the flux.
+
+Next to define the projection, but to do that we define our test problem. Simply a weighting function within the polynomial space that allows us to integrate more easily.
+
+(show examples in traditional methods)
+
+Then we can define the projection matrix P via the $L^2$ projection:
+\[
+\int_K u v dx = \int_K \mathbf{P}(u) v dx
+  \]
+
+  Now we can start moving backwards by rearanging the equation to get
+\[
+P(u)(x) = \sum c_j v_j(x)
+  \]
+
+  By defining the mass matrix as
+\[
+M_{ij} = \int_k \phi_i v_j
+  \]
+
+  where phi of i is the basis function, we use the nodal basis function, coefeciencts fairly easily looked up.
+
+  we can also define the right side vector as
+\[
+b_j = \int_K u v_j dx
+  \]
+
+  We can rearagne our origional projection function
+\[
+P(u)(x) = \sum (M^{-1}b)_j v_j(x)
+  \]
+
+\subsection{Flux}
+
+We start with a basic peicewise function for flux of a fluid.
+\[
+    F^{hllc}(U_L, U_R; \mathbf{n}) =
+\begin{cases}
+  \mathbf{F}(U_L), \text{if } 0 \leq S_L, \\
+  \mathbf{F}_{\star L}, \text{if } S_L \leq 0 \leq S_\star, \\
+  \mathbf{F}_{\star R}, \text{if } S_\star \leq 0 \leq S_R, \\
+  \mathbf{F}(U_R), \text{if } 0 \geq S_R, \\
+\end{cases}
+\]
+
+This is the standard HLLC or Harten–Lax–van Leer–Contact flux solver. As this is more an introduction into DG than fluid dynamics I won't go through and expand all of these out, but essentially, it approximates the Remanian problem to approximate the flux of conserved quantities like energy, momentum, mass, etc.
+
+I also slightly modify it in order to enforce Well-balencedness by adding the earlier Lane-Emden equation to the flux equation.
+
+\subsection{Scheme}
+Now building the actual numerical method. Before we get to the well-balanced, energy-conserving version, I want to build the plain scheme first, so that when I show you exactly how it fails near equilibrium later, you can point to the specific term responsible, rather than just taking my word for it.
+
+Let's write out our conserved variables, flux, and source term the way we did generically before, but now specifically for the self-gravitating Euler system in $d$ spatial dimensions:
+\[
+\mathbf{U} =
+\begin{bmatrix}
+\rho \\ \rho \mathbf{u} \\ E
+\end{bmatrix}, \qquad
+\mathbf{F}(\mathbf{U}) =
+\begin{bmatrix}
+\rho \mathbf{u} \\ \rho \mathbf{u}\otimes\mathbf{u} + p\mathbf{I}_d \\ (E+p)\mathbf{u}
+\end{bmatrix}, \qquad
+\mathbf{S}(\mathbf{U}, \grad\phi) =
+\begin{bmatrix}
+0 \\ -\rho\grad\phi \\ -\rho\mathbf{u}\cdot\grad\phi
+\end{bmatrix}.
+\]
+
+Here $E = \rho e + \tfrac12 \rho \abs{mathbf{u}}^2$ is the usual total (non-gravitational) energy, $e$ is the specific internal energy fixed by an equation of state, and for an ideal gas $p = (\gamma-1)\rho e$. With this notation, our full model compresses down to
+\[
+\mathbf{U}_t + \grad\cdot\mathbf{F}(\mathbf{U}) = \mathbf{S}(\mathbf{U},\grad\phi), \qquad \Delta\phi = 4\pi G \rho.
+\]
+
+$\phi$ is the gravitational potential and $G$ the gravitational constant. That second equation, Poisson's equation, is the entire reason this problem is harder than an ordinary Euler solve: it isn't fixed but rahter generated by the fluid, it changes shape every time the density field changes, and every single timestep we need to re-derive a self-consistent gravitational field from whatever the density happens to look like at that instant.
+
+\subsubsection{Why local DG, specifically}
+
+There are two broad strategies exist for handling the gravity term numerically. One is to treat the Poisson equation as a pseudo-hyperbolic problem, giving it an artificial wave speed and a relaxation time so the same Riemann-solver machinery built for the Euler equations can be reused directly on the gravity sector too. The other, which is the one this scheme takes, is to solve the elliptic Poisson equation directly. Direct solves used to be avoided in this setting because they historically meant either an FFT-based Poisson solver (fast, but restricted to very particular, usually periodic, domain shapes) or a multipole expansion (flexible, but expensive and awkward to make high order). Local DG sidesteps both complaints: it was originally invented specifically to let a DG method handle equations with second derivatives without ever forming a second derivative explicitly, and it inherits all of the DG machinery's flexibility with boundary conditions and geometry for free. That's the actual technical justification for reaching for LDG here rather than, say, a finite-difference Poisson solver bolted onto a DG hydro code.
+
+\subsection{Standard LDG}
+
+So concretely: how do we get $\phi$ out of a DG method when Poisson's equation has a second derivative in it, and DG's whole weak-form machinery is built assuming one derivative per equation? This is exactly the ``Local'' in Local DG. Following Cockburn and Shu's original construction, we introduce an auxiliary variable standing in for the gravitational force itself,
+\[
+\mathbf{g} = \grad \phi,
+\]
+and rewrite the whole system as a genuinely first-order system, no second derivatives anywhere:
+\[
+\begin{cases}
+\mathbf{U}_t + \grad\cdot\mathbf{F}(\mathbf{U}) = \mathbf{S}(\mathbf{U}, \mathbf{g}), \\
+\mathbf{g} = \grad\phi, \\
+\grad\cdot\mathbf{g} = 4\pi G \rho.
+\end{cases}
+\]
+
+Now every equation is first order, so we throw the exact same weak-form recipe from earlier at each piece independently. We work on a mesh $\mathcal{T}_h$ of elements $K$, with $\mathcal{E}_I$ the interior faces and $\mathcal{E}_B$ the domain boundary. On a shared face $\mathcal{E}$ between two elements $K^+$ and $K^-$, with outward normals $\mathbf{n}^+,\mathbf{n}^-$, define the usual average and jump of a scalar function $u$ and a vector function $\mathbf{q}$:
+\[
+\{\!\{u\}\!\} = \tfrac12(u^+ + u^-), \qquad [\![u]\!] = u^+\mathbf{n}^+ + u^-\mathbf{n}^-,
+\]
+\[
+\{\!\{\mathbf{q}\}\!\} = \tfrac12(\mathbf{q}^+ + \mathbf{q}^-), \qquad [\![\mathbf{q}]\!] = \mathbf{q}^+\cdot\mathbf{n}^+ + \mathbf{q}^-\cdot\mathbf{n}^-.
+\]
+
+On a single element $K$, testing the three equations against $v \in V_h^k$, $\mathbf{w} \in \Sigma_h^k$, and $\psi \in V_h^k$ respectively (piecewise polynomial spaces of degree up to $k$, scalar and vector valued), and integrating by parts exactly the way we did for the single scalar conservation law earlier, we get:
+\[
+\int_K (\mathbf{U}_h)_t \, v \, d\mathbf{x} - \int_K \mathbf{F}(\mathbf{U}_h)\cdot\grad v \, d\mathbf{x} + \sum_{\mathcal{E}\in\partial K} \int_{\mathcal{E}} \widehat{\mathbf{F}}\, v^{\mathrm{int}(K)}\, ds = \int_K \mathbf{S}(\mathbf{U}_h,\mathbf{g}_h)\, v \, d\mathbf{x},
+\]
+\[
+\int_K \mathbf{g}_h \cdot \mathbf{w}\, d\mathbf{x} = \sum_{\mathcal{E}\in\partial K}\int_{\mathcal{E}} \widehat{\phi}_h \, \mathbf{w}^{\mathrm{int}(K)}\cdot\mathbf{n}_{\mathcal{E},K} \, ds - \int_K \phi_h \grad\cdot\mathbf{w}\, d\mathbf{x},
+\]
+\[
+\int_K \mathbf{g}_h \cdot \grad\psi\, d\mathbf{x} = \sum_{\mathcal{E}\in\partial K}\int_{\mathcal{E}} \psi^{\mathrm{int}(K)} \, \widehat{\mathbf{g}}_h\cdot\mathbf{n}_{\mathcal{E},K}\, ds - \int_K 4\pi G \rho_h \, \psi\, d\mathbf{x}.
+\]
+
+The superscript ``int$(K)$'' just means: take the value from inside the element $K$ we're currently integrating over, as opposed to the value carried over from the neighbor on the other side of the face (``ext$(K)$''). This distinction matters constantly in DG because our solution is discontinuous across faces by construction, so ``the value at the face'' is genuinely ambiguous until we pick a numerical flux to resolve it.
+
+The first equation is exactly the fluid solve we already built, with $\widehat{\mathbf{F}}$ the HLLC flux from the previous section, evaluated using $\mathbf{U}_h^{\mathrm{int}(K)}$ and $\mathbf{U}_h^{\mathrm{ext}(K)}$ as the left and right Riemann states. The other two equations are the ``elliptic half'' of the scheme: a mixed formulation of Poisson's equation.
+
+\subsubsection{Fluxes for the elliptic part}
+
+Here's a subtlety that trips people up the first time they see LDG for an elliptic problem: gravity, unlike a fluid wave, doesn't propagate in a preferred direction. There's no upwind side to a Poisson equation the way there's an upwind side to a shock. So HLLC, or any Riemann-solver-based flux, simply doesn't apply here. Instead, following the standard LDG-for-elliptic-problems recipe, we use plain averages of $\phi_h$ and $\mathbf{g}_h$ across the face, corrected by a jump-penalty term that keeps the resulting linear system well posed:
+\[
+\widehat{\mathbf{g}}_h = \{\!\{\mathbf{g}_h\}\!\} - C_{11}[\![\phi_h]\!] - \mathbf{C}_{12}[\![\mathbf{g}_h]\!], \qquad
+\widehat{\phi}_h = \{\!\{\phi_h\}\!\} + \mathbf{C}_{12}\cdot[\![\phi_h]\!],
+\]
+with $C_{11}$ a scalar penalty and $\mathbf{C}_{12}$ a vector penalty, both free parameters we get to choose. On a tensor-product (rectangular) mesh, a standard, well-behaved choice is $C_{11}=1$ with $\mathbf{C}_{12} = (0.5,0.5)^T$ in 2D or $(0.5,0.5,0.5)^T$ in 3D.
+
+If you assemble the full linear system for $(\mathbf{g}_h, \phi_h)$ implied by these two weak forms, it has a block, saddle-point structure,
+\[
+\begin{bmatrix} K & B \\ -B^T & S \end{bmatrix}
+\begin{bmatrix} \mathbf{g}_h \\ \phi_h \end{bmatrix}
+=
+\begin{bmatrix} g \\ f \end{bmatrix},
+\]
+which is annoying to solve directly because it's not symmetric. The standard move is a Schur complement: eliminate $\mathbf{g}_h$ algebraically to get a smaller system purely in $\phi_h$,
+\[
+A\phi_h = \left(S + B^T K^{-1} B\right)\phi_h = f + B^T K^{-1}\mathbf{g}_h,
+\]
+and now $A$ is symmetric positive definite, which means a Cholesky factorization or a (preconditioned) conjugate-gradient solve both work reliably. Since our mesh never moves or changes over the course of the simulation, that Cholesky factorization can be computed exactly once, at the very start of the run, and reused at every single timestep afterward — the sparsity pattern and the matrix entries here depend only on geometry and the penalty parameters, never on the current fluid state. (For a periodic domain the block structure changes slightly, the reduced system loses its symmetry, and an LU factorization is used instead — same idea, slightly different linear algebra.) This is a genuinely nice practical property of building gravity this way: the expensive linear-algebra setup work happens once, not once per timestep.
+
+Initial conditions for the fluid variables are set by the $L^2$ projection $\mathbf{P}$ we derived earlier: $\rho_h^0 = \mathbf{P}\rho^0$, $(\rho\mathbf{u})_h^0 = \mathbf{P}(\rho\mathbf{u})^0$, $E_h^0 = \mathbf{P}E^0$. Wrapping the whole thing in a forward-Euler step in time gives a complete, working numerical scheme:
+\[
+\int_K \left(\frac{\mathbf{U}_h^{n+1}-\mathbf{U}_h^n}{\Delta t}\right) v\, d\mathbf{x} - \int_K \mathbf{F}(\mathbf{U}_h^n)\cdot\grad v\, d\mathbf{x} + \sum_{\mathcal{E}\in\partial K}\int_{\mathcal{E}} \widehat{\mathbf{F}}^n \, v^{\mathrm{int}(K)}\, ds = \int_K \mathbf{S}(\mathbf{U}_h^n,\mathbf{g}_h^n)\, v\, d\mathbf{x}.
+\]
+
+Density, momentum, and energy evolve; gravity is re-derived from the freshly updated density at the top of the next step, and the loop repeats. This is what I'll call the \emph{standard scheme} for the rest of the video. Let me be fair to it: this is a real, working, high order accurate method. Run it on a smooth manufactured solution and you'll see the convergence rates you'd expect from the polynomial degree you chose. Run it on a genuine shock and, with an appropriate limiter, it captures the shock. It is not a broken scheme.
+
+It does, however, have one specific, well-defined blind spot, and that blind spot is the entire reason the rest of this video exists.
+
+\subsection{Structure preserving DG}
+
+A huge fraction of astrophysically interesting configurations spend almost all of their time sitting extremely close to hydrostatic equilibrium: gravity pulling material inward, pressure pushing back outward, velocity essentially zero, the two forces balanced to enormous precision. That exact balance is
+\[
+\mathbf{u} = \mathbf{0}, \qquad \grad p = -\rho \grad \phi, \qquad \Delta\phi = 4\pi G\rho.
+\]
+
+A common and analytically tractable family of such equilibria is the \emph{polytropic} equilibrium, where pressure and density are locked together by $p = \kappa \rho^\gamma$ for some positive constant $\kappa$. Substitute this and the hydrostatic balance into Poisson's equation and, after the classic Lane-Emden change of variables $\rho = \lambda\theta^n$ with $\gamma = (n+1)/n$, you land on the Lane-Emden equation. In spherical symmetry, with $r$ the (rescaled) radius, it reads
+\[
+\frac{1}{r^2}\frac{\partial}{\partial r}\left(r^2 \frac{\partial\theta}{\partial r}\right) = -\theta^n.
+\]
+This has closed-form solutions only for a few special integer values of $n$: $\theta_0(r) = 1 - r^2/6$ for $n=0$ (an incompressible, $\gamma=\infty$ fluid); $\theta_1(r) = \sin(r)/r$ for $n=1$ (a $\gamma=2$ fluid, and the one this video's numerical tests will actually use, since it's smooth, non-trivial, and exact); and $\theta_5(r) = 1/\sqrt{1+r^2/3}$ for $n=5$ ($\gamma=6/5$). For any of these, the full equilibrium profile is recovered from
+\[
+\rho^e = \lambda\left(\theta(\mathbf{x})\right)^n, \qquad \mathbf{u}^e = \mathbf{0}, \qquad p^e = \kappa(\rho^e)^\gamma, \qquad \phi^e = -\frac{\kappa\gamma}{\gamma-1}(\rho^e)^{\gamma-1}.
+\]
+This is the analytic ``star in a box'' that our scheme will be asked to hold perfectly still.
+
+Here's the actual failure mode, stated precisely. The standard scheme discretizes the pressure-gradient contribution to the momentum flux and the gravity source term $-\rho\grad\phi$ using two completely independent numerical procedures: one is a DG surface/volume flux integral, the other is a DG volume source integral. There is no algebraic reason these two, separately truncated approximations should cancel exactly, even when the exact continuous quantities they're approximating do cancel exactly. What's left behind is $O(h^{k+1})$ discretization error sitting right on top of the equilibrium, at every single timestep. If the physical phenomenon you actually care about — a stellar oscillation mode, a slowly growing instability — is smaller in amplitude than that leftover truncation error, it's simply drowned out, and the only fix available to the standard scheme is to keep refining the mesh until the noise floor drops below your signal, which gets expensive fast, especially in 3D. This is the well-balanced (WB) problem, and a scheme that avoids it is called well-balanced.
+
+There is a second, related failure worth separating out clearly, because it has a genuinely different cause: total energy conservation (TEC). Because gravity here is self-generated rather than externally imposed, the gravitational potential energy is honestly part of the system's total energy budget, and near equilibrium it's typically a large negative number nearly cancelling a large positive kinetic-plus-internal energy. Any small, systematic energy leak in the numerical scheme is no longer a rounding-error-level nuisance; it can be comparable to, or larger than, the actual dynamical energy of the perturbation you're trying to resolve, especially over long integrations or during genuine gravitational collapse, where nonlinear growth will happily amplify a small numerical energy leak into a qualitatively wrong answer.
+
+We want both properties simultaneously, and it turns out they require two largely independent fixes.
+
+\subsubsection{Fix one: splitting the potential for well-balancedness}
+
+The core idea is to split both density and gravitational potential into a known, static equilibrium piece and an evolving perturbation piece:
+\[
+\rho = \rho^e + \rho^\delta, \qquad \phi = \phi^e + \phi^\delta, \qquad \mathbf{g}^e = \grad\phi^e,\quad \mathbf{g}^\delta = \grad\phi^\delta,
+\]
+with $\rho^e, \phi^e$ computed once at initialization from the analytic equilibrium above (via the $L^2$ projection: $\rho_h^e = \mathbf{P}\rho^e$, and $\phi_h^e$ from actually solving the discrete Poisson problem for $4\pi G\rho_h^e$) and then frozen, unchanged, for the entire simulation. Only the perturbation fields $\rho_h^\delta,\phi_h^\delta$ are recomputed every timestep. On its own this split buys us nothing; the trick is entirely in how the numerical flux and source term are built around it.
+
+\paragraph{The modified HLLC flux.} Recall the contact property of HLLC: feed it two states at rest with equal pressure, $\mathbf{U}_L = (\rho_L, \mathbf{0}, p/(\gamma-1))^T$ and $\mathbf{U}_R = (\rho_R, \mathbf{0}, p/(\gamma-1))^T$, and it collapses exactly to
+\[
+\mathbf{F}^{hllc}(\mathbf{U}_L,\mathbf{U}_R;\mathbf{n}) = (0,\ p\,\mathbf{n}^T,\ 0)^T.
+\]
+You can check this directly from the definitions: with zero velocity on both sides, the estimated wave speeds satisfy $S_L = -c_L \le 0 \le c_R = S_R$ and the middle speed $S_\star$ works out to exactly $0$, which collapses the star-region states to something that leaves only the pressure term surviving in the momentum flux, with mass and energy fluxes vanishing identically. This ``nothing is happening, only pressure pushes on the face'' behavior is precisely the discrete analogue of hydrostatic balance, and it's the property the well-balanced modification is built to exploit.
+
+The fix: instead of feeding HLLC the raw conserved states, we rescale each side by the ratio of a face-averaged equilibrium pressure to that side's own cell-interior equilibrium pressure:
+\[
+\widehat{\mathbf{F}} = \mathbf{F}^{hllc}\left(\frac{p_h^{e,\star}}{p_h^{e,\mathrm{int}(K)}}\,\mathbf{U}_h^{\mathrm{int}(K)},\ \ \frac{p_h^{e,\star}}{p_h^{e,\mathrm{ext}(K)}}\,\mathbf{U}_h^{\mathrm{ext}(K)}\ ;\ \mathbf{n}_{\mathcal{E},K}\right), \qquad p_h^{e,\star} = \tfrac12\left(p_h^{e,\mathrm{int}(K)} + p_h^{e,\mathrm{ext}(K)}\right).
+\]
+Why this particular rescaling? Because at exact equilibrium, $\mathbf{U}_h^{\mathrm{int}(K)}$ and $\mathbf{U}_h^{\mathrm{ext}(K)}$ are both zero-velocity states with pressures $p_h^{e,\mathrm{int}(K)}$ and $p_h^{e,\mathrm{ext}(K)}$ respectively, and generally $p_h^{e,\mathrm{int}(K)} \ne p_h^{e,\mathrm{ext}(K)}$ — the equilibrium pressure genuinely varies across a face, that's just what a stratified star looks like. The contact property only fires cleanly when both sides share the \emph{same} pressure. So we rescale each side up (or down) to the common reference value $p_h^{e,\star}$ before calling HLLC, apply the contact property there (where it gives exactly $(0,\,p_h^{e,\star}\mathbf{n}^T,\,0)^T$), and this becomes the discrete flux we actually use. The rescaling is undone implicitly, because it's baked directly into the momentum source term derivation next, so the two exactly cancel at equilibrium.
+
+\paragraph{The well-balanced source term.} On the momentum equation, the full source is $\mathbf{S}^{[2]} = -\rho\grad\phi = -\rho\grad\phi^e - \rho\grad\phi^\delta$. The perturbation piece is discretized in the ordinary, direct way. The equilibrium piece is where the actual balancing act happens, and it's worth walking through the algebra in full, because every line of it exists for a specific reason:
+\[
+\int_K -\rho\grad\phi^e\, v\, d\mathbf{x}
+= \int_K \rho\,\frac{\grad p^e}{\rho^e}\, v\, d\mathbf{x}
+\]
+(using the exact equilibrium relation $\grad p^e = -\rho^e\grad\phi^e$ to trade $\grad\phi^e$ for $\grad p^e/\rho^e$, a quantity we can evaluate directly from the known equilibrium profile). Now add and subtract the cell-average ratio $\overline{\rho}_K/\overline{\rho^e}_K$ inside the integral:
+\[
+= \int_K \grad p^e\left(\frac{\rho}{\rho^e} - \frac{\overline{\rho}_K}{\overline{\rho^e}_K}\right) v\, d\mathbf{x} \ +\ \frac{\overline{\rho}_K}{\overline{\rho^e}_K}\int_K \grad p^e\, v\, d\mathbf{x}.
+\]
+The first term is the genuinely new part of the perturbation source, and notice it vanishes identically the instant $\rho/\rho^e$ is constant across the cell — exactly what happens at equilibrium, where $\rho_h = \rho_h^e$ everywhere. The second term is integrated by parts, using precisely the same weak-form move that built DG in the first place, turning a volume integral of a gradient into a boundary flux minus a volume integral against $\grad v$:
+\[
+\frac{\overline{\rho}_K}{\overline{\rho^e}_K}\int_K \grad p^e\, v\, d\mathbf{x} = \frac{\overline{\rho}_K}{\overline{\rho^e}_K}\left(\sum_{\mathcal{E}\in\partial K}\int_{\mathcal{E}} p^e\, v\, \mathbf{n}_{\mathcal{E},K}\, ds - \int_K p^e\, \grad v\, d\mathbf{x}\right).
+\]
+Putting it together, and writing $\langle \mathbf{S}^{[2]},v\rangle_K$ for the fully quadrature-discretized version (quadrature points $\mathbf{x}_K^{(q)}$ with weights $w_K^{(q)}$ inside $K$, and $\mathbf{x}_\mathcal{E}^{(\mu)}$ with weights $w_\mathcal{E}^{(\mu)}$ on each face):
+\[
+\langle\mathbf{S}^{[2]},v\rangle_K =
+\sum_{q} w_K^{(q)}\left(\frac{\rho_h(\mathbf{x}_K^{(q)})}{\rho_h^e(\mathbf{x}_K^{(q)})} - \frac{\overline{\rho}_K}{\overline{\rho^e}_K}\right)\grad p_h^e(\mathbf{x}_K^{(q)})\, v(\mathbf{x}_K^{(q)})
+\]
+\[
++\ \frac{\overline{\rho}_K}{\overline{\rho^e}_K}\left(\sum_{\mathcal{E}\in\partial K}\sum_{\mu} w_\mathcal{E}^{(\mu)} p_h^e(\mathbf{x}_\mathcal{E}^{(\mu)})\, v^{\mathrm{int}(K)}\, \mathbf{n}_{\mathcal{E},K} - \sum_{q} w_K^{(q)} p_h^e(\mathbf{x}_K^{(q)})\, \grad v(\mathbf{x}_K^{(q)})\right)
+-\sum_{q} w_K^{(q)}\, \rho_h(\mathbf{x}_K^{(q)})\, \mathbf{g}_h^\delta(\mathbf{x}_K^{(q)})\, v(\mathbf{x}_K^{(q)}).
+\]
+That last line is just the ordinary perturbation-gravity contribution, $-\rho\grad\phi^\delta$, tacked back on with no special treatment. The whole point of everything above it is that, at exact equilibrium, this discrete source term is built term-for-term to exactly cancel the modified HLLC flux from the previous paragraph. That's not a coincidence or a lucky numerical accident; it's a designed algebraic identity, and it's the reason we can actually \emph{prove} the well-balanced property later instead of just observing it empirically on a few test cases.
+
+\subsubsection{Fix two: a conservative form for total energy}
+
+For energy conservation, the move is to stop evolving the ordinary non-gravitational energy $E$ directly, and instead evolve a total energy that folds in gravitational potential energy from the start:
+\[
+E_{tot} = E + \tfrac12 \rho\phi.
+\]
+Why does this help? Because with some care you can rewrite the evolution equation for $E_{tot}$ in genuinely conservative form — divergence of a flux, with no leftover volumetric source term at all:
+\[
+\pdv{E_{tot}}{t} + \grad\cdot\Big((E+p)\mathbf{u} + \mathbf{F}_g\Big) = 0,
+\]
+where the new piece, the \emph{gravity energy flux}, is
+\[
+\mathbf{F}_g = \frac{1}{8\pi G}\Big(\phi\,\grad\dot\phi - \dot\phi\,\grad\phi\Big) + \rho\mathbf{u}\phi.
+\]
+It's worth actually seeing why this identity is true, rather than taking it on faith, because the derivation is short and it explains where every piece of $\mathbf{F}_g$ comes from. Start from the time derivative of the gravitational energy piece, $\partial_t(\tfrac12\rho\phi)$, and add and subtract the divergence of the proposed flux and the ordinary source term $-\rho\mathbf{u}\cdot\grad\phi$ from the plain energy equation:
+\[
+\pdv{}{t}\left(\tfrac12\rho\phi\right) + \grad\cdot\mathbf{F}_g - \rho\mathbf{u}\cdot\grad\phi
+= \tfrac12\dot\rho\,\phi + \tfrac12\dot\phi\,\rho + \frac{1}{8\pi G}\Big(\phi\,\Delta\dot\phi - \dot\phi\,\Delta\phi\Big) + \grad\cdot(\rho\mathbf{u})\,\phi.
+\]
+Now use mass conservation, $\dot\rho = -\grad\cdot(\rho\mathbf{u})$, to cancel the $\phi\,\dot\rho$ term against the last term above, and use $\Delta\phi = 4\pi G\rho$ together with its time-derivative $\Delta\dot\phi = 4\pi G\dot\rho = -4\pi G\,\grad\cdot(\rho\mathbf{u})$ to rewrite the remaining two terms. Every surviving term cancels in pairs, and the whole expression collapses to exactly zero. Add this identity to the ordinary energy equation and you land on the conservative form above. It's a genuinely satisfying piece of algebra: the messy, seemingly ad hoc combination of terms in $\mathbf{F}_g$ isn't arbitrary at all, it's precisely what's needed to make two independent physical statements (mass conservation and Poisson's equation) conspire to produce a clean conservation law for energy.
+
+There's an obvious wrinkle: $\mathbf{F}_g$ contains $\dot\phi = \partial\phi/\partial t$, a time derivative of a field, which isn't something we normally track explicitly in a DG code. The way around it is to note that $\dot\phi$ itself satisfies another Poisson equation, obtained by differentiating $\Delta\phi = 4\pi G\rho$ in time and using mass conservation again:
+\[
+\Delta\dot\phi = 4\pi G\,\dot\rho = -4\pi G\,\grad\cdot(\rho\mathbf{u}).
+\]
+So we solve one additional elliptic problem, every stage, using the exact same LDG mixed formulation as before, now with $-4\pi G\,\grad\cdot(\rho\mathbf{u})_h$ as the source instead of $4\pi G\rho_h$, to obtain both $\dot\phi_h$ and its gradient $\dot{\mathbf{g}}_h$.
+
+There's one more, purely numerical, subtlety worth being upfront about, because it's the kind of thing that will cost you a full order of accuracy if you don't know to watch for it. If you discretize the right-hand side $-4\pi G\,\grad\cdot(\rho\mathbf{u})_h$ naively — literally differentiating the DG polynomial $(\rho\mathbf{u})_h$ pointwise inside each cell — you lose an order of accuracy, because differentiating a degree-$k$ polynomial approximation generically only gives you a degree-$(k-1)$-accurate approximation of the true derivative. The fix, again, is to reach for the DG weak form itself rather than a pointwise derivative: apply summation-by-parts to move that derivative off of $(\rho\mathbf{u})_h$ and onto the test function $\psi$ instead, at the cost of picking up a boundary term built from the already-computed mass flux $\widehat{f}^{[1]}$:
+\[
+\int_K \dot{\mathbf{g}}_h\cdot\grad\psi\, d\mathbf{x} = \int_{\mathcal{E}} \psi^{\mathrm{int}(K)}\,\widehat{\dot{\mathbf{g}}}_h\cdot\mathbf{n}_{\mathcal{E},K}\, ds + \int_K 4\pi G\,(\rho\mathbf{u})_h\cdot\grad\psi\, d\mathbf{x} - \sum_{\mathcal{E}\in\partial K}\int_{\mathcal{E}} 4\pi G\, \widehat{f}^{[1]}_{\mathbf{n}_{\mathcal{E},K}}\, \psi^{\mathrm{int}(K)}\, ds.
+\]
+This one small technical patch restores the full design order of accuracy for $\dot\phi_h$, and by extension for the whole energy flux; skip it and you'll still get a scheme that conserves energy (that property doesn't depend on this fix), but one whose overall convergence rate quietly degrades, especially on coarser meshes.
+
+With $E_{tot}$ as the evolved variable, we can repackage the whole system uniformly:
+\[
+\mathbf{W} = \begin{bmatrix}\rho\\ \rho\mathbf{u}\\ E_{tot}\end{bmatrix}, \quad
+\mathbf{F}(\mathbf{W}) = \begin{bmatrix}\rho\mathbf{u}\\ \rho\mathbf{u}\otimes\mathbf{u}+p\mathbf{I}\\ (E+p)\mathbf{u}\end{bmatrix}, \quad
+\mathbf{G}(\mathbf{W}) = \begin{bmatrix}\mathbf{0}\\ \mathbf{0}\\ \mathbf{F}_g\end{bmatrix}, \quad
+\mathbf{S} = \begin{bmatrix}0\\ -\rho\grad\phi\\ 0\end{bmatrix},
+\]
+\[
+\pdv{\mathbf{W}}{t} + \grad\cdot\mathbf{F}(\mathbf{W}) + \grad\cdot\mathbf{G}(\mathbf{W}) = \mathbf{S}.
+\]
+
+One bookkeeping detail that turns out to matter enormously in practice: at every stage we still need the ordinary energy $E$ (to get pressure out of the equation of state), but we're now evolving $E_{tot}$. The conversion is $E_h = (E_{tot})_h - \mathbf{P}\big(\tfrac12\rho_h\phi_h\big)$ — and that $\mathbf{P}$, the $L^2$ projection, is not optional decoration. If you instead compute $\tfrac12\rho_h\phi_h$ pointwise at quadrature points and skip projecting the product back into the DG polynomial space $V_h^k$, the formula \emph{looks} identical but the well-balanced cancellation from the previous section silently breaks, because the pressure recovered this way is no longer guaranteed to equal $p_h^e$ exactly at equilibrium. This is exactly the kind of easy-to-miss implementation detail that separates ``it looks right and mostly works'' from ``it's provably well-balanced,'' and it's the sort of thing I'd genuinely only have caught by trying to prove the property myself and watching the proof break.
+
+\subsection{Time Discretization}
+
+Everything above was written semi-discretely: space is discretized into the DG polynomial spaces, but time is still continuous, giving us an ODE system of the schematic form
+\[
+\mathbf{W}_h^{n+1} = \mathbf{W}_h^n + \Delta t\, \mathcal{H}(\mathbf{W}_h^n, t^n),
+\]
+where $\mathcal{H}$ is shorthand for the entire right-hand side we just spent two sections deriving: the modified HLLC flux, the well-balanced source term, and the gravity energy flux. (The standard, non-structure-preserving scheme has an analogous operator, which I'll call $\mathcal{L}(\mathbf{U}_h^n,t^n)$.) Forward Euler, as written, is only first order accurate in time, which would badly undercut all the care we just took getting high spatial order — there's no point running a $P^3$ DG method in space if a first-order time integrator is going to wash out the accuracy anyway. The standard fix, and the one used throughout this scheme, is strong-stability-preserving Runge-Kutta (SSP-RK), specifically chosen because it's built as a convex combination of forward-Euler steps, which means any stability or positivity property you can prove for forward Euler carries over automatically to the full multistage method, with no extra work.
+
+Second order SSP-RK:
+\[
+\mathbf{W}_h^{(1)} = \mathbf{W}_h^n + \Delta t\,\mathcal{H}(\mathbf{W}_h^n, t^n), \qquad
+\mathbf{W}_h^{n+1} = \tfrac{1}{2}\mathbf{W}_h^n + \tfrac{1}{2}\Big(\mathbf{W}_h^{(1)} + \Delta t\,\mathcal{H}(\mathbf{W}_h^{(1)}, t^n+\Delta t)\Big).
+\]
+
+Third order SSP-RK:
+\[
+\mathbf{W}_h^{(1)} = \mathbf{W}_h^n + \Delta t\,\mathcal{H}(\mathbf{W}_h^n, t^n),
+\]
+\[
+\mathbf{W}_h^{(2)} = \tfrac34 \mathbf{W}_h^n + \tfrac14\Big(\mathbf{W}_h^{(1)} + \Delta t\,\mathcal{H}(\mathbf{W}_h^{(1)}, t^n+\Delta t)\Big),
+\]
+\[
+\mathbf{W}_h^{n+1} = \tfrac13 \mathbf{W}_h^n + \tfrac23\Big(\mathbf{W}_h^{(2)} + \Delta t\,\mathcal{H}(\mathbf{W}_h^{(2)}, t^n+\tfrac12\Delta t)\Big).
+\]
+
+Each stage is literally just another forward-Euler-style evaluation of $\mathcal{H}$, meaning the entire elliptic solve, modified HLLC flux, and gravity-energy-flux pipeline from the previous section gets called again, unchanged, at every stage. This reusability is one of the more pleasant features of how the scheme was built: none of the well-balanced or energy-conserving modifications care what order of Runge-Kutta method is wrapped around them, so raising the temporal order later is purely a matter of adding stages, with zero changes to the spatial operator itself.
+
+Practically, the timestep is chosen from a standard CFL condition based on the fastest wave speed present in any cell,
+\[
+\Delta t = \mathrm{CFL} \cdot \frac{h}{\max_K\left(\abs{\overline{\mathbf{u}}_K}_\infty + \overline{c}_K\right)}, \qquad \overline{c}_K = \sqrt{\gamma\, \overline{p}_K/\overline{\rho}_K},
+\]
+with $h$ the smallest element diameter in the mesh and $\overline{(\cdot)}_K$ denoting the cell average. Notice gravity doesn't directly enter this CFL restriction — the elliptic solve is implicit (we're solving a linear system exactly, not marching it forward explicitly), so the only explicit wave-speed restriction left is the ordinary hydrodynamic one.
+
+\subsection{Ossilation Elimination}
+
+High order polynomials are wonderful at representing smooth flow and genuinely terrible at representing a shock. Near a real discontinuity — the blast wave from our earlier explosion example, say — a high-degree DG polynomial will ring: classic Gibbs-phenomenon over- and under-shoots that, in the worst case, can drive density or pressure negative at a quadrature point and crash the whole simulation outright.
+
+The traditional fix here is a slope limiter, but limiters can be blunt instruments: applied indiscriminately, they can easily destroy the very fine cancellations we spent the last section engineering into the well-balanced source term and modified flux. Instead, this scheme reaches for a more recent idea, the oscillation-eliminating (OE) technique, which works by letting the high-degree moments of the polynomial solution decay through an artificial damping ODE, applied as a separate fractional step tacked on after each Runge-Kutta stage, rather than by clipping or reconstructing the polynomial directly
+\[
+\dv{\mathbf{U}}{t} + \mathbf{L}_f(\mathbf{U}) + \mathbf{\Sigma}(\mathbf{U})\mathbf{U} = 0
+\quad\Longrightarrow\quad
+\dv{\mathbf{U}}{t} = -\mathbf{L}_f(\mathbf{U}), \qquad \dv{\mathbf{U}_\sigma}{t} = -\mathbf{\Sigma}(\mathbf{U})\mathbf{U}_\sigma.
+\]
+The first piece is just the ordinary DG spatial operator we already have. The second, $\mathbf{\Sigma}(\mathbf{U})\mathbf{U}_\sigma$, is a purely local, per-cell damping term, and its coefficient $\vartheta_K^m$ is built from a smoothness indicator, summed over each cell's faces:
+\[
+\vartheta_K^m(\mathbf{U}_h) = \sum_{e\in\partial K} \beta_e\, \frac{\sigma_{e,K}^m(\mathbf{U}_h)}{h_{e,K}},
+\]
+where $\beta_e$ is a local estimate of the maximum wave speed across face $e$ (the spectral radius of the flux Jacobian in the normal direction), $h_{e,K}$ is roughly the distance from face $e$ to the far side of the cell, and the indicator itself,
+%\[
+%\sigma_{e,K}^m(u_h) = \frac{(2m+1)h_{e,K}^m}{2(2k-1)\,m!}\sum_{|\alpha|=m}\frac{\frac{1}{|e|}\int_e \left|[\partial^\alpha u_h]_e\right|\, dS}{\|u_h-\mathrm{avg}(u_h)\|_{L^\infty(\Omega)}}
+%\]
+measures how big the jump in the $m$-th derivative across that face is, relative to how much the solution varies overall. In a smooth region, that jump is tiny compared to the solution's global variation, so $\vartheta_K^m$ stays small and the damping barely touches anything. Right next to a shock, the jump is large, $\vartheta_K^m$ spikes, and the damping aggressively suppresses the offending high-order moments — but, and this is the important structural feature, it leaves the lowest moment, the cell average, completely untouched by construction ($\vartheta_K^0$ effectively doesn't act on the mean). The damping equation actually has a closed form: writing the solution in a hierarchical orthogonal basis $\phi_K^{(\alpha)}$, each higher moment simply decays exponentially at a rate set by the local indicator,
+\[
+\mathcal{F}_{\Delta t}\mathbf{U}_h = \mathbf{U}_K^{(0)}\phi_K^{(0)}(\mathbf{x}) + \sum_{j=1}^k e^{-\Delta t \sum_{m=0}^j \vartheta_K^m(\mathbf{U}_h)} \sum_{|\alpha|=j} \mathbf{U}_K^{(\alpha)}\phi_K^{(\alpha)}(\mathbf{x}).
+\]
+Because the cell average $\mathbf{U}_K^{(0)}$ is left alone, mass, momentum, and total energy on each cell are completely unaffected by the OE step; only the shape of the polynomial \emph{within} the cell gets smoothed. That's exactly the property we need to keep conservation intact.
+
+The remaining piece of care, specific to this well-balanced scheme, is where the damping is allowed to act. It's applied only to the perturbation part $\mathbf{W}^\delta$ of the solution, never to the frozen equilibrium background $\mathbf{W}^e$:
+\[
+\mathbf{W}_h = \mathbf{W}_h^e + \mathcal{F}_{\Delta t}(\mathbf{W}_h^\delta).
+\]
+If the damping were instead applied to the full solution, including the equilibrium piece, it would gradually smooth away the very steady-state structure the well-balanced property exists to protect — a hydrostatic star has real, physically meaningful higher moments in its density profile, and those aren't the ``oscillations'' we're trying to eliminate. Restricting the damping to the perturbation alone means: on a problem that's exactly at equilibrium, $\mathbf{W}^\delta \equiv 0$, the damping has literally nothing to act on, and the well-balanced property survives the OE step trivially. On a genuinely perturbed or shocked problem, one can show the damping only introduces an error of the same order as the underlying DG truncation error itself, so smooth problems don't quietly lose accuracy — you only pay a price near an actual discontinuity, which is exactly where you want to be paying it.
+
+For the very strongest shocks — the blast wave test later, where the central pressure jumps by two orders of magnitude — OE alone isn't quite enough to guarantee density and pressure stay positive everywhere, so it's paired with a separate, more surgical positivity-preserving (PP) limiter, which only activates at a quadrature point if density or pressure there is actually about to go negative, and otherwise leaves the solution untouched.
+
+\subsection{Structure Preserving Properties}
+
+It's worth stating plainly, and proving carefully, exactly what all of this extra machinery buys us, because the algebra above is dense enough that the punchline can get lost.
+
+\subsubsection{Theorem: well-balancedness}
+
+\emph{Claim.} If the scheme is initialized exactly at a known hydrostatic equilibrium — $\mathbf{u}^0 = \mathbf{0}$, $p^0 = -\rho^0\grad\phi^0$, $\Delta\phi^0 = 4\pi G\rho^0$ — then for every subsequent timestep $n$,
+\[
+\rho_h^n = \rho_h^e, \qquad (\rho\mathbf{u})_h^n = \mathbf{0}, \qquad p_h^n = p_h^e, \qquad \phi_h^n = \phi_h^e,
+\]
+exactly, up to floating-point round-off, regardless of mesh resolution.
+
+\emph{Proof sketch, by induction on $n$.} Assume the claim holds at step $n$. Walk through the flowchart from the next section term by term. Since $\rho_h^n = \rho_h^e$, the perturbation density is exactly zero, so the perturbation Poisson solve returns $\phi_h^\delta = 0$ and hence $\phi_h^n = \phi_h^e$ exactly. From this, the recovered non-gravitational energy is $E_h^n = p_h^e/(\gamma-1)$ and the recovered pressure is exactly $p_h^e$ — this is precisely where the consistent $L^2$-projection bookkeeping flagged earlier becomes essential; without it this line fails. Feeding $\mathbf{U}_h^{n,\mathrm{int}(K)} = (\rho_h^{e,\mathrm{int}(K)},\mathbf{0},p_h^{e,\mathrm{int}(K)}/(\gamma-1))^T$ (and the analogous exterior state) into the modified HLLC flux, the contact property fires and gives $\widehat{\mathbf{F}}^n = (0,\, p_h^{e,\star}\mathbf{n}^T,\, 0)^T$ — in particular the mass-flux component $\widehat{f}^{n,[1]}=0$. Since the mass flux is zero everywhere, the second Poisson solve for $\dot\phi_h,\dot{\mathbf{g}}_h$ has a zero right-hand side, so $\dot\phi_h^n = 0$, $\dot{\mathbf{g}}_h^n = \mathbf{0}$, and the entire gravity energy flux vanishes identically, $(\widehat{\mathbf{F}_g})^n = 0$. Finally, substitute all of this into the momentum update: the four resulting pieces — the pressure-gradient volume term, the ``add-and-subtract'' perturbation term from the source, the rescaled-pressure boundary term, and the perturbation-gravity term — cancel exactly in pairs, term for term, leaving $(\rho\mathbf{u})_h^{n+1} = (\rho\mathbf{u})_h^n = \mathbf{0}$. Since the mass and energy fluxes were already shown to vanish, $\rho_h^{n+1}=\rho_h^e$ and $(E_{tot})_h^{n+1} = (E_{tot})_h^n$ follow immediately, closing the induction. $\blacksquare$
+
+The proof is mechanical once you have it laid out, but the punchline is genuinely strong: this isn't an asymptotic statement about the error shrinking as $h\to0$. The equilibrium is preserved exactly, on any mesh, at any polynomial order, because every single term that could disturb it has been shown to vanish identically rather than merely become small.
+
+\subsubsection{Theorem: total energy conservation}
+
+\emph{Claim.} Under periodic boundary conditions, or compactly-supported boundary conditions (velocity vanishing on the boundary), the scheme conserves discrete total energy exactly at every timestep:
+\[
+\int_\Omega (E_{tot})_h^{n+1}\, d\mathbf{x} = \int_\Omega (E_{tot})_h^n\, d\mathbf{x}.
+\]
+
+\emph{Proof sketch.} Take the discrete $E_{tot}$ update equation, set the test function $v=1$, and sum over every cell $K$ in the mesh. Every interior face appears in this sum exactly twice, once from each of the two cells sharing it, with opposite orientations of the outward normal — so every interior-face contribution from the energy flux and the gravity energy flux cancels exactly against its neighbor: whatever leaves one cell enters the other, unchanged. What's left after that cancellation is purely a sum over boundary faces $\mathcal{E}_B$. Under periodic boundary conditions, boundary faces are identified in matching pairs on opposite sides of the domain and cancel each other the same way interior faces do. Under compactly-supported boundary conditions, velocity vanishes identically on $\mathcal{E}_B$, which makes both the ordinary energy flux and the gravity energy flux vanish there directly, since every term in each flux carries at least one explicit factor of $\mathbf{u}$. Either way, the total boundary contribution is exactly zero, and we're left with $\int_\Omega (E_{tot})_h^{n+1} = \int_\Omega (E_{tot})_h^n$. $\blacksquare$
+
+Notice this proof didn't need the well-balanced machinery at all — TEC is a genuinely independent property, coming entirely from writing the energy equation in conservative form. In practice this shows up as a total-energy trace that's flat to machine precision on a well-resolved, stable configuration, and — arguably more usefully — as an energy diagnostic you can actually trust while something dramatic is unfolding, like a gravitational collapse, precisely the regime where the standard scheme's energy error tends to grow fastest and become least trustworthy.
+
+\subsection{The Code itself (Flowchart)}
+
+Putting all of the above in the order you'd actually implement it, here is one full Runge-Kutta stage, advancing from a known state $\big(\rho_h^n, (\rho\mathbf{u})_h^n, (E_{tot})_h^n\big)$ to the corresponding stage value:
+
+\begin{itemize}
+  \item \textbf{Step 0 --- initialization (once, at $t=0$ only).} Project the physical initial conditions into the DG space: $\rho_h^0 = \mathbf{P}\rho^0$, $(\rho\mathbf{u})_h^0 = \mathbf{P}(\rho\mathbf{u})^0$, $E_h^0 = \mathbf{P}E^0$. Solve the equilibrium Poisson problem once, $(\mathbf{g}_h^e,\phi_h^e) = \mathcal{D}_1(4\pi G\rho_h^e)$, and freeze it for the rest of the run. Solve the initial perturbation Poisson problem to get $\phi_h^0$, and set $(E_{tot})_h^0 = E_h^0 + \mathbf{P}\big(\tfrac12\rho_h^0\phi_h^0\big)$ — using the projection here, not a pointwise product, for exactly the reason flagged above.
+  \item \textbf{Step 1 --- gravity.} Given $\rho_h^n$, solve the perturbation Poisson problem $(\mathbf{g}_h^\delta, \phi_h^\delta)^n = \mathcal{D}_1\big(4\pi G(\rho_h^n - \rho_h^e)\big)$ and recombine with the frozen equilibrium piece to get the total field, $(\mathbf{g}_h^n,\phi_h^n) = (\mathbf{g}_h^e,\phi_h^e) + (\mathbf{g}_h^\delta,\phi_h^\delta)^n$. Separately, solve the summation-by-parts-corrected Poisson problem $\mathcal{D}_2$ for the time-derivative fields, $(\dot{\mathbf{g}}_h^n,\dot\phi_h^n) = \mathcal{D}_2\big(4\pi G\,\grad\cdot(\rho\mathbf{u})_h^n\big)$. Recover the ordinary energy, $E_h^n = (E_{tot})_h^n - \mathbf{P}\big(\tfrac12\rho_h^n\phi_h^n\big)$, and from it the pressure via the equation of state.
+  \item \textbf{Step 2 --- fluid flux.} At every interior face, compute the equilibrium-pressure-rescaled states on each side and evaluate the modified HLLC flux $\widehat{\mathbf{F}}^n$ from those rescaled states.
+  \item \textbf{Step 3 --- gravity energy flux.} Using $\phi_h^n,\mathbf{g}_h^n$ from Step 1, $\dot\phi_h^n,\dot{\mathbf{g}}_h^n$ also from Step 1, and the mass-flux component $\widehat{f}^{n,[1]}$ from Step 2, assemble both the volume contribution to $\mathbf{F}_g^n$ inside each element and its face contribution $(\widehat{\mathbf{F}_g})^n$.
+  \item \textbf{Step 4 --- assemble and update.} Combine the fluid flux (Step 2), the well-balanced momentum source term (built the same way as in Step 1's rescaling), and the gravity energy flux (Step 3) into the full right-hand side $\mathcal{H}$, and take one Runge-Kutta stage update for $\big(\rho_h,(\rho\mathbf{u})_h,(E_{tot})_h\big)$.
+  \item \textbf{Step 5 --- oscillation control.} Apply the OE damping (and, for strongly discontinuous problems, the positivity-preserving limiter) to the perturbation part of the newly updated solution only, leaving the frozen equilibrium piece untouched.
+\end{itemize}
+
+Repeat Steps 1 through 5 once per Runge-Kutta stage (twice for the second-order method, three times for third order), then move on to the next timestep with a freshly computed CFL-limited $\Delta t$. The only genuinely expensive part of this whole loop is the pair of elliptic solves in Step 1 — but because the mesh is fixed for the entire simulation, the factorization of the underlying stiffness matrix (Cholesky for the compactly-supported case, LU for the periodic case) is computed exactly once, before the time loop even starts, and reused at every stage of every timestep, which keeps the per-step cost dominated by the same sparse triangular solves you'd need for any implicit elliptic problem, not by repeated factorization.
+
+\subsection{Results}
+
+Here I have the results in the form of fun cool animations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{What is Velocity(joke video)}
+\begin{itemize}
+        \item Basic
+  \item Average speed
+  \item Derivative form
+  \item Vector form
+  \item Newtonian
+  \item Newtonian + inertial refrence frame
+  \item Newtonian Covariance/Galilean Relativity
+  \item Newtonian-Cartan/ general covariance
+  \item Fluid
+  \item Special Relativity
+  \begin{itemize}
+    \item Coordinate Velocity
+    \item Four-Velocity
+    \item Proper Velocity
+    \item Rapidity
+    \item Relative Velocity
+  \end{itemize}
+  \item General Relativity
+  \begin{itemize}
+    \item Coordinate velocity
+    \item GR four-velocity
+    \item Tangent vector
+    \item Covariant velocity
+    \item Geodesic
+    \item Warp Drive
+  \end{itemize}
+  \item Dynamics
+  \item Lagrandian
+  \item Hamiltonian
+  \item Phase-Space Flow
+  \item Poisson Structure
+  \item Symplectic flow
+\end{itemize}
+
+
+\subsection{Introduction}
+
+Let's define velocity, I mean its a pretty simple concept, you could ask a fifth grader what it is and they could define it with ease. I mean it is the simple equation...
+\[
+\begin{aligned}
+V
+&\equiv
+(Q_{\xi},X)
+=
+\mathfrak{X}_{Q_{\xi}}[X]
+\\[1ex]
+\delta[Q_{\xi}]
+&=
+K(\delta,\mathfrak{X}_{Q_{\xi}})
+\\
+&=
+\Omega_{\mathrm{ext}}(\delta,\mathfrak{X}_{Q_{\xi}})
+-
+G(\delta,\mathfrak{X}_{Q_{\xi}})
+\\[2ex]
+&=
+\Omega(\delta,\mathfrak{L}_{\xi})
++
+Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\\
+&\qquad
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+-
+G(\delta,\mathfrak{L}_{\xi})
+\\[2ex]
+&=
+\Omega(\delta,\mathfrak{L}_{\xi})
++
+Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\\
+&\qquad
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\\[2ex]
+&=
+\Omega_{\mathrm{ext}}(\delta,\mathfrak{L}_{\xi})
+-
+G(\delta,\mathfrak{L}_{\xi})
+\\[2ex]
+&=
+\Omega(\delta,\mathfrak{L}_{\xi})
++
+Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\delta)
+\mathbin{\lrcorner}
+\vartheta(\mathfrak{L}_{\xi})
+\\
+&\qquad
+-
+\Omega(\mathfrak{L}_{\xi},\delta)
+-
+Q_{[\mathbb{X}(\mathfrak{L}_{\xi}),\mathbb{X}(\delta)]}
+-
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\\
+&\qquad
+-
+\left[
+-\oint_{\partial\Sigma}
+\mathbb{X}(\delta)
+\mathbin{\lrcorner}
+\vartheta(\mathfrak{L}_{\xi})
+-
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\right]
+\\[2ex]
+\end{aligned}
+\]
+\[
+\begin{aligned}
+&=
+\delta
+\left[
+\int_{\Sigma}
+\left(
+\vartheta(\mathfrak{L}_{\xi})
+-
+\xi\mathbin{\lrcorner}L
+\right)
+\right]
+-
+Q_{\delta[\xi]}
+-
+\oint_{\partial\Sigma}
+\xi\mathbin{\lrcorner}\vartheta(\delta)
+\\
+&\qquad
++
+Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\\[2ex]
+&=
+\delta
+\left[
+\int_{\Sigma}
+\left(
+\vartheta(
+\mathcal{L}_{\xi}g_{ab},
+\mathcal{L}_{\xi}\psi^{I}
+)
+-
+\xi\mathbin{\lrcorner}L
+\right)
+\right]
+-
+Q_{\delta[\xi]}
+\\
+&\qquad
++
+Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
++
+\oint_{\partial\Sigma}
+\mathbb{X}(\mathfrak{L}_{\xi})
+\mathbin{\lrcorner}
+\vartheta(\delta)
+\\[2ex]
+&=
+\delta
+\left[
+\int_{\Sigma}
+\left(
+\vartheta(
+2\nabla_{(a}\xi_{b)},
+\mathcal{L}_{\xi}\psi^{I}
+)
+-
+\xi\mathbin{\lrcorner}L
+\right)
+\right]
+-
+Q_{\delta[\xi]}
+\\
+&\qquad
++
+Q_{[\mathbb{X}(\delta),\xi]}
++
+\oint_{\partial\Sigma}
+\xi\mathbin{\lrcorner}\vartheta(\delta)
+\\[2ex]
+\end{aligned}
+\]
+\[
+\begin{aligned}
+&=
+\delta
+\left[
+\int_{\Sigma}
+\left(
+\vartheta(
+\nabla_{a}\xi_{b}
++
+\nabla_{b}\xi_{a},
+\mathcal{L}_{\xi}\psi^{I}
+)
+-
+\xi\mathbin{\lrcorner}L
+\right)
+\right]
+-
+Q_{\delta[\xi]}
+\\
+&\qquad
++
+Q_{[\mathbb{X}(\delta),\xi]}
++
+\oint_{\partial\Sigma}
+\xi\mathbin{\lrcorner}\vartheta(\delta)
+\\[2ex]
+&=
+\delta
+\left[
+\int_{\Sigma}
+\left(
+\vartheta(
+\partial_{a}\xi_{b}
++
+\partial_{b}\xi_{a}
+-
+2\Gamma^{c}{}_{ab}\xi_{c},
+\mathcal{L}_{\xi}\psi^{I}
+)
+-
+\xi\mathbin{\lrcorner}L
+\right)
+\right]
+\\
+&\qquad
+-
+Q_{\delta[\xi]}
++
+Q_{[\mathbb{X}(\delta),\xi]}
++
+\oint_{\partial\Sigma}
+\xi\mathbin{\lrcorner}\vartheta(\delta)
+\\[2ex]
+&=
+\delta
+\left[
+\int_{\Sigma}
+\left(
+\vartheta(
+\partial_{a}\xi_{b}
++
+\partial_{b}\xi_{a}
+-
+g^{cd}
+(
+\partial_{a}g_{db}
++
+\partial_{b}g_{da}
+-
+\partial_{d}g_{ab}
+)
+\xi_{c},
+\mathcal{L}_{\xi}\psi^{I}
+)
+-
+\xi\mathbin{\lrcorner}L
+\right)
+\right]
+\\
+&\qquad
+-
+Q_{\delta[\xi]}
++
+Q_{[\mathbb{X}(\delta),\xi]}
++
+\oint_{\partial\Sigma}
+\xi\mathbin{\lrcorner}\vartheta(\delta)
+\\[3ex]
+\dot{F}
+&=
+(Q_{\xi},F)
+\\[1ex]
+(Q_{\xi},g_{ab})
+&=
+\mathcal{L}_{\xi}g_{ab}
+=
+2\nabla_{(a}\xi_{b)}
+\\[1ex]
+(Q_{\xi},\psi^{I})
+&=
+\mathcal{L}_{\xi}\psi^{I}
+\\[1ex]
+(Q_{\xi},x^{\mu})
+&=
+\xi^{\mu}
+\\[2ex]
+\Gamma^{c}{}_{ab}
+&=
+\frac{1}{2}
+g^{cd}
+(
+\partial_{a}g_{db}
++
+\partial_{b}g_{da}
+-
+\partial_{d}g_{ab}
+)
+\\[1ex]
+g^{ac}g_{cb}
+&=
+\delta^{a}{}_{b},
+\qquad
+\nabla_{c}g_{ab}=0
+\\[2ex]
+(Q_{\xi},Q_{\xi})
+&=
+-G(\mathfrak{L}_{\xi},\mathfrak{L}_{\xi})
+\\
+&=
+\oint_{\partial\Sigma}
+\xi\mathbin{\lrcorner}
+\vartheta(\mathfrak{L}_{\xi})
+\end{aligned}
+\]
+
+... uhm, well... maybe I am wrong about that.
+
+\subsection{Basic}
+
+Ok, well then, let's start at the beginning. Velocity can generally be defined by the change in the distance traveled divided by the time it takes to travel.
+\[
+v= \frac{\Delta x}{\Delta t}
+  \]
+  If we take the infintesimal transformation of such we get
+\[
+v = \dv{x}{t}
+\]
+
+But, as your middle school science teacher likely drilled in your head, velocity isn't just speed, it also has a direction, making a vector the easiest way to represent it.
+\[
+\mathbf{\dot{r}} = \dv{\mathbf{r}}{t} = \langle \dv{x}{t}, \dv{y}{t}, \dv{z}{t} \rangle
+  \]
+
+\subsection{Newtonian}
+
+Now that we have a basic understanding of the math behind velocity we can start putting into context. Likey eveyone here knows newtons second law
+\[
+\mathbf{F} = m \dv[2]{\mathbf{r}}{t}
+  \]
+  solving for velocity gives
+
+\[
+\dot{r} = \int \frac{\mathbf{F}}{m} dt
+  \]
+
+  Now this is all nice and good, but it forgets relativity, I don't mean special or general, I mean Galilean relativity. Keeping that in track is very simple
+
+  \[
+\dot{r}' = \int \frac{\mathbf{F}}{m} dt - \dot{r}_{\text{refrence frame}}
+  \]
+
+  This brings us to our next problem, as having Newtonian mechanics rely on frames of refrences comes up with several problems, I am sure many people have heard high school schience teachers telling you that there is no centrifugal forces, as it is a fictitious force created by frames of refrence, to solve this problem we make Newtonian mechanics general covariant by using the Newton-Cartan method. Essentially taking a space-time approach similar to general relativity but making time absolute rather than relative.
+
+  Defining velocity as
+\[
+V^\mu = \dv{x^\mu}{dt} = (1, \dv{x^i}{dt})
+  \]
+
+  While this equation may look pretty simple, it is an extreme simplification. I really don't know the purpose of the Newton-Cartan other than to simply prove Einstien wrong.
+\subsection{Special Relativity}
+
+This talk or relativity branches cleanly into special relativity, as velocity truly begins to change. As time becomes another relative dimension to move through, which is a really funny idea to think about. Running through time.
+
+Anyways, the velocity vector obviously becomes 4-d adding time to the mix
+
+\[
+U^\mu = \dv{x^\mu}{\tau}
+  \]
+
+  Where $\tau$ is proper time, or the subjective time of the travelers rather than those observing them. Take the tiny people on a relativistic baseball as compared to the batter waiting for them.
+
+We can relatively easily then expanded this to our traditional relaitive speed.
+
+Taking galelian relativity
+\[
+v_{\text{rel}} = v_1 - v_0
+  \]
+
+  and adding relativistic corrections
+\[
+v_{\text{rel}} = \frac{v_1 - v_0}{1 - v_1 v_2 / c^2}
+  \]
+Because why not
+\subsection{GR}
+
+But, this method isn't enough, there is now the problem of absolute acceleration, creating paradoxes and and preferential frames of refrence, something physically nonsensical in a relative world without absolute space or time. Though, using our earlier covariant newtonian framework and combining that with Einstienian proper time we get an equation that looks the same
+\[
+U^\mu = \dv{x^\mu}{\tau}
+  \]
+
+  but now
+\[
+g_{\mu \nu}U^\mu U^\nu = -c^2
+  \]
+
+  Thus adding a curved geometry of space-time that adds further separation between observers. The rest also stays the same as SR but with further corrections, and can be expressed through the language of remanian geometry rather than Lorentzian or geodesics, I won't get into all of that though.
+
+  Though, before we move on, I want to talk about the velocity of warp drives. If you haven't heard, a solution of GR allows for apperent faster than speed of light movement, really messing with our definition of velocity which in all cases must be less than the speed of light.
+
+  It doesn't really break anything as most solutions have it where the matter doesn't move at all but spacetime shrinks and grows behind it. Making its actual movement 0 m/s yet to an outside observer moving several times the speed of light as it moves a great ``distance'' in a very short time. Making definitions a bit confusing.
+
+\subsection{Dynamics}
+
+Ok, all of this spacetime stuff is really confusing and make a great deal of a mess. Lets move onto a completely different approach. Moving away from kinematics and into dynamics. Involving phase-space, where there aren't some defined set of dimensions of space and time, but an infinite amount of dimenisons of anything you could observe; momentum, position, time, heat, entropy, well... not really traditionally entropy. Anyways, rather than taking an infinite amount of dimensions, let's shrink it down to two, the two most generally used, momenta and position. Then we will add mass but as it is constant in our situation it is infinitely then and thus can be expressed in 2d
+
+(show graph)
+
+Here, momenta and position are not like their Newtonian cousians, but rather generalized. They are related pairs and aren't constrained in the way position and momentum generally are. Position can mean angle, position plus direction rolled in one, or all three dimensions rolled into one vector field. The same with momenta, but to make this example concret, we will take the traditional picture of position and momenta to give that if one represents the flow of the vector field as H, or commonly refered to as the Hamiltonain, we can express the derivative of position as a function of time as
+\[
+v = \dot{q} = \pdv{H}{p_i}
+  \]
+
+  Why, that is a really big question, just trust me.
+
+  Thus saying that velocity is a part of the vector field on phasespace
+
+  (show on graph)
+
+  but what is phase space, well... that is an even bigger question but I will take a quick jab at it.
+
+  First we introduce something called a Poisson Structure
+\[
+  \dot{f} = \pb{f}{H} = \pdv{f}{q^i} \pdv{H}{p_i} - \pdv{f}{p_i} \pdv{H}{q^i}
+  \]
+
+  Where the entire vector field can thus be written as
+\[
+X_H = \pb{\cdot}{H}
+  \]
+  Where the dot represents all possible observables, like position, momenta, or really anything else. The geometry behind the vector field is the phase-space. This geometry is something called symplectic, but I won't get into that.
+
+
+\subsection{Other}
+
+Now, let's speed run some others. Fluid velocity is a vector function that attaches a newtonian velocity to every point in the velocity.
+
+Quantum mechanics adds fuzzy probability to velocity
+\[
+\mathbf{v} = \frac{\mathbf{j}}{\abs{\psi}^2}
+  \]
+
+  Kinetic theory combines probability of QM with the continuum of fluids
+
+  Geometric mechanics defines it as a ``natural element of a tangent bundle,'' which seems hard to explain
+
+
+
+
+
+\section{Developing Numerical General Relativity: Part 1, Vacuum Kerr Black Whole}
+
+\subsection{Planning}
+\begin{itemize}
+  \item Introduction
+  \item Scope
+  \item Kerr SpaceTime
+  \item 3+1 split
+  \item ADM Formulism
+  \item BSSN Formulism
+  \item Initial data
+  \item Cartoon Method
+  \item Excision
+  \item Method of lines + RK4
+  \item Boundary conditions
+  \item Code
+  \item Validation
+  \item Problems I had
+  \item Next steps
+  \item Animations
+\end{itemize}
+
+\subsection{Introduction}
+
+Welcome to my first video on developing a numerical general relativistic code, starting with a vacuum Kerr Black Hole.
+
+\subsection{Scope}
+
+Before getting to the scope of this video, I will mention my overall scope of my broader project. I plan to create a FORTRAN code that uses General Relativity, Relativistic Fluid dynamics, and I am thinking about adding additional tools like magnetic or Nuclear EOS.
+
+The main goal is for the final output to be a toy model of a quasi-star, a theoretical extremely large star with a black hole within its center but yet too large to undergo a supernova, this obviously combines a lot of extreme relativistic and fluid tools.
+
+Rather than jumping straight into this extremely large project, I will do it in steps. I will start with a fairly basic one that uses just GR, a kerr black hole in a vacuum. That is what I am doing
+
+\subsection{3+1 Split}
+
+To solve most physics simulation, we derive them as initial value problems as a function of time and then numerically integrate. Those that have an understanding of GR can see how this is troubling.

@@ -88,7 +88,6 @@ program main_sgeuler
      call ti_step(Y, t, dt)
      t     = t + dt
      istep = istep + 1
-
      e = total_energy(Y)
      call log_energy(t, e, e0)
 
@@ -98,8 +97,8 @@ program main_sgeuler
              '  CG it = ', poisson_iters, '  res = ', poisson_resid,      &
              '  dE = ', e - e0
      end if
-
-     if (nout > 0 .and. t >= tdump*(one - 1.0e-14_dp)) then
+     if (mod(istep,10) == 0)  then
+        write(*,'(a,es16.8)') '*** DUMPING AT t = ', t
         idump = idump + 1
         call dg_recover_U(Y, U)
         call write_solution(U, t, itoa(idump))

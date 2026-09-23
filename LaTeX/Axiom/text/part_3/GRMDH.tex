@@ -3,3 +3,35 @@
 \section{Scope}
 
 Here I outline my plan to create a simulation of a kerr black hole inside of a star, in order to develop my understanding of BSSN while adding th extra challenge of MHD.
+
+\section{Stage 1: Vacuum Kerr Black Hole}
+\subsection{Initializing Values}
+We start with taking in the data, then transferring it into ADM and then BSSN.
+
+By follutiong the 4D hypersurface by
+\[
+M = \cup_t \Sigma_t
+  \]
+
+  Taking
+\[
+g_{\mu \nu} \to (\gamma_{ij}, \alpha, \beta^i)
+  \]
+
+  The spatial metric, the lapse, and the shift.
+
+  Also the introducing the extrinsic curvature.
+
+  The decomposing it.
+
+  Next we introduce the BSSN formalism, which creates the unit-determinant condition, or the contradiction of the conformal Christoffel symbol.
+
+\subsection{Hamiltonian Constraints}
+  From here we end up at the Hamiltonian constraints, that force conservations of momentum and energy just like traditional hamiltonians, they just aren't the only enforcement in BSSN that keep things only partially hyperbolic.
+
+
+\subsection{Integration}
+\subsubsection{RK4}
+We start with a traditional RK4 model for integration. Inside each section we have the traditional residual, Sommerfeld radiative boundary conditions, and k0 dissipation
+
+\subsubsection{RHS}

@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/4088095949_3811818029_1012976991.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/656282500_4073845205_1746225162.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/2768307786_4059407385_2687757311.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/1079354554_4073845205_3934634284.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/1079354554_3363625651_878720315.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/1079354554_3248312412_3047246541.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/1079354554_4073845205_2708608322.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/1079354554_2306731175_1918327529.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/4277144528_4141849542_815327656.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/LocalFlatness/239137133_4073845205_2271976348.mp4'

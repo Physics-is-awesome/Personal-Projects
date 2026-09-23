@@ -7,6 +7,8 @@ program main
   use constraints_mod, only: hamiltonian_constraint
   use timestep_mod, only: rk4_step
   use excision_mod, only: extrapolate_excised
+  use output_mod, only: output_init, output_write_snapshot, &
+                         output_write_diagnostics, output_finalize
   implicit none
 
   real(dp), allocatable :: u(:,:,:), Hgrid(:,:)
@@ -26,6 +28,9 @@ program main
   diag_margin = 1.0_dp
   call get_environment_variable("GR_DIAG_MARGIN", buf, status=envstat)
   if (envstat == 0) read(buf,*) diag_margin
+
+  ! Vacuum run: metric-only output (no hydro arrays exist in this driver).
+  call output_init('output')
 
   print *, "=== GR BSSNOK (vacuum, Cartoon axisymmetric) - Milestone 1 ==="
   print '(A,I0,A,I0)', " Grid: Nx=", Nx, "  Nz=", Nz
@@ -77,6 +82,11 @@ program main
   print '(A,F8.5)', " Time step dt = ", dt
   print *, "Evolving (vacuum, 1+log/Gamma-driver puncture gauge, excised interior)..."
 
+  ! t=0 diagnostics/snapshot, using the whole-domain Hmax/Hrms already
+  ! computed above (step 0 has no exterior-only recomputation).
+  call output_write_diagnostics(0, t, dt, Nx, Nz, u, Hmax, Hrms)
+  call output_write_snapshot(0, t, 'output', Nx, Nz, xg, zg, u)
+
   do n = 1, nsteps
     call rk4_step(u, dt, n)
     call extrapolate_excised(u)
@@ -120,6 +130,9 @@ program main
         " step ", n, "  t=", t, "  max|H|(ext)=", Hmax, "  rms|H|(ext)=", Hrms, &
         "  alpha(probe)=", u(1,axis_k,IALPHA)
 
+      call output_write_diagnostics(n, t, dt, Nx, Nz, u, Hmax, Hrms)
+      call output_write_snapshot(n, t, 'output', Nx, Nz, xg, zg, u)
+
       block
         integer :: ii, kk0, bi, bk
         real(dp) :: bval, rr
@@ -140,5 +153,7 @@ program main
       end block
     end if
   end do
+
+  call output_finalize()
 
 end program main

@@ -1,0 +1,12 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/4088095949_4135901577_2530263478.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/656282500_4073845205_1697067671.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/2768307786_2087300879_302432550.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/1079354554_4073845205_1304278797.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/1079354554_2235404841_2103175941.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/1079354554_4073845205_2002491054.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/620946158_4141849542_2249892698.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/3257753638_2327408147_4137581210.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/3257753638_4073845205_2424489349.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/3257753638_266507084_3158253321.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/media/videos/first/1080p60/partial_movie_files/SphereManifold/3257753638_2230675760_3915476423.mp4'

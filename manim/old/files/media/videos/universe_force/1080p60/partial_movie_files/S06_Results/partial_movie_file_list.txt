@@ -1,0 +1,9 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/4185961352_34340412_2183932285.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_4079250704_967980462.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_3143832107_3010816020.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_2823884372_2695106968.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_1105215870_2220564965.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_175876570_1584080959.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_3792825595_3869188864.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/old/files/media/videos/universe_force/1080p60/partial_movie_files/S06_Results/2247593372_2340948427_1583039289.mp4'

@@ -1,0 +1,8 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/4185961352_318734761_2631483978.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/2247593372_2775816961_686330117.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/2247593372_3617388916_3032330466.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/2247593372_2775816961_1322000331.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/2247593372_2348936063_1776913768.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/2247593372_717680783_817217138.mp4'
+file 'file:/home/ajcason/Coding/Personal-Projects/manim/New/media/videos/Splitting/1080p60/partial_movie_files/S4/2247593372_1598230844_1429387218.mp4'

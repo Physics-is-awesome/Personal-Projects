@@ -1,0 +1,16 @@
+&control
+  case_name  = 'expl3d'
+  scheme     = 'sp'          ! structure-preserving (3.36); or 'std' for standar  LDG
+  basis_type = 'P'
+  kdeg       = 2              ! polynomial degree
+  nxyz       = 30, 30, 1      ! keep the 3rd entry = 1 in 2D
+  rk_order   = 1
+  use_oe     = .true.
+  use_pp     = .true.
+  use_ibp    = .true.
+  cfl        = 0.10
+  tfinal     = 10.00           ! reference end time for the expl3d benchmark
+  pois_tol   = 1.0e-10        ! validate against a short tighter-tolerance reference
+  nout       = 0
+  verbose    = .true.
+/

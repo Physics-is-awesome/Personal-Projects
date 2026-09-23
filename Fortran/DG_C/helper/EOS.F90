@@ -293,6 +293,7 @@ contains
     !------------------------------------------- Example 5.4 ----------
     case (C_BLAST2D)
        if (blast_multi) then
+          print *, "Blast is working"
           ! dp = 100 sum_{i=1..5} I_{B(x_i,r)}(x)
           dpsum = zero
           do ib = 1, 5

@@ -8,7 +8,7 @@ Also, the bigger project is to work on figuring out how to use 3Gen gravitationa
 
 \subsection{First go: Detecting Gravitational Wave Memory in the Next Galactic Core-Collapse Supernova}
 
-General notes from my first look at the paper detecting Gravitational Wave Memory in the Next Galactic Core-Collapse Supernova. Using data from GWOSC and several CCSN simulations they use some kind of linear prediction filering system to develop what the waves should look like and how far away we could see them.
+General notes from my first look at the paper detecting Gravitational Wave Memory in the Next Galactic Core-Collapse Supernova. Using data from GWOSC and several CCSN simulations they use some kind of linear prediction filtering system to develop what the waves should look like and how far away we could see them.
 
 \subsubsection{Action Notes}
 
@@ -23,4 +23,36 @@ I found a MITOpenCourseWare on signal theory that I will likely try to do
 
 \subsubsection{Code}
 
-Got some AI to try to make a toy model, hopefully it bears some fruit.
+Got some audio stuff working
+
+\subsubsection{General Readings/Videos}
+
+Convolution is defined via
+\[
+\sum_{k=-\infty}^\infty x[k]h[x-k] = (x \star h)[n]
+  \]
+
+  There is also a lot of other information listed but I am not sure what is important, the equations are generally pretty simple so I think I will just look them up.
+\section{September 10}
+
+add whiten to gw, zero out wavelets
+
+Looking into trying without interpolation.
+
+Look into generating gravitational waves from a 2d checkpoint file, calculate quadropole moments. Density variable multiply by coordinates. Stencile for time derivative or look into Pedro.
+
+\subsection{Code}
+
+I got the code for the audio of the CCSN. I did successfully whiten the gravitational wave data but was unable to get the black hole merger right. I verified what I did using the graph though
+
+\subsection{Quadrupoles}
+
+Calculating the quadrupole mass moment is fairly simple
+\[
+I_{2m} = \frac{16 \sqrt{3} \pi}{15} \int \rho Y_{2m}^{\star} r^2 dV
+  \]
+
+  The star superscript means we are using the complex conjugate.
+
+
+  Rather than write everything out, calculate mass moment very simply, find its second order time derivative, then plug that into the gravitational wave equation.

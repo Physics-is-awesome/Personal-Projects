@@ -1,4 +1,4 @@
-module coupled_timestep_mod
+module  ffcoupled_timestep_mod
   use kinds_mod, only: dp
   use params_mod, only: Nx, Nz
   use vars_mod, only: NVARS
@@ -9,6 +9,7 @@ module coupled_timestep_mod
   use hydro_rhs_dynamic_mod, only: compute_hydro_rhs_dynamic, recover_all_primitives_dynamic
   use hydro_boundary_mod, only: apply_hydro_boundary
   use matter_source_grid_mod, only: build_matter_source_grid
+  use output_mod
   implicit none
   private
   public :: coupled_rk4_step
