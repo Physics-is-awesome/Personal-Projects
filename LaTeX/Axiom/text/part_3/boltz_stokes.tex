@@ -1,0 +1,42 @@
+\chapter{Hamiltonian, Boltzmann, to Navier stokes}
+
+Sources:
+\begin{itemize}
+  \item https://www.unm.edu/~aierides/505/bbgky3.pdf?
+  \item https://journals.aps.org/rmp/pdf/10.1103/RevModPhys.52.569
+\end{itemize}
+
+\begin{itemize}
+  \item Introduction
+  \item Scope
+  \item Brief overview of the three
+  \item Liouville to BBGKY
+  \item The BBGKY Hierarchy
+  \item The Boltzmann equation
+  \item The H-Theorem
+  \item Boltzmann to Navier-Stokes
+  \item Hydro limit
+\end{itemize}
+
+\section{Introduction}
+
+Hello, and welcome to another video. On the connection between Hamiltonian dynamics, Boltzmann equation, and navier-stokes
+
+\section{Scope}
+
+Here I plan to derive the Navier-stokes using the Boltzmann, and the Boltzmann using the N-body Hamiltonian. Then using how we did that, examine their connection and when it is appropriate to use one and not the other.
+
+
+\section{Brief Overview}
+....
+
+
+\section{From Liouville to BBGKY}
+
+Taking an N-body Hamiltonian
+
+\[
+H = \frac{1}{2m}\sum^N_{i=1} \va{p_i}^2 + \sum^N_{i=1} V\va{r_i} + \sum^N_{i<j} U(\va{r_i} - \va{r_j})
+  \]
+
+  Where the Hamiltonian constains an external force $\va{F} = - \nabla V$, that acts equally on every particle. There is also two-body interaction between particles captured by the potential energy term. Later on we will make the assumption that this potential is short ranged.

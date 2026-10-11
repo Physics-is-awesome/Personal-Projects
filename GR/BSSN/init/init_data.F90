@@ -1,6 +1,8 @@
 module initial_data_mod
   use kinds_mod, only: dp
-  use params_mod, only: Nx, Nz, dx, dy, dz, bh_mass, bh_spin
+  use params_mod, only: Nx, Nz, dx, dy, dz, bh_mass, bh_spin, &
+                         bh_center_x, bh_center_z, r_excise, &
+                         gamma_driver_mode, puncture_lapse_mode, conformal_factor_mode
   use grid_mod, only: xg, zg
   use vars_mod
   use geometry_mod, only: sym3_inverse
@@ -45,16 +47,34 @@ contains
     real(dp), intent(inout) :: u(:,:,:)
     integer :: i, k
     real(dp) :: gij(3,3), gijinv(3,3), alpha, beta_upper(3), Kij(3,3)
-    real(dp) :: phi, Ktrace
+    real(dp) :: phi, Ktrace, detg, twoH
     real(dp) :: gtij(3,3), Aij(3,3)
 
     do k = 1, Nz
       do i = 1, Nx
         call kerr_schild_adm(xg(i), 0.0_dp, zg(k), gij, gijinv, alpha, beta_upper, Kij)
 
-        phi = log(gij(1,1)*(gij(2,2)*gij(3,3)-gij(2,3)*gij(2,3)) &
-                  - gij(1,2)*(gij(1,2)*gij(3,3)-gij(2,3)*gij(1,3)) &
-                  + gij(1,3)*(gij(1,2)*gij(2,3)-gij(2,2)*gij(1,3))) / 12.0_dp
+        ! --- Conformal factor -------------------------------------------
+        ! mode 0 (legacy): phi = (1/12) ln det gamma, so det gamma-tilde = 1.
+        !   This is a legal BSSN gauge but it is NOT the conventional choice:
+        !   gamma-tilde stays far from flat, and the standard 1+log puncture
+        !   construction (in which gamma-tilde -> delta in the punctured
+        !   coordinates) cannot be expressed in it.
+        !
+        ! mode 1 (standard): psi^4 = 1 + 2H, i.e. phi = (1/4) ln(1+2H), the
+        !   conventional Kerr-Schild conformal factor used by puncture codes.
+        !   gamma-tilde = gamma / psi^4.
+        ! -----------------------------------------------------------------
+        detg = gij(1,1)*(gij(2,2)*gij(3,3)-gij(2,3)*gij(2,3)) &
+             - gij(1,2)*(gij(1,2)*gij(3,3)-gij(2,3)*gij(1,3)) &
+             + gij(1,3)*(gij(1,2)*gij(2,3)-gij(2,2)*gij(1,3))
+        if (conformal_factor_mode == 1) then
+          twoH = detg - 1.0_dp
+          if (twoH <= 0.0_dp) twoH = 0.0_dp
+          phi = 0.25_dp*log(1.0_dp + twoH)
+        else
+          phi = log(max(detg, 1.0e-300_dp)) / 12.0_dp
+        end if
 
         gtij = exp(-4.0_dp*phi) * gij
         Ktrace = sum(gijinv * Kij)
@@ -67,12 +87,42 @@ contains
         u(i,k,IAXX) = Aij(1,1); u(i,k,IAXY) = Aij(1,2); u(i,k,IAXZ) = Aij(1,3)
         u(i,k,IAYY) = Aij(2,2); u(i,k,IAYZ) = Aij(2,3); u(i,k,IAZZ) = Aij(3,3)
         u(i,k,IALPHA) = alpha
+        if (puncture_lapse_mode == 1) then
+          u(i,k,IALPHA) = puncture_lapse_shape(xg(i), zg(k)) * alpha
+        end if
         u(i,k,IBETAX) = beta_upper(1); u(i,k,IBETAY) = beta_upper(2); u(i,k,IBETAZ) = beta_upper(3)
         u(i,k,IGTX) = 0.0_dp; u(i,k,IGTY) = 0.0_dp; u(i,k,IGTZ) = 0.0_dp
         u(i,k,IBX) = 0.0_dp;  u(i,k,IBY) = 0.0_dp;  u(i,k,IBZ) = 0.0_dp
       end do
     end do
   end subroutine set_kerr_schild_id
+
+  ! ---------------------------------------------------------------------------
+  ! Puncture shaping factor for the initial lapse.
+  !
+  !   f(r) = (r^2 - r_excise^2) / (r^2 + r_excise^2)
+  !
+  ! f = 0 at r = r_excise (so the 1+log lapse reaches zero on the excision
+  ! boundary), f -> 1 as r -> infinity, and f' = 0 at r = r_excise, so the lapse
+  ! is smooth across the puncture to second order.  It uses the plain grid
+  ! radius because the puncture is a property of the Cartesian grid, not of the
+  ! Kerr-Schild radial coordinate.
+  !
+  ! NOTE: this CHANGES the solution.  It is a diagnostic for the gauge-drift
+  ! hypothesis, not constraint-satisfying initial data -- expect an O(1)
+  ! Hamiltonian-constraint violation at t=0 wherever f differs appreciably
+  ! from 1.
+  ! ---------------------------------------------------------------------------
+  function puncture_lapse_shape(x, z) result(f)
+    real(dp), intent(in) :: x, z
+    real(dp) :: f, r2
+    r2 = (x - bh_center_x)**2 + (z - bh_center_z)**2
+    if (r2 <= r_excise*r_excise) then
+      f = 0.0_dp
+    else
+      f = (r2 - r_excise*r_excise) / (r2 + r_excise*r_excise)
+    end if
+  end function puncture_lapse_shape
 
   ! compute conformal connections via contracting the derivatives of the inverse metric
   subroutine compute_conformal_connections(u)
@@ -81,7 +131,7 @@ contains
     real(dp) :: gxp(3,3), gxm(3,3), gyp(3,3), gym(3,3), gzp(3,3), gzm(3,3)
     real(dp) :: ginvxp(3,3), ginvxm(3,3), ginvyp(3,3), ginvym(3,3), ginvzp(3,3), ginvzm(3,3)
     real(dp) :: dginv(3,3,3), Gt(3)
-    real(dp) :: det
+    real(dp) :: det, ginv0(3,3), dphix, dphiz, gbar(3)
     real(dp) :: vp(NVARS), vm(NVARS)
 
     do k = 2, Nz - 1
@@ -106,6 +156,40 @@ contains
         Gt(3) = -(dginv(1,3,1) + dginv(2,3,2) + dginv(3,3,3))
 
         u(i,k,IGTX) = Gt(1); u(i,k,IGTY) = Gt(2); u(i,k,IGTZ) = Gt(3)
+
+        ! ---------------------------------------------------------------------
+        ! Gamma-driver variable initialisation.
+        !
+        ! Legacy mode (gamma_driver_mode == 0): IBX/IBY/IBZ are left at zero,
+        ! exactly as this code has always done.  That is inconsistent with
+        ! d_t beta^a = (3/4) Gbar^a, but changing it on its own makes the run
+        ! WORSE (inner-boundary failure at step 14055 instead of 18285):
+        ! the legacy driver is d_t Gbar = RHS_Gam - eta*Gbar, so a correctly
+        ! sized Gbar ~ 1.5 immediately gets damped at rate eta=2 and destroys
+        ! the shift.  The two fixes have to go together.
+        !
+        ! Puncture mode (gamma_driver_mode == 1): initialise the BARRED
+        ! connection
+        !
+        !     Gbar^a = Gtilde^a + gtilde^{ab} d_b phi
+        !
+        ! which is what the puncture driver actually acts on.  phi is even in
+        ! the Cartesian y direction by construction, so d_y phi vanishes on the
+        ! stored plane and only the x and z derivatives enter.
+        ! ---------------------------------------------------------------------
+        if (gamma_driver_mode == 1) then
+          call sym3_inverse(pack_g(u(i,k,:)), ginv0, det)
+          vp = get_neighbor(u, i, k,  1, 0, 0.0_dp)
+          vm = get_neighbor(u, i, k, -1, 0, 0.0_dp)
+          dphix = (vp(IPHI) - vm(IPHI)) / (2.0_dp*dx)
+          vp = get_neighbor(u, i, k,  0, 1, 0.0_dp)
+          vm = get_neighbor(u, i, k,  0,-1, 0.0_dp)
+          dphiz = (vp(IPHI) - vm(IPHI)) / (2.0_dp*dz)
+          gbar(1) = Gt(1) + ginv0(1,1)*dphix + ginv0(1,3)*dphiz
+          gbar(2) = Gt(2) + ginv0(2,1)*dphix + ginv0(2,3)*dphiz
+          gbar(3) = Gt(3) + ginv0(3,1)*dphix + ginv0(3,3)*dphiz
+          u(i,k,IBX) = gbar(1); u(i,k,IBY) = gbar(2); u(i,k,IBZ) = gbar(3)
+        end if
       end do
     end do
   end subroutine compute_conformal_connections

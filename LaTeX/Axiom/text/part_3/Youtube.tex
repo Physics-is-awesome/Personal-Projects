@@ -17,7 +17,6 @@ At some point I want a dive into Kerr Black holes but I am not ready for that.
   \item Journey through General Relativity
   \item Positive Mass Warp Drive
   \item Axioms of Hamiltonian Mechanics
-  \item Understanding of Metriplectic Dynamics
   \item Gravitational Waves
   \item MagnetoHydrodynamics Propulsion
   \item MagnetoHydrodynamics in a nebulua
@@ -25,14 +24,54 @@ At some point I want a dive into Kerr Black holes but I am not ready for that.
   \item Scientific Programme
   \item Destroying a Universe with a punch(done)
   \item Best way to simulate a solar system(done)
-  \item Metriplectic simulation
+  \item Creating hydrodynamics from Boltzmann
+  \item New Universe
+  \begin{itemize}
+    \item Creating new force from guage symmetry
+    \item Creating modifed General Relativity(symplectic manifold instead of Remmanian)
+    \item Creating New Fluid Dynamics
+  \end{itemize}
+  \item Metriplectic series
+        \begin{itemize}
+          \item Why Hamiltonians don't like dissipation
+          \item Metriplectic 4-bracket examination
+          \item Numerical Recipes for Metriplectic
+          \item Putting it all together/making our own equations
+          \item Other methods
+        \end{itemize}
   \item In-depth operator splitting(done*)
   \item Deriving Plasma kinetic equations
   \item Simple GR solver
+        \begin{itemize}
+          \item Kerr
+          \item TOV
+          \item Accretion
+          \item Quasi-star
+          \item Additional(maybe stuff)
+          \item Warp drive
+          \item Cosmic censorship
+          \item CCSN
+        \end{itemize}
   \item ADM
   \item Symplectic geometry: A physicist's perspective
-  \item DG
+  \item DG CCSN(done)
   \item Deriving Gravitational Wave Memory
+  \item Geometric Particle in cell
+  \item Non-canonical MHD
+  \item Multiscale kinetic
+  \item Chaos theory for MHD vs RMHD or other forms
+  \item Geometric integration of Vlasov-Maxwell
+  \item Structure preserving Discretization in kinetic PDEs
+  \item Collision operators and nonlinear kinetic entropy
+  \item Phase-space of kinetic turbulence
+  \item MHD singularities
+  \item Magnetic topology
+  \item Plasma waves as Hamiltonians
+  \item The Abomination that is generally covariant Newtonian Mechanics
+  \item Spectral Algorithms
+  \item Rational Krylov and contour-integral algorithms
+  \item Infinite-Dimensional Geometric integrators
+  \item multisymplectic
 \end{itemize}
 
 
@@ -2287,6 +2326,7 @@ Quantum mechanics adds fuzzy probability to velocity
   \item 3+1 split
   \item ADM Formulism
   \item BSSN Formulism
+  \item Guage Conditions
   \item Initial data
   \item Cartoon Method
   \item Excision
@@ -2307,10 +2347,700 @@ Welcome to my first video on developing a numerical general relativistic code, s
 
 Before getting to the scope of this video, I will mention my overall scope of my broader project. I plan to create a FORTRAN code that uses General Relativity, Relativistic Fluid dynamics, and I am thinking about adding additional tools like magnetic or Nuclear EOS.
 
-The main goal is for the final output to be a toy model of a quasi-star, a theoretical extremely large star with a black hole within its center but yet too large to undergo a supernova, this obviously combines a lot of extreme relativistic and fluid tools.
+The main goal is for the final output to be a toy model of a quasi-star, a theoretical extremely large star with a black hole within its center but the accretions from the black hole powers the star just like fusion in a traditional star, this obviously combines a lot of extreme relativistic and fluid tools.
 
-Rather than jumping straight into this extremely large project, I will do it in steps. I will start with a fairly basic one that uses just GR, a kerr black hole in a vacuum. That is what I am doing
+Rather than jumping straight into this extremely large project, I will do it in steps. I will start with a fairly basic one that uses just GR, a kerr black hole in a vacuum. That is what I am doing.
+
+Also, for berivity I will be using geometrized units.
+\[
+G = c = 1
+  \]
+
+\subsection{Kerr SpaceTime}
+
+Kerr black holes are essentially spinning black hole, now that may seem pretty simple in the face of itself, but I ask you this, in a black hole with an infinitely small singularity, what is spinning?
+
+Well spacetime is spinning. To give it more intuitive newtonian vocabulary, objects have a gravitational pull in a swirl around the black hole, this proccess is called frame dragging. Efficetively, this means that it will change the shape of the event horizen, as certain bits of light previously unable to escape the black hole now will. From here we get the following metric space In Boyer--Lindquist coordinates:
+\[
+ds^2 = -\Big(1-\tfrac{2Mr}{\Sigma}\Big)dt^2 - \tfrac{4Mar\sin^2\theta}{\Sigma}\,dt\,d\phi
++ \tfrac{\Sigma}{\Delta}dr^2 + \Sigma\,d\theta^2
++ \Big(r^2+a^2+\tfrac{2Ma^2r\sin^2\theta}{\Sigma}\Big)\sin^2\theta\,d\phi^2,
+\]
+with $\Sigma=r^2+a^2\cos^2\theta$ and $\Delta=r^2-2Mr+a^2$. The horizons sit where $\Delta=0$,
+$r_\pm = M\pm\sqrt{M^2-a^2}$, and the ergosphere is at $r_E=M+\sqrt{M^2-a^2\cos^2\theta}$.
+Notice $g_{rr}\to\infty$ at the horizon. That is a coordinate singularity of these
+
+coordinates, not of the spacetime, and a simulation cannot cross it. So instead we use
+the Kerr--Schild form, which is regular across the horizon:
+\[
+g_{\mu\nu}=\eta_{\mu\nu}+2H\,l_\mu l_\nu,\qquad \eta=\mathrm{diag}(-1,1,1,1),
+\]
+
+\[
+H=\frac{Mr^3}{r^4+a^2z^2},\qquad
+l_\mu=\Big(1,\ \frac{rx+ay}{r^2+a^2},\ \frac{ry-ax}{r^2+a^2},\ \frac{z}{r}\Big),
+\]
+
+where $r$ is defined implicitly by
+
+$\frac{x^2+y^2}{r^2+a^2}+\frac{z^2}{r^2}=1$. Explicitly, with $R^2=x^2+y^2+z^2$,
+
+\[
+r^2=\tfrac12\Big[(R^2-a^2)+\sqrt{(R^2-a^2)^2+4a^2z^2}\Big].
+\]
+
+The vector $l_\mu$ is null, and the spatial part satisfies $l_il^i=1$.
+
+Here we define our unit for angular momentum to be
+\[
+a = \frac{J}{M}
+  \]
+  Where J is the traditional angular momentum, we are able to do this because we are using geometic units where all units are in terms of a kind of length. Turning angular momentum that is $l^2$ and mass at $l$, turning a into $l$. This is generally much easier to use in general relativity, but sometimes people will use the traditional angular momentum or even a dimensionless quantity.
+
+  We can also define the SpaceTime through the metric tensor.
+\[
+g_{\mu \nu} = \eta_{\mu \nu} + 2H l_\mu l_\nu
+  \]
+  H is the scalar function
+\[
+H = \frac{Mr^3}{r^4 + a^2 z^2}
+\]
+  where r isn't traditional euclidian space as space is obviously curved
+\[
+\frac{x^2 + y^2}{r^2 + a^2} + \frac{z^2}{r^2 } = 1
+  \]
+
+  l being the null direction
+\[
+l_\mu = \left(1, \frac{rx + ay}{r^2 + a^2},\frac{rx - ay}{r^2 + a^2}, \frac{z}{r}  \right)
+  \]
 
 \subsection{3+1 Split}
 
-To solve most physics simulation, we derive them as initial value problems as a function of time and then numerically integrate. Those that have an understanding of GR can see how this is troubling.
+To solve most physics simulation, we derive them as initial value problems as a function of time and then numerically integrate. Those that have an understanding of GR can see how this is troubling. Space and Time are just two of the same types of dimension, also time and space can switch nature depending on the curciumstance, such as Black holes have space behave timelike and time behave space like.
+
+Thus we work to foliate the spacetime
+
+(image)
+
+The method we use is the 3+1 formulism, foliating the space into sets of spacelike surfaces that can be combined to make the spacetime structure.
+
+(image)
+
+Here we define our variables to fully represent this new foliated space structure.
+
+Obviously, $\gamma$ or spacial metric defines the metric structure of the space at any given time.
+
+The $\alpha$ or lapse defines the change in proper time between slices.
+
+The $\beta$ or shift controls how the spacial coordinates change.
+
+Finally K or extrinsic curvature defines how the spacial hyper surface fits in spacetime.
+
+This turns our metric into
+\[
+ds^2 = \alpha^2 dt^2 + \gamma_{ij}(dx^i+\beta^i dt)(dx^j + \beta^j dt)
+  \]
+  This defines how we evolve the metric, but defining how to evolve these variables
+\[
+\alpha, \gamma_{ij}, K_{ij}, \beta^i
+  \]
+  is the hard part.
+
+
+  I won't go over it in depth but for ease of access I will place the
+\subsection{ADM Formulism}
+
+The Arnowitt–Deser–Misner (ADM) formalism is the Hamiltonian (canonical) formulation of general relativity obtained from the 3+1 split. It turns Einstein’s equations into a constrained initial-value problem that is ideally suited to numerical evolution.
+
+Each spacelike surface $\Sigma_t$
+
+we have the induced metric $\gamma_{ij}$, the unit normal $n^\mu$ which directs towards the future, and the extrinsic curvature K.
+
+The Einstein tensor projected onto and orthogonal to the slices yeilds two sets of equations
+(image)
+
+The Hamiltonian Constraint which enforces conservation of energy
+\[
+R + K^2 - K_{ij}K^{ij} = 16 \pi \rho
+  \]
+  Where $\rho$ represents the energy density measured by the Eulerian observer.
+
+We also gain a further momentum constraint
+\[
+D_j(K^{ij} - \gamma^{ij}K) = 8 \pi S^i
+  \]
+Where $S^i$ is the momentum densisty in the same form the energy density was represented earlier.
+
+Finally the actual evolution equation that advance the geometry from one slice to another can be defined as
+\[
+\partial_t \gamma_{ij} = -2 \alpha K_{ij} + \mathcal{L}_\beta \gamma_{ij}
+  \]
+  where the funny looking l is the lie derivative.
+
+  Next
+\[
+\partial_t K_{ij} = -D_i D_j \alpha + \alpha (R_{ij} + KK_{ij} - 2K_{il}K^l_j) - \mathcal{L}_\beta K_{ij} + 4\pi \alpha ((S- \rho )\gamma_{ij} - 2S_{ij})
+  \]
+  An evolution with 6 components.
+
+  Looking at this, it may seem to have too many components, especially when the current constraints seem redundant as you can only determin $\gamma_{ij}$ and $K_{ij}$.
+
+But this isn't the case, rather the constraints are guaranteed to be satisfied if the solution is solved precisily, the evolution equations will always satisfy the constraints if the initial conditions satisfy the constraints.
+
+Now before I continue, I will note that when I say always, I am refering to analytical solutions, numerically you still need other methods to enforce the constraints.
+
+Now we have 12 compoenents, but four are constrained via the constraint equations, another four correspond to the gauge freedom. Leaving us with four, metrics and extrinsic curvature.
+
+Because of the additional terms even in linear form, GR is especially hard to solve even for hyperbolic equations.
+
+If we take linearized Einstein equation for a slightly pretured spacetime
+
+\[
+\gamma_{ij} = \eta_{ij} + h_{ij}; \quad \abs{h_{ij}} \ll 1
+  \]
+
+  Anyone who has looked at gravitational waves would know that
+\[
+\ddot{h_{ij}} = \Delta h_{ij} + (h_{ik,kj} - h_{jk,ki} + h_{kk, ij})
+  \]
+  (parentheses now to show special part change in video)
+
+
+  From this, we find that in ADM formalism, if constraints are violated even slightly, the error will increase in time with no limit, even in nearly flat spacetime.
+
+  Thus we need something different.
+
+\subsection{BSSN formalism}
+
+Because of the problem we just mentioned, we must reformulate the formulsism.
+
+At least on a linear level, the wave equations must be derived, where we define two new variables
+\[
+    F_i = h_{ij,j}
+  \\
+\Phi = h_{ii}
+  \]
+  Thus rewriting our earlier equation as
+\[
+\ddot{h_{ij}} = \delta h_{ij} - F_{i,j} - F_{j,i} + \Phi_{,ij}
+  \]
+
+  Because of our constraint equations, we can use the fact that the momentum equations states that
+\[
+\dot{F_i} - \dot{\Phi_{,i}} = 0
+  \]
+
+  And the hamiltonian constraint states
+\[
+\Delta \Phi - F_{i,j} = 0
+  \]
+
+  Thus
+\[
+\ddot{h_{ij}} = \delta h_{ij}
+  \]
+
+  Similar definitions of new variables is also possible in non-linear cases.
+
+  I won't go over the full proof but I will link it in the video.
+
+  \subsection{Guage Conditions}
+
+Due to General Relativity's general covariance, there are degrees of freedom in choosing coordinates, the more mathematical and broad term for this is gauge freedom.
+
+The slicing condition where we may prescribe the lapse function and the shift condition where we choose the shift vector
+
+(earlier image)
+
+Einstien's equations say nothing about how the gauge condition should be imposed, thus choosing them is something we can do, we should do it because gauge conditions can make the numerical simulations easier or harder.
+
+Some examples of this is that improper slicing can lead to the appearence of singularities in simulations without black holes, another aspect is that carefully choosen shift vectors can allow one to do a compact binary merger without the extra computation from frame dragging.
+
+Two failures show why the gauge matters. With geodesic slicing ($\alpha=1$), observers
+fall toward the hole and the slices hit the singularity in finite time. In shift
+conditions that do not adapt, coordinate points get dragged around by the shift and
+the grid becomes badly distorted.
+
+We use the standard ``moving puncture'' pair.
+
+\emph{Slicing: 1+log.} This slicing avoids the singularity by slowing the lapse where
+curvature is strong:
+\[
+\partial_t\alpha=-2\alpha K+\beta^k\partial_k\alpha.
+\]
+\emph{Shift: Gamma-driver.} This drives the shift so that $\tilde\Gamma^i$ stays roughly
+constant, which keeps the coordinates from stretching:
+\[
+\partial_t\beta^i=\tfrac34\tilde\Gamma^i-\eta\,\beta^i,\qquad \eta\sim 1/M.
+\]
+The damping $\eta$ stops the shift from growing without bound and keeps the system
+from oscillating.
+
+For a first test one can also freeze the gauge at the analytic Kerr--Schild $\alpha,\beta^i$.
+That isolates the numerical method from the gauge dynamics, and the spacetime should
+then stay static to within truncation error. A caution for dynamic gauge with excision: the
+gauge waves travel at speeds that can exceed the speed of light, so the excision
+surface must sit deep enough that every characteristic, including gauge modes, points
+into the hole. Check this numerically instead of assuming it.
+
+
+\subsection{Initial Data}
+
+As mentioned earlier, BSSN formulism automattically enforces its constraints as long as the initial data fits the constraints and satisfies Einstien's field equation. Traditionally this is a challenging thing to do, but because the kerr solution in a vacuum is one of the few analytical solutions to GR, we can just use that. The equations we used earlier very simply and easily work.
+
+I have read some technically more efficeint and better methods of formulating the initial conditions, but for my purposes they are a bit too wieldy.
+
+Kerr--Schild coordinates are already in 3+1 form, so we can read off every ADM variable
+analytically (with $l^i=\delta^{ij}l_j$):
+
+\[
+\alpha=\frac{1}{\sqrt{1+2H}},\quad
+\beta^i=\frac{2H}{1+2H}\,l^i,\quad
+\gamma_{ij}=\delta_{ij}+2H\,l_il_j,\quad
+\gamma^{ij}=\delta^{ij}-\frac{2H}{1+2H}\,l^il^j,\quad
+\det\gamma=1+2H.
+\]
+
+The solution is stationary, so $\partial_t\gamma_{ij}=0$, and the evolution equation for
+$\gamma_{ij}$ gives the extrinsic curvature directly:
+
+\[
+K_{ij}=\frac{1}{2\alpha}\big(D_i\beta_j+D_j\beta_i\big).
+\]
+
+To feed the BSSN variables we do the conformal decomposition:
+
+\[
+\phi=\tfrac1{12}\ln\det\gamma,\quad \tilde\gamma_{ij}=e^{-4\phi}\gamma_{ij},\quad
+K=\gamma^{ij}K_{ij},\quad \tilde A_{ij}=e^{-4\phi}\big(K_{ij}-\tfrac13\gamma_{ij}K\big),\quad
+\tilde\Gamma^i=-\partial_j\tilde\gamma^{ij}.
+\]
+
+Because this is an exact vacuum solution, the constraints hold analytically. On the grid
+they hold only to truncation error, and that residual is our baseline for the
+validation section.
+
+\subsection{Cartoon Method}
+
+Essentially, the cartoon method is a way to run an axisymmetric grid in a 2d Cartesian grid. This is because traditionally the way to take out a dimentsion through axisymmetric systems is to use cylindrical or spherical coordinates, but one this adds more work in trying to get it into this form, and two these systems have the tendincy to create coordinate singularities.
+
+(image animation)
+
+The mathematical trick is to rotate all of the vectors and tensors around the z axis so that instead of an x, y, z axis we have a $\rho, 0, z$ axis where $\rho = \sqrt{x^2+y^2}$. This then slightly changes the numerical derivatives of the y-axis. Take the traditional form
+\[
+\partial_y \beta^x = \frac{\beta^x(x,+\Delta y, z) - \beta^x(x, -\Delta y, z)}{2 \Delta y}
+  \]
+
+  Take your space
+\[
+(x, + \Delta y, z)
+  \]
+  Take the corresponding point in the computational plane
+\[
+(\rho, 0, z)
+  \]
+
+  where
+\[
+\rho = \sqrt{x^2 + \Delta y^2}
+  \]
+  thus backwards one can get the our change in y for the derivative.
+
+  \subsection{Excision}
+
+While everyone knows about the physical singularity inside of the black hole, there is also a coordinate singularity at the event horizen.
+
+While analytically, one can get around these problems, doing so numerically is a bit more challenging.
+
+There are multiple possible solutions.
+\begin{itemize}
+  \item Puncture
+  \item Horizon penetration
+  \item Hyperbolic-penetrating
+  \item Characteristic evolution
+  \item Black-hole membrane
+  \item Excision
+\end{itemize}
+
+For the purposes of this project we will use Excision, which is what it sounds like. Cutting the black hole out of the spacetime.
+
+To cut the apperent horizen out, note I said apperent not event. The apperent horizen is the observed event horizen by an observer, a true event horizen is the horizen for all possible observers.
+
+To do this, we need to know where it is. In this simplified model, the solution is analytical and thus no numerical machinery is needed, in other problems this is not the case.
+
+Simply finding where the null ray line is, I won't go into detail about that but I will be using it in the future.
+
+
+Excision means we stop evolving points inside a surface $r<r_{\rm exc}$ in the interior
+of the hole. Why is this allowed? Inside the event horizon, information can only flow
+inward, so what we do to the interior cannot affect the exterior, provided every
+characteristic at the surface points into the hole. For Kerr in Kerr--Schild
+coordinates the horizon is the spheroid $r=r_+$ given above, so no horizon finder is
+needed. In general one solves for the apparent horizon, where the outgoing null
+expansion $\Theta=D_is^i-K+K_{ij}s^is^j$ vanishes. (The event horizon needs the whole
+future evolution and cannot be located on a slice.) I choose $r_{\rm exc}$ safely inside $r_+$
+(for example $1.5M$ for $a=0$, where $r_+=2M$), using the $r$ formula from the
+initial-data section for the mask, and the mask also encloses the ring singularity at $r=0$.
+
+The subtlety is the boundary of the excised region. Finite-difference stencils near it
+reach into the excised points, and the stencil ``domain of dependence'' is wider than the
+light cone, so errors near the singularity can leak outward even though the physics
+is causal. Two things I found (edit to match your runs):
+\begin{itemize}
+\item Simply freezing the interior values was not enough. It slowed the growth of errors
+but did not stop it, and a slow exponential divergence (e-folding time about $0.9M$)
+appeared in longer runs.
+\item Refilling the excised points every step by extrapolation from the outside, using a Jacobi-style iteration,
+fixed it. The refilled values do not need to be accurate, only smooth and non-growing.
+\end{itemize}
+This is a low-order treatment and it does not converge at the excision surface. That is
+acceptable because the region is causally disconnected from the exterior, but it means
+convergence tests should exclude a thin shell around the surface.
+
+
+
+\subsection{Method of lines + RK4}
+
+We discretize space and leave time continuous, so the evolution equations become one
+big system of ODEs, $\partial_t u=F(u)$, where $u$ is every evolved variable at every
+grid point. Spatial derivatives use centered finite differences (second order to start,
+fourth order is the natural upgrade), except the advection terms $\beta^k\partial_k$,
+which use one-sided stencils biased against the direction of the shift. Then classical RK4:
+\begin{align*}
+k_1&=F(u^n), & k_2&=F(u^n+\tfrac{\Delta t}2k_1),\\
+k_3&=F(u^n+\tfrac{\Delta t}2k_2), & k_4&=F(u^n+\Delta t\,k_3),
+\end{align*}
+\[
+u^{n+1}=u^n+\tfrac{\Delta t}6\,(k_1+2k_2+2k_3+k_4).
+\]
+Stability requires the CFL condition $\Delta t\le\lambda\,\Delta x$; I use
+$\lambda\approx0.25$--$0.5$, and a safe choice accounts for the fastest gauge speed too.
+Every RK stage, not just the step, must first apply the boundary conditions, fill the
+cartoon ghost planes, and refill the excised region.
+
+Finite-difference noise at the grid scale can grow, especially near the excision
+surface and outer boundary. We add a small high-frequency filter to every right-hand
+side, for a fourth-order scheme
+\[
+\partial_tu\ \mathrel{+}=\ \frac{\epsilon}{64\,\Delta x}\big(u_{i+3}-6u_{i+2}+15u_{i+1}-20u_i+15u_{i-1}-6u_{i-2}+u_{i-3}\big)
+\]
+(this is the 6th-derivative form; a 4th-derivative stencil goes with 2nd-order schemes),
+with $0<\epsilon<1$, typically around $0.1$. It removes only the noisiest modes
+without changing the convergence order.
+
+
+\subsection{Boundary Conditions}
+The outer boundary is artificial, so we want waves and gauge pulses to leave without
+reflecting. The options:
+\begin{itemize}
+\item Dirichlet (freeze the fields) and Neumann/copy both reflect waves and, in the
+copy case, break the $1/r$ falloff of the Kerr field.
+\item Periodic is unphysical here.
+\item Constraint-preserving and reflection-free conditions (e.g.\ Bayliss--Turkel,
+Buchman--Sarbach) are best, but heavy for a first code.
+\item Sommerfeld (radiative) conditions are simple and, crucially, exactly preserve
+a static $1/r$ tail.
+\end{itemize}
+The Sommerfeld condition assumes each field approaches its flat-space value $f_0$ and
+that deviations are outgoing spherical waves $\propto1/r$, i.e.\ $(\partial_t+v\,\partial_r)\big(r(f-f_0)\big)=0$:
+\[
+\partial_tf=-v\Big[\frac{x^k}{r}\partial_kf+\frac{f-f_0}{r}\Big],
+\]
+with $v=1$ for most fields and $v=\sqrt2$ for the 1+log lapse. The flat values are
+$\alpha=1$, $\tilde\gamma_{ij}=\delta_{ij}$, and zero for $\phi,K,\tilde A_{ij},\tilde\Gamma^i,\beta^i$.
+Derivatives at the boundary use one-sided stencils. Check that a static Kerr
+tail $f-f_0=c/r$ gives $\partial_tf=0$: the two terms in the bracket cancel exactly.
+It is an approximation, not a true characteristic condition, so place the boundary far away
+(tens of $M$ or more) and confirm the results do not depend on where it is.
+
+
+
+
+\subsection{Code}
+
+Now, putting it all together, while simple, is hard to find information on. For the most part books on the topic just assume you know enough to put it together but I am going to spell out the entire algorithm.
+
+(image of flow chart)
+
+\subsection{Validation}
+
+\subsection{Next Steps}
+Now we have the basic SpaceTime code working, the next steps is trying to figure out how to incorporate hydrodynamics into the code, a pretty big problem for next time.
+\subsection{Results}
+Here we can enjoy the results
+
+
+
+\section{Metriplectic Part 1: Why Can't Ordinary Hamiltonians be Dissipative}
+\begin{itemize}
+  \item Introduction
+  \item Example of dissipative Hamiltonian that fails(air resistance)
+  \item What is a Hamiltonian
+  \item Why this disallows dissipation
+  \item Introducing Reversibility
+  \item Entropy
+  \item Metriplectic
+  \item Conclusion and a look towards the future
+\end{itemize}
+
+\subsection{Introduction}
+
+Hi, and welcome to this video on why Hamiltonian dynamics does not permit dissipation and how modern advances get around this fact, spesifically looking towards Metriplectic dynamics.
+
+
+\subsection{Example}
+
+This might seem strange, I mean air resistance dissipation is one of the first problems introduced in physics. Taking linear drag to even further simplfy and no gravity to even futher simplify.
+
+Taking say a baseball released at a given speed $v$, with a drag represented via
+\[
+m \ddot{x} = -d \dot{x}
+  \]
+
+  The rest is trivial to get what ever you want; velocity at a given point, kinetic energy at a given time, total energy.
+
+  So, to create the Hamiltonain, we define the momentum as
+\[
+p = m \dot{x}
+  \]
+  thus
+\[
+\dot{p} = -\frac{b}{m}p
+  \]
+
+  Such that the solution is
+\[
+p(t) = p_0 e^{-bt/m}
+\]
+
+Because of this, and the fact that there is no position dependent function or potential energy, the Hamiltonian is
+\[
+H(q,p,t) = \frac{p^2}{2m} e^{-\frac{b}{m}t}
+  \]
+
+  This allows us to very easily say that it calculates the position trivially, yet it claims that momentum never changes. Further, when taking the function of the Hamiltonian we find that it doesn't match the energy function in the Newtonian case.
+
+  (graph images)
+
+As you can clearly see these are miss matches. Now one can say that the Hamiltonian isn't energy and the conjugate momenta is not momentum, this is true, but then we got the right answer only because we went backwards, with the solution to get the Hamiltonian, making the Hamiltonian mostly useless. As we will further get into this can have much more devastative consequences beyond simply unphysical phase-space.
+
+
+\subsection{Why?}
+
+So why did this happen? A Hamiltonian is not just a function. It is a function together with a geometric structure on phase space, and that structure cannot accommodate dissipation. Conservation of energy and conservation of phase-space volume look like two separate facts, but they are two shadows of the same one.
+
+
+\subsection{What a Hamiltonian System Actually Is}
+
+The state space is a smooth manifold $M$ of dimension $2n$ with a symplectic form $\omega$, a closed and nondegenerate two-form. By Darboux's theorem there are always local coordinates in which
+\[
+\omega = \sum_{i=1}^{n} \mathrm{d}q^i \wedge \mathrm{d}p_i .
+\]
+A function $H$ then generates a vector field $X_H$ through
+\[
+\iota_{X_H}\,\omega = \mathrm{d}H
+\quad\Longleftrightarrow\quad
+\dot q^i = \frac{\partial H}{\partial p_i}, \qquad
+\dot p_i = -\frac{\partial H}{\partial q^i}.
+\]
+Dually, the inverse of $\omega$ is an antisymmetric bivector $J^{ij}$, which defines the Poisson bracket
+\[
+\{f,g\} = \partial_i f \, J^{ij} \, \partial_j g,
+\qquad \dot f = \{f,H\}.
+\]
+The bracket has three properties. It is antisymmetric, $\{f,g\} = -\{g,f\}$. It obeys the Leibniz rule, $\{f,gh\} = \{f,g\}h + g\{f,h\}$. And it obeys the Jacobi identity,
+\[
+\{f,\{g,h\}\} + \{g,\{h,f\}\} + \{h,\{f,g\}\} = 0 .
+\]
+When $J$ is invertible, Jacobi is exactly the statement $\mathrm{d}\omega = 0$.
+
+Now relax one assumption. Allow $J^{ij}(z)$ to be degenerate, as long as it stays antisymmetric and satisfies Jacobi. This is a \emph{Poisson manifold}. A degenerate $J$ has \emph{Casimir functions}, meaning functions $C$ with $\{C, f\} = 0$ for every $f$, or equivalently $J\nabla C = 0$. They are constant along all Hamiltonian motion, and their level sets slice $M$ into \emph{symplectic leaves}. Each leaf is a genuine symplectic manifold, and a Hamiltonian flow never leaves the leaf it starts on. Hold on to this picture, because the metriplectic bracket is built from it.
+
+
+\subsection{Why This Disallows Dissipation}
+
+There are three independent obstructions, and all three follow from the structure above.
+
+\textbf{Energy.} Antisymmetry gives
+\[
+\dot H = \{H,H\} = \nabla H \cdot J \nabla H = 0 .
+\]
+As most cases the Hamiltonian is energy, this means energy is conserved and thus dissipation cannot happen.
+
+\textbf{Volume.} By Cartan's formula,
+\[
+\mathcal{L}_{X_H}\,\omega = \mathrm{d}\,\iota_{X_H}\omega + \iota_{X_H}\mathrm{d}\omega = \mathrm{d}^2 H + 0 = 0 .
+\]
+So the flow $\phi_t$ satisfies $\phi_t^*\omega = \omega$, which means it preserves $\omega^n$. This is Liouville's theorem, and it also preserves every Poincar\'e integral invariant $\int_\Sigma \omega^k$. Now compare the physical drag flow $X = \frac{p}{m}\partial_x - \frac{b}{m}p\,\partial_p$ on $\omega = \mathrm{d}x\wedge\mathrm{d}p$:
+\[
+\iota_X \omega = \tfrac{p}{m}\,\mathrm{d}p + \tfrac{b}{m}p\,\mathrm{d}x \quad \Longrightarrow \quad \mathcal{L}_X \omega = -\frac{b}{m}\,\omega \quad \Longrightarrow \quad \phi_t^*\omega = e^{-bt/m}\omega .
+\]
+The drag flow is only \emph{conformally} symplectic.
+
+\textbf{Spectrum.} Linearize about a fixed point, so that $\dot\xi = A\xi$ with $A = J S$ and $S = \operatorname{Hess}H$ symmetric. Then $J^{-1} A J = SJ = -A^{T}$, so $A$ is similar to $-A^T$ and its spectrum is symmetric under $\lambda \to -\lambda$. In particular $\operatorname{tr}A = 0$. Every decaying mode has a growing partner, so a Hamiltonian system has no asymptotically stable fixed points. For the drag problem, $\operatorname{tr}A = -b/m \neq 0$.
+
+Combined with Poincar\'e recurrence on bounded phase space, the conclusion is that Hamiltonian flows have no attractors.
+
+(visual: phase-space blob keeps its area, versus the blob contracting under drag)
+
+\subsubsection{Loophole 1: Hide the Dissipation in Time}
+
+The Caldirola--Kanai Hamiltonian $H = \frac{p_c^2}{2m}e^{-bt/m}$ is a perfectly good symplectic system in the variables $(x, p_c)$ with $p_c = m e^{bt/m}\dot x$. The physical momentum is $p = e^{-bt/m}p_c$, and the map $\psi_t(x,p_c) = (x, e^{-bt/m}p_c)$ satisfies
+\[
+\psi_t^*(\mathrm{d}x\wedge \mathrm{d}p) = e^{-bt/m}\,\mathrm{d}x\wedge\mathrm{d}p_c .
+\]
+The canonical flow conserves area, the physical area shrinks, and the discrepancy lives entirely in a time-dependent, non-symplectic change of variables. The cost shows up when you quantize. The commutator is $[x,p_c] = i\hbar$, so the physical variables satisfy
+\[
+[x,p] = i\hbar\, e^{-bt/m} \to 0 ,
+\]
+and the uncertainty bound for the physical variables decays away (see Dekker's review). The Hamiltonian is not describing the physical phase space.
+
+\subsubsection{Loophole 2: Give Up the Canonical Structure}
+
+Time dependence is not even necessary. The drag flow has a first integral $c = x + p/b$, since $\dot c = p/m - p/m = 0$. In the coordinates $(c, u = \ln|p|)$ the flow is $\dot c = 0$, $\dot u = -b/m$, a constant vector field, so it preserves the area form $\mathrm{d}c\wedge \mathrm{d}u$. In the original variables this is
+\[
+\omega' = \frac{\mathrm{d}x\wedge \mathrm{d}p}{p}, \qquad
+\{x,p\}' = p, \qquad
+\tilde H = \frac{bx + p}{m},
+\]
+and one checks directly that $\dot x = \{x,\tilde H\}' = p/m$ and $\dot p = \{p,\tilde H\}' = -bp/m$. So drag \emph{is} autonomously Hamiltonian, on the Lie--Poisson structure of the affine algebra. But look at the price:
+
+\begin{itemize}
+  \item The bivector $J = p$ vanishes exactly on $p = 0$, which is the attractor. The rank drops to zero there, and the symplectic leaves are the two half-planes $p \gtrless 0$ plus a line of points.
+  \item Liouville is not violated. The $\omega'$-area of the strip $\varepsilon < p < 1$ is $\ln(1/\varepsilon)\to\infty$, so the attractor sits infinitely far away in symplectic terms.
+  \item $\tilde H$ is just the conserved quantity $c$ in disguise. It knows nothing about kinetic energy, heat, or why the ball stops.
+\end{itemize}
+
+This is the real lesson. Locally, any planar flow without fixed points is Hamiltonian, since flow-box coordinates give $\dot c = 0$, $\dot s = 1$. So the existence of \emph{a} Hamiltonian is cheap. What is expensive is a Hamiltonian that is the physical energy, on the canonical phase space, with a nondegenerate bracket. That combination is what dissipation forbids.
+
+
+\subsection{Reversibility}
+
+Time reversal is an \emph{anti}-symplectic involution $\Theta$, with $\Theta^2 = 1$ and $\Theta^*\omega = -\omega$. In canonical coordinates $\Theta(q,p) = (q,-p)$. If $H\circ\Theta = H$, then $\Theta_* X_H = -X_H$, which gives $\Theta\circ\phi_t = \phi_{-t}\circ\Theta$. Hamiltonian flows are conjugate to their own inverse.
+
+Split the drag field into $X_{\mathrm{rev}} = \frac{p}{m}\partial_x$ and $X_{\mathrm{diss}} = -\frac{b}{m}p\,\partial_p$. Then
+\[
+\Theta_* X_{\mathrm{rev}} = -X_{\mathrm{rev}}, \qquad \Theta_* X_{\mathrm{diss}} = +X_{\mathrm{diss}} .
+\]
+The reversible terms are odd under time reversal and the dissipative term is even, so a reversed trajectory solves $\ddot x = +\frac{b}{m}\dot x$, which is anti-damping. Remember this parity split, because it comes back in the metriplectic structure.
+
+There is also an algebraic version of this. A Hamiltonian flow $\{\phi_t\}_{t\in\mathbb{R}}$ is a \emph{group} of diffeomorphisms, so it is injective and distinct states can never merge. The drag flow $p \mapsto e^{-bt/m}p$ is only a \emph{semigroup} on $t\ge 0$. As $t\to\infty$, all initial momenta collapse to the same point, and information about the initial condition is lost.
+
+
+\subsection{Entropy}
+
+Microscopic laws are reversible, yet friction exists. The resolution is that the ball is not a closed system. A standard model is Caldeira--Leggett, in which the ball couples linearly to $N$ harmonic oscillators:
+\[
+H_{\mathrm{tot}} = \frac{p^2}{2m} + V(x) + \sum_{k=1}^{N}\left[\frac{p_k^2}{2m_k} + \frac{m_k\omega_k^2}{2}\left(q_k - \frac{c_k}{m_k\omega_k^2}\,x\right)^2\right].
+\]
+This is exactly Hamiltonian, symplectic and energy-conserving. Projecting out the bath, which is Mori--Zwanzig with a projector $\mathcal{P}$ onto the ball's variables, gives a generalized Langevin equation:
+\[
+m\ddot x = -V'(x) - \int_0^t \gamma(t-s)\,\dot x(s)\,\mathrm{d}s + \xi(t),
+\qquad \langle \xi(t)\xi(s)\rangle = k_B T\,\gamma(|t-s|).
+\]
+The second relation is the fluctuation--dissipation theorem. For a bath with an Ohmic spectral density $J(\omega)\propto\omega$ in the limit $N\to\infty$, the kernel collapses to $\gamma(t)\to 2b\,\delta(t)$ and we recover $-b\dot x$. The order of limits matters here: for any finite $N$ the full system has Poincar\'e recurrences, and dissipation is emergent only as $N\to\infty$ followed by $t\to\infty$.
+
+What does entropy do in this picture? For a density $\rho$ on $M$, Liouville's equation $\partial_t\rho = \{H,\rho\}$ says $\rho$ is transported by a volume-preserving flow. So the Gibbs entropy
+\[
+S_G[\rho] = -k_B\int \rho\ln\rho \quad \frac{\omega^n}{n!}
+\]
+is exactly constant. Entropy growth requires coarse-graining. If $\mathcal{P}\rho$ is the projection of $\rho$ onto the reduced description, a Pythagorean identity holds:
+\[
+S_G[\mathcal{P}\rho] = S_G[\rho] + k_B\, D_{\mathrm{KL}}(\rho,\text{|} ,\mathcal{P}\rho) \quad \ge \quad S_G[\rho].
+\]
+The entropy gain is the relative entropy of what we discard, which is information about the bath. The reduced state $z$ then carries an entropy function $S(z)$, in Boltzmann's sense of the log-volume of microstates consistent with $z$, and the second law reads $\dot S\ge 0$ along the reduced dynamics while the total energy $E$ stays exactly conserved.
+
+That sets our design target on the reduced space. We need a dynamics with $\dot{E} = 0$ and $\dot S \ge 0$ that holds for \emph{any} $E$ and $S$ satisfying the right compatibility conditions.
+
+
+\subsection{Metriplectic Dynamics}
+
+The idea, due to Kaufman and Morrison in 1984, with the full paradigm in Morrison 1986 and independently as GENERIC by Grmela and \"Ottinger, is to carry two brackets on the same space: the Poisson bracket $\{\cdot,\cdot\}$ for reversible physics, and a symmetric, positive-semidefinite bracket $(\cdot,\cdot)$ for irreversible physics. In matrix form,
+\[
+\dot z = L(z)\,\nabla E + M(z)\,\nabla S ,
+\]
+or in bracket form,
+\[
+\dot f = \{f, E\} + (f, S).
+\]
+The requirements are as follows.
+\begin{itemize}
+  \item $L^T = -L$ and $L$ satisfies the Jacobi identity.
+  \item $M^T = M \succeq 0$, which is Onsager's reciprocity, from microscopic reversibility, together with positivity, from the second law. Geometrically, $M^{+}$ is a Riemannian metric on the range of $M$.
+  \item The \emph{degeneracy conditions}
+  \[
+  L\nabla S = 0, \qquad M\nabla E = 0 .
+  \]
+\end{itemize}
+The degeneracy conditions have a clean interpretation. The first says $S$ is a \emph{Casimir} of the Poisson bracket, so reversible motion stays on a leaf of constant entropy. The second says $E$ is a Casimir of the metric bracket, so irreversible motion stays on a surface of constant energy. Equivalently, $\dot f = \{f,F\} + (f,F)$ with generator $F = E + S$, since the cross terms vanish. The two laws then follow in one line each:
+\[
+\dot E = \underbrace{\{E,E\}}_{0} + \underbrace{(E,S)}_{=\,\nabla E\cdot M\nabla S\,=\,0} = 0,
+\qquad
+\dot S = \underbrace{\{S,E\}}_{0} + (S,S) = \nabla S\cdot M\nabla S \;\ge\; 0 .
+\]
+The geometric picture is that reversible motion slides \emph{along} symplectic leaves, irreversible motion slides \emph{across} leaves within an energy shell, and $S$ increases monotonically in the crossing direction. Under time reversal the $L$-term is odd and the $M$-term is even, exactly the parity split we found for drag. The name \emph{metriplectic} just means metric plus symplectic.
+
+(visual: energy shell in $(x,p,s)$ space, foliated by constant-$s$ symplectic leaves, with a horizontal reversible arrow and an upward-tilting irreversible arrow)
+
+Now the baseball. Add one variable $s$, the entropy of the ball and surrounding air, with an internal energy $U(s)$ and temperature $T = U'(s) > 0$. On $z = (x,p,s)$, take
+\[
+E = \frac{p^2}{2m} + U(s), \qquad S = s, \qquad
+\nabla E = \begin{pmatrix} 0 \\ p/m \\ T \end{pmatrix}, \quad
+\nabla S = \begin{pmatrix} 0 \\ 0 \\ 1 \end{pmatrix},
+\]
+with the canonical bracket on the $(x,p)$ block and the dissipative matrix
+\[
+L = \begin{pmatrix} 0 & 1 & 0 \\ -1 & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix}, \qquad
+M = \frac{b}{T}\, v v^{T}, \qquad
+v = \begin{pmatrix} 0 \\ T \\ -p/m \end{pmatrix}.
+\]
+The degeneracy conditions hold. $L\nabla S = 0$ because $s$ is a Casimir of $L$, and $M\nabla E = \frac{b}{T}\,v\,(v\cdot\nabla E) = 0$ because $v\cdot\nabla E = Tp/m - Tp/m = 0$. The equations of motion are
+\[
+\dot x = \frac{p}{m}, \qquad
+\dot p = -\frac{b}{m}\,p, \qquad
+\dot s = \frac{b\,p^2}{m^2 T} = \frac{b\,\dot x^2}{T} .
+\]
+The first two are the original drag equations, now with the physical momentum, no explicit time dependence, and a nondegenerate bracket on the mechanical block. The third is $\mathrm{d}S = \delta Q/T$, with dissipated power $b\dot x^2$. Energy conservation checks out explicitly:
+\[
+\dot E = \frac{p\dot{p}}{m} + T\dot s = -\frac{b p^2}{m^2} + \frac{b p^2}{m^2} = 0.
+\]
+Finally, $\dot{S} = \frac{b}{T}(p/m)^2$ vanishes only at $p = 0$, so by LaSalle's invariance principle every trajectory converges to the equilibrium set $\{p = 0\}$. The final entropy is fixed by energy conservation through $U(s_\infty) = E_0$. The attractor that Hamiltonian mechanics forbids now exists, and the phase-space volume lost in $(x,p)$ has been moved into $s$ rather than destroyed.
+
+
+\subsection{Conclusion and a Look Ahead}
+
+A Hamiltonian system is a Poisson structure plus a generator. Antisymmetry of the bracket gives $\dot H = 0$, Cartan's formula gives $\mathcal{L}_{X_H}\omega = 0$, and the spectrum is symmetric under $\lambda\to-\lambda$. Every attempt to write drag as a Hamiltonian system pays somewhere: with explicit time dependence and non-symplectic coordinates, or with a Poisson structure that goes singular on the attractor. Real dissipation is projection, which is information flowing into degrees of freedom we do not track, and entropy is the ledger. Metriplectic dynamics encodes this by joining a Poisson bracket to a metric bracket under the two degeneracy conditions, and the first and second laws follow by construction.
+
+Several directions open from here. Morrison's 4-bracket replaces the symmetric bracket with a curvature-like object $(f,g;k,n)$ with Riemann-tensor symmetries, which makes the structure more systematic. For continuum systems, $L$ becomes a Lie--Poisson bracket and $M$ becomes the Landau collision operator in plasmas, or viscosity and heat conduction in fluids. On the numerical side, structure-preserving discretizations such as discrete-gradient methods conserve $E$ and make $S$ monotone at the discrete level. In the next video we will construct these brackets for a concrete PDE, and see what goes wrong, and how badly, when the degeneracy conditions are broken even slightly. Thanks for watching.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Developing Numerical Relativity: Simulating a Star with TOV}
+
+\begin{itemize}
+  \item Introduction
+  \item Scope
+  \item Einstien + Matter
+  \item Matter Model
+  \item Relativistic Hydrodynamics
+  \item TOV equations
+  \item Initial data for Star
+  \item Matter term to BSSN
+  \item Coupling systems
+  \item Convergence
+  \item Slightly perturbed
+\end{itemize}

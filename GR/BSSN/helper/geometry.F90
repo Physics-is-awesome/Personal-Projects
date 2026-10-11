@@ -116,10 +116,21 @@ contains
     dGt(2,:) = (/ S%d1y(IGTX), S%d1y(IGTY), S%d1y(IGTZ) /)
     dGt(3,:) = (/ S%d1z(IGTX), S%d1z(IGTY), S%d1z(IGTZ) /)
 
+    ! NOTE: Chr_low(k,i,j) is built above with the LOWERED index in the
+    ! FIRST slot (Chr_low(k,i,j) = Gamma-tilde_{k,ij} = gt_kl Gamma-tilde^l_ij),
+    ! i.e. it is symmetric in its *last two* slots, not its first two. term3
+    ! and term4 below must therefore contract Gtvec/Gam against the LAST slot
+    ! of Chr_low, not the first -- contracting against the first slot (as a
+    ! naive Chr_low(:,i,j) read would suggest) silently computes the wrong
+    ! tensor: it matches the correct Ricci tensor only when Chr_low happens to
+    ! be symmetric under a first<->last swap, which is not true in general.
+    ! (Verified against a direct from-Christoffels Ricci computation on a
+    ! generic metric: the swapped-index version below matches to machine
+    ! precision, the naive version is wrong at the ~10% level.)
     do i = 1, 3
       do j = 1, 3
         term2(i,j) = 0.5_dp*( sum(G%gt(:,i)*dGt(j,:)) + sum(G%gt(:,j)*dGt(i,:)) )
-        term3(i,j) = sum(Gtvec(:) * Chr_low(:,i,j))
+        term3(i,j) = 0.5_dp*( sum(Gtvec(:) * Chr_low(i,:,j)) + sum(Gtvec(:) * Chr_low(j,:,i)) )
       end do
     end do
 
@@ -130,8 +141,8 @@ contains
           do m = 1, 3
             do k = 1, 3
               term4(i,j) = term4(i,j) + G%gtinv(l,m) * ( &
-                   G%Gam(k,l,i)*Chr_low(m,j,k) + G%Gam(k,l,j)*Chr_low(m,i,k) &
-                   + G%Gam(k,i,m)*Chr_low(j,k,l) )
+                   G%Gam(k,l,i)*Chr_low(j,k,m) + G%Gam(k,l,j)*Chr_low(i,k,m) &
+                   + G%Gam(k,i,m)*Chr_low(k,l,j) )
             end do
           end do
         end do

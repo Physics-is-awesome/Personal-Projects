@@ -1,0 +1,243 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{physics}          % for \dv, \pdv, etc.
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Cleaner math
+\setlength{\abovedisplayskip}{6pt}
+\setlength{\belowdisplayskip}{6pt}
+\setlength{\abovedisplayshortskip}{4pt}
+\setlength{\belowdisplayshortskip}{4pt}
+
+\title{What is Velocity?}
+\subtitle{A Journey Through Physics}
+\author{}
+\date{}
+
+\begin{document}
+
+%================================================
+\begin{frame}
+\titlepage
+\end{frame}
+
+%================================================
+\begin{frame}{Introduction}
+Let's define velocity!
+\end{frame}
+
+%================================================
+\begin{frame}[fragile]{Introduction (cont.)}
+{\footnotesize
+\begin{align*}
+V &\equiv (Q_{\xi},X) = \mathfrak{X}_{Q_{\xi}}[X] \\[0.6ex]
+\delta[Q_{\xi}] &= K(\delta,\mathfrak{X}_{Q_{\xi}}) = \Omega_{\mathrm{ext}}(\delta,\mathfrak{X}_{Q_{\xi}}) - G(\delta,\mathfrak{X}_{Q_{\xi}}) \\[0.8ex]
+&= \Omega(\delta,\mathfrak{L}_{\xi}) + Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
+  + \oint_{\partial\Sigma} \mathbb{X}(\mathfrak{L}_{\xi})\mathbin{\lrcorner}\vartheta(\delta) \\
+&\qquad + \oint_{\partial\Sigma} \mathbb{X}(\mathfrak{L}_{\xi})\mathbin{\lrcorner}\vartheta(\delta) - G(\delta,\mathfrak{L}_{\xi}) \\[0.8ex]
+&= \Omega_{\mathrm{ext}}(\delta,\mathfrak{L}_{\xi}) - G(\delta,\mathfrak{L}_{\xi})
+\end{align*}
+}
+\end{frame}
+
+%================================================
+\begin{frame}[fragile]{Introduction (cont.)}
+{\footnotesize
+\begin{align*}
+&= \delta\!\left[\int_{\Sigma}\!\bigl(\vartheta(\mathfrak{L}_{\xi}) - \xi\mathbin{\lrcorner}L\bigr)\right]
+   - Q_{\delta[\xi]} - \oint_{\partial\Sigma}\xi\mathbin{\lrcorner}\vartheta(\delta) \\
+&\qquad + Q_{[\mathbb{X}(\delta),\mathbb{X}(\mathfrak{L}_{\xi})]}
+  + \oint_{\partial\Sigma}\mathbb{X}(\mathfrak{L}_{\xi})\mathbin{\lrcorner}\vartheta(\delta) \\[1ex]
+&= \delta\!\left[\int_{\Sigma}\!\bigl(\vartheta(2\nabla_{(a}\xi_{b)},\mathcal{L}_{\xi}\psi^{I}) - \xi\mathbin{\lrcorner}L\bigr)\right]
+   - Q_{\delta[\xi]} \\
+&\qquad + Q_{[\mathbb{X}(\delta),\xi]} + \oint_{\partial\Sigma}\xi\mathbin{\lrcorner}\vartheta(\delta)
+\end{align*}
+}
+\end{frame}
+
+%================================================
+\begin{frame}[fragile]{Introduction (cont.)}
+{\footnotesize
+\begin{align*}
+\dot{F} &= (Q_{\xi},F) \\[0.6ex]
+(Q_{\xi},g_{ab}) &= \mathcal{L}_{\xi}g_{ab} = 2\nabla_{(a}\xi_{b)} \\
+(Q_{\xi},\psi^{I}) &= \mathcal{L}_{\xi}\psi^{I} \\
+(Q_{\xi},x^{\mu}) &= \xi^{\mu} \\[0.8ex]
+\Gamma^{c}{}_{ab} &= \tfrac12 g^{cd}(\partial_{a}g_{db}+\partial_{b}g_{da}-\partial_{d}g_{ab}) \\
+g^{ac}g_{cb}&=\delta^{a}{}_{b},\qquad\nabla_{c}g_{ab}=0 \\[0.8ex]
+(Q_{\xi},Q_{\xi}) &= -G(\mathfrak{L}_{\xi},\mathfrak{L}_{\xi})
+  = \oint_{\partial\Sigma}\xi\mathbin{\lrcorner}\vartheta(\mathfrak{L}_{\xi})
+\end{align*}
+}
+
+\vspace{0.8em}
+\centering\large \ldots uhm, well\ldots maybe I am wrong about that.
+\end{frame}
+
+%================================================
+\begin{frame}{Basic Definition}
+
+
+Velocity can generally be defined as the change in distance traveled divided by the time it takes to travel:
+\[
+v = \frac{\Delta x}{\Delta t}
+\]
+
+Taking the infinitesimal limit:
+\[
+v = \dv{x}{t}
+\]
+
+Velocity also contains direction. The easiest way to represent it is as a vector:
+\[
+\mathbf{\dot{r}} = \dv{\mathbf{r}}{t}
+= \Bigl\langle \dv{x}{t},\;\dv{y}{t},\;\dv{z}{t}\Bigr\rangle
+\]
+\end{frame}
+
+%================================================
+\begin{frame}{Newtonian Mechanics}
+Newton's second law:
+\[
+\mathbf{F} = m\,\dv[2]{\mathbf{r}}{t}
+\]
+
+Solving for velocity:
+\[
+\dot{r} = \int\frac{\mathbf{F}}{m}\,dt
+\]
+
+Keeping track of the reference frame is simple:
+\[
+\dot{r}' = \int\frac{\mathbf{F}}{m}\,dt - \dot{r}_{\text{reference frame}}
+\]
+\end{frame}
+
+%================================================
+\begin{frame}{Newtonian Mechanics (cont.)}
+Relying on frames of reference creates problems (e.g.\ fictitious centrifugal forces).
+
+One way to make Newtonian mechanics generally covariant is the \textbf{Newton--Cartan} approach:
+\begin{itemize}
+  \item Space-time structure similar to general relativity
+  \item But time remains absolute
+\end{itemize}
+
+Velocity is then defined as
+\[
+V^{\mu} = \dv{x^{\mu}}{t} = \bigl(1,\;\dv{x^{i}}{t}\bigr)
+\]
+
+While this looks simple, it is an extreme simplification.
+\end{frame}
+
+%================================================
+\begin{frame}{Special Relativity}
+In special relativity, time becomes another relative dimension.
+
+The velocity vector becomes four-dimensional:
+\[
+U^{\mu} = \dv{x^{\mu}}{\tau}
+\]
+where $\tau$ is \textbf{proper time} (the time experienced by the traveler).
+
+Galilean relative velocity
+\[
+v_{\mathrm{rel}} = v_{1} - v_{0}
+\]
+gains relativistic corrections:
+\[
+v_{\mathrm{rel}} = \frac{v_{1}-v_{0}}{1-v_{1}v_{0}/c^{2}}
+\]
+\end{frame}
+
+%================================================
+\begin{frame}{General Relativity}
+Absolute acceleration creates paradoxes and preferential frames.
+
+Combining the covariant Newtonian framework with Einsteinian proper time yields the same-looking equation
+\[
+U^{\mu} = \dv{x^{\mu}}{\tau}
+\]
+but now with the normalization
+\[
+g_{\mu\nu}U^{\mu}U^{\nu} = -c^{2}.
+\]
+
+The geometry of spacetime is curved, further separating observers. The rest proceeds as in special relativity, but with additional corrections expressible in the language of Riemannian geometry and geodesics.
+\end{frame}
+
+%================================================
+\begin{frame}{Warp Drives}
+Warp drives \emph{move} faster-than-light motion.
+
+\begin{itemize}
+  \item Most solutions have the matter itself not moving at all.
+  \item Spacetime contracts in front and expands behind the ship.
+  \item Proper velocity of the ship is essentially $0$, yet an external observer sees it traverse great distances in short coordinate time.
+\end{itemize}
+
+This makes the definition of ``velocity'' rather challenging to define.
+\end{frame}
+
+%================================================
+\begin{frame}{Dynamics --- Phase Space}
+
+In phase space the fundamental coordinates are generalized positions $q^{i}$ and momenta $p_{i}$.
+
+If the flow is generated by a Hamiltonian $H$, then
+\[
+v = \dot{q}^{i} = \pdv{H}{p_{i}}.
+\]
+
+Velocity is simply one component of the Hamiltonian vector field on phase space.
+\end{frame}
+
+%================================================
+\begin{frame}{Poisson Structure}
+We introduce the Poisson bracket
+\[
+\dot{f} = \{f,H\}
+= \pdv{f}{q^{i}}\pdv{H}{p_{i}} - \pdv{f}{p_{i}}\pdv{H}{q^{i}}.
+\]
+
+The entire vector field can then be written
+\[
+X_{H} = \{\,\cdot\,,H\}.
+\]
+
+The underlying geometry is symplectic (we will not go into the details here).
+\end{frame}
+
+%================================================
+\begin{frame}{Other Approaches (Speed Run)}
+\begin{itemize}
+  \item \textbf{Fluid dynamics}: a vector field that assigns a Newtonian velocity to every point in space.
+  \item \textbf{Quantum mechanics}: velocity becomes a probability current
+  \[
+  \mathbf{v} = \frac{\mathbf{j}}{|\psi|^{2}}.
+  \]
+  \item \textbf{Kinetic theory}: combines the probabilistic nature of QM with the continuum of fluids.
+  \item \textbf{Geometric mechanics}: velocity is a ``natural element of a tangent bundle.''
+\end{itemize}
+\end{frame}
+
+%================================================
+
+%================================================
+\begin{frame}
+\begin{center}
+\Huge Thank you
+\end{center}
+\end{frame}
+
+\end{document}

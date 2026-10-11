@@ -1,0 +1,23 @@
+\documentclass[preview]{standalone}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{siunitx}
+\begin{document}
+\begin{align*}
+\special{dvisvgm:raw <g id='unique000'>}
+            \begin{aligned}
+            \text{(fluid, tested against } v\text{):} &\quad \text{HLLC weak form (as before)} \\[2pt]
+            \text{(aux., tested against } \mathbf{w}\text{):} &\quad
+            \int_K \mathbf{g}\!\cdot\!\mathbf{w}\,dV = -\!\int_K \phi\,\nabla\!\cdot\!\mathbf{w}\,dV
+            + \oint_{\partial K} \hat\phi\,(\mathbf{w}\!\cdot\!\mathbf{n})\,dS \\[2pt]
+            \text{(Poisson, tested against } \psi\text{):} &\quad
+            \int_K \mathbf{g}\!\cdot\!\nabla\psi\,dV = \oint_{\partial K} \hat{\mathbf{g}}\!\cdot\!\mathbf{n}\,\psi\,dS
+            - \int_K 4\pi G\rho\,\psi\,dV
+            \end{aligned}
+            \special{dvisvgm:raw </g>}
+\end{align*}
+\end{document}

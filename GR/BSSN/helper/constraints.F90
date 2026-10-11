@@ -3,16 +3,154 @@ module constraints_mod
   use params_mod, only: Nx, Nz, dx, dy, dz
   use grid_mod, only: xg
   use vars_mod
-  use geometry_mod, only: sym3_inverse, pack6, pack6A
+  use geometry_mod, only: sym3_inverse, pack6, pack6A, conformal_geometry_t, &
+                          compute_conformal_geometry
+  use stencil_mod, only: stencil_t, compute_stencil
+  use excision_mod, only: excision_status
   use cartoon_mod, only: get_neighbor
   !use hydro_vars_mod, only: ID, ISX, ISY, ISZ, ITAU
   !use primitive_recovery_mod, only: con2prim
   implicit none
   private
-  public :: hamiltonian_constraint, elliptic_hamiltonian_correction
+  public :: hamiltonian_constraint, momentum_constraint
+  public :: elliptic_hamiltonian_correction
 
 contains
 
+  ! ---------------------------------------------------------------------------
+  ! ---------------------------------------------------------------------------
+  ! Conformal (BSSN) momentum constraint, Brown et al.,
+  !   "Numerical simulations with a first order BSSN formulation of Einstein's
+  !    field equations", Phys. Rev. D 85, 084004 (2012), arXiv:1202.1038,
+  ! eq. (2.19b) of that paper:
+  !
+  !   Mtilde^i = Dtilde_j Atilde^{ij} + 6 Atilde^{ij} d_j phi
+  !              - (2/3) Dtilde^i K  =  0
+  !
+  ! with Dtilde the connection built from gamma-tilde, Atilde = e^{-4phi} K_ij
+  ! - (1/3) gamma-tilde_ij K, and Ktilde^{ij} = gamma-tilde^{ik} gamma-tilde^{jl}
+  ! Atilde_kl.  Note there are NO Gammabar / gamma_kk algebra terms in this
+  ! form -- they are already absorbed, which is why the earlier hand-derived
+  ! attempts (see git history) could not be made to converge on exact data.
+  !
+  ! The same paper's Hamiltonian constraint (eq. 2.19a) is what
+  ! hamiltonian_constraint() below evaluates; its Ricci^phi contraction gives
+  ! -8 Dtilde^i Dtilde_i phi - 8 Dtilde^i phi Dtilde_i phi, matching the
+  ! Rphi term built in geometry_mod.
+  !
+  ! Range: i in [2, Nx-1], k in [2, Nz-1] (one layer of derivatives needed).
+  ! ---------------------------------------------------------------------------
+  subroutine momentum_constraint(u, Mout)
+    real(dp), intent(in)  :: u(:,:,:)
+    real(dp), intent(out) :: Mout(:,:,:)
+    integer, parameter :: IA(6) = [1,1,1,2,2,3]
+    integer, parameter :: IB(6) = [1,2,3,2,3,3]
+    type(stencil_t) :: S
+    type(conformal_geometry_t) :: G
+    real(dp) :: gt(3,3), gtinv(3,3), det, Ktr
+    real(dp) :: Ab(3,3), dAb(3,3,3), Abup(3,3), dAbup(3,3,3)
+    real(dp) :: dgt(3,3,3), dgtinv(3,3,3), dphi(3), dKtr(3)
+    real(dp) :: t1(NVARS), t2(NVARS), t3(NVARS), tx(NVARS)
+    real(dp) :: acc, q
+    integer :: i, k, j, a, b, c, d, dir, iv
+
+    Mout = 0.0_dp
+    do k = 2, Nz - 1
+      do i = 2, Nx - 1
+        call compute_stencil(u, i, k, excision_status, S)
+        call compute_conformal_geometry(S, G)
+        gt = G%gt
+        call sym3_inverse(gt, gtinv, det)
+        Ktr = u(i,k,IK)
+
+        t1 = S%d1x;  t2 = S%d1y;  t3 = S%d1z
+        dphi = [t1(IPHI), t2(IPHI), t3(IPHI)]
+        dKtr = [t1(IK),   t2(IK),   t3(IK)  ]
+
+        ! ---- Atilde_ij and its directional derivatives
+        Ab = 0.0_dp
+        do iv = 1, 6
+          a = IA(iv); b = IB(iv)
+          Ab(a,b) = S%val(IATILDE(iv))
+          Ab(b,a) = Ab(a,b)
+        end do
+        dgt = 0.0_dp
+        dAb = 0.0_dp
+        do dir = 1, 3
+          select case (dir)
+          case (1); tx = t1
+          case (2); tx = t2
+          case (3); tx = t3
+          end select
+          do iv = 1, 6
+            a = IA(iv); b = IB(iv)
+            dgt(dir,a,b)  = tx(ICONFMET(iv)); dgt(dir,b,a)  = tx(ICONFMET(iv))
+            dAb(dir,a,b)  = tx(IATILDE(iv));   dAb(dir,b,a)  = tx(IATILDE(iv))
+          end do
+        end do
+
+        ! ---- Atilde^{ij} = gtilde^{ik} gtilde^{jl} Atilde_kl, and d_dir thereof
+        Abup = 0.0_dp
+        do a = 1, 3
+          do b = 1, 3
+            q = 0.0_dp
+            do c = 1, 3
+              do d = 1, 3
+                q = q + gtinv(a,c)*gtinv(b,d)*Ab(c,d)
+              end do
+            end do
+            Abup(a,b) = q
+          end do
+        end do
+        do dir = 1, 3
+          do a = 1, 3
+            do b = 1, 3
+              ! d_dir gtilde^{ij} = -gamma-tilde^{ac} gamma-tilde^{bd} d_dir gtilde_cd
+              q = 0.0_dp
+              do c = 1, 3
+                do d = 1, 3
+                  q = q + gtinv(a,c)*gtinv(b,d)*dgt(dir,c,d)
+                end do
+              end do
+              dgtinv(dir,a,b) = -q
+              acc = 0.0_dp
+              do c = 1, 3
+                do d = 1, 3
+                  acc = acc + dgtinv(dir,a,c)*gtinv(b,d)*Ab(c,d) &
+                            + gtinv(a,c)*dgtinv(dir,b,d)*Ab(c,d) &
+                            + gtinv(a,c)*gtinv(b,d)*dAb(dir,c,d)
+                end do
+              end do
+              dAbup(dir,a,b) = acc
+            end do
+          end do
+        end do
+
+        ! ---- Mtilde^i = Dtilde_j Atilde^{ij} + 6 Atilde^{ij} d_j phi
+        !              - (2/3) gamma-tilde^{ij} d_j K
+        !
+        ! with j and m summed, i free.  G%Gam(k,i,j) = Gtilde^k_{ij}.
+        do j = 1, 3                      ! here j plays the role of free index i
+          acc = 0.0_dp
+          do dir = 1, 3                  ! dir = j (summed)
+            ! d_j Atilde^{ij}
+            acc = acc + dAbup(dir,dir,j)
+            ! Gtilde^i_{jm} Atilde^{mj}   (m summed over a)
+            do a = 1, 3
+              acc = acc + G%Gam(j,dir,a)*Abup(a,dir)
+              ! Gtilde^m_{jm} Atilde^{ij}  (m summed over a)
+              acc = acc + G%Gam(a,dir,a)*Abup(dir,j)
+            end do
+            ! + 6 Atilde^{ij} d_j phi
+            acc = acc + 6.0_dp*Abup(dir,j)*dphi(dir)
+            ! - (2/3) gamma-tilde^{ij} d_j K
+            acc = acc - (2.0_dp/3.0_dp)*gtinv(dir,j)*dKtr(dir)
+          end do
+          Mout(i,k,j) = acc
+        end do
+      end do
+    end do
+  end subroutine momentum_constraint
 
   ! Physical metric gamma_ij = exp(4 phi) gamma-tilde_ij at the point offset
   ! from (i,k) by (ix_off, iz_off, y_val), fetched via the same Cartoon
@@ -139,6 +277,8 @@ contains
     real(dp), intent(in), optional :: hydro_cons(:,:,:)
     integer :: i, k
     real(dp) :: gt(3,3), gtinv(3,3), Aij(3,3), Aup(3,3), AijAij, det, Ktrace, R
+    type(stencil_t) :: S
+    type(conformal_geometry_t) :: G
     real(dp) :: rho, vx, vy, vz, eps, phi
     real(dp) :: ginv_phys(3,3)
     logical :: ok
@@ -156,7 +296,14 @@ contains
         AijAij = sum(Aij*Aup)
         Ktrace = u(i,k,IK)
 
-        R = ricci_scalar_direct(u, i, k)
+        ! Evaluate R with the same excision-aware, fourth-order conformal
+        ! geometry operator used by the BSSN RHS.  The former independent
+        ! direct-Christoffel diagnostic used second-order Cartesian
+        ! derivatives and measured its truncation error as a spurious
+        ! Hamiltonian violation near the hole.
+        call compute_stencil(u, i, k, excision_status, S)
+        call compute_conformal_geometry(S, G)
+        R = exp(-4.0_dp*u(i,k,IPHI)) * sum(G%gtinv * (G%Rt + G%Rphi))
 
         Hout(i,k) = R + (2.0_dp/3.0_dp)*Ktrace*Ktrace - AijAij
         !if (present(hydro_cons)) then
@@ -177,7 +324,7 @@ contains
   ! axisymmetric Laplacian (dxx + dx/x + dzz) is used away from x=0.
   subroutine elliptic_hamiltonian_correction(u, hydro_cons, niter, omega, hbefore, hafter)
     real(dp), intent(inout) :: u(:,:,:)
-    real(dp), intent(in) :: hydro_cons(:,:,:)
+    real(dp), intent(in), optional :: hydro_cons(:,:,:)
     integer, intent(in) :: niter
     real(dp), intent(in) :: omega
     real(dp), intent(out) :: hbefore, hafter
@@ -188,7 +335,11 @@ contains
 
     allocate(H(Nx,Nz), delta(Nx,Nz), next(Nx,Nz), phi_old(Nx,Nz))
     delta = 0.0_dp
-    call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+    if (present(hydro_cons)) then
+      call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+    else
+      call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
+    end if
     ncell = (imax-imin+1)*(kmax-kmin+1)
     hbefore = sqrt(sum(H(imin:imax,kmin:kmax)**2)/real(ncell,dp))
     do it = 1, max(0,niter)
@@ -216,7 +367,11 @@ contains
       step = 1.0_dp
       do
         u(:,:,IPHI) = phi_old + step*(next-delta)
-        call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+        if (present(hydro_cons)) then
+          call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+        else
+          call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
+        end if
         trialnorm = sqrt(sum(H(imin:imax,kmin:kmax)**2)/real(ncell,dp))
         if (trialnorm < oldnorm .or. step <= 1.0e-4_dp) exit
         step = 0.5_dp*step
@@ -226,9 +381,17 @@ contains
       else
         u(:,:,IPHI) = phi_old
       end if
-      call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+      if (present(hydro_cons)) then
+        call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+      else
+        call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
+      end if
     end do
-    call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+    if (present(hydro_cons)) then
+      call hamiltonian_constraint(u,H,imin,imax,kmin,kmax,hydro_cons)
+    else
+      call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
+    end if
     hafter = sqrt(sum(H(imin:imax,kmin:kmax)**2)/real(ncell,dp))
     deallocate(H,delta,next,phi_old)
   end subroutine elliptic_hamiltonian_correction

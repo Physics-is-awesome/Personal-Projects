@@ -35,3 +35,37 @@ g_{\mu \nu} \to (\gamma_{ij}, \alpha, \beta^i)
 We start with a traditional RK4 model for integration. Inside each section we have the traditional residual, Sommerfeld radiative boundary conditions, and k0 dissipation
 
 \subsubsection{RHS}
+
+Pretty trivial
+
+\section{Theorizing about Hydrodynamics}
+
+For the set up I need to add a Valience TOV to initialize the star in the first place
+
+
+Add more primitive and conservative values for the purposes of conseriving the matter fields.
+
+Edit the constraints for the TOV
+
+The CFL should be expanded for the speed of sound in the star rather than simply the grid and the speed of light.
+
+Add the hydrodynamics seperately, using the same boundary condition and such but for the Valience fluid dynamics.
+
+Add Con2prim
+
+I think I am going to start with building the initialization
+\subsection{Initialization}
+
+Add to the parameter building that EOS settings like gamma or such.
+
+Solve the TOV ODE for the swarzchild metric.
+
+Map to isotropic
+
+Add matter data points to the initial data.
+
+Take the primitives to write out conservative variables
+
+Edit the constraints for matter.
+
+Figure out how to skip Excision with no black hole, I might need to go about adding a black hole finder but that seems exsesive for now.

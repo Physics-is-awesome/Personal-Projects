@@ -1,3 +1,4 @@
+! VERSION v4 (2026-10-01): optional horizon columns/attributes (hz_*)
 module output_mod
   !---------------------------------------------------------------------------
   ! output_mod.F90  (HDF5 version)
@@ -29,12 +30,23 @@ module output_mod
   !     datasets "D","Sx","Sy","Sz","tau" (Nx,Nz)  -- GRHD conservatives (matter runs only)
   !     datasets "rho","vx","vy","vz","eps" (Nx,Nz)-- GRHD primitives    (matter runs only)
   !
+  !   HORIZON DIAGNOSTICS (optional, off unless output_init(..., has_horizon=.true.))
+  !     Seven extra columns are appended to the diagnostics dataset:
+  !       hz_found hz_area hz_m_irr hz_j_spin hz_m_H hz_rmin hz_rmax
+  !     hz_found is 1 when the apparent-horizon solve succeeded at that row and
+  !     0 otherwise; when it is 0 the other six are written as NaN (so plots show
+  !     a gap instead of a misleading 0).  The same seven values are also stored
+  !     as attributes on every state_NNNNNN.h5 file (hz_found, hz_area, ...).
+  !     The caller passes them via the optional horizon_vals(OUT_NHZ) argument
+  !     in exactly that order, with horizon_vals(1) = 1.0 or 0.0 as the flag.
+  !     This module does NOT depend on the horizon code.
+  !
   !   Quick read in Python (h5py):
   !     import h5py
   !     f = h5py.File('output/diagnostics.h5','r')
-  !     data = f['diagnostics'][:]                       # shape (ncols, nrows)
+  !     data = f['diagnostics'][:]                       # h5py shape (nrows, ncols)
   !     cols = f['diagnostics'].attrs['columns'].split()
-  !     time = data[cols.index('time'), :]
+  !     time = data[:, cols.index('time')]
   !
   !     g = h5py.File('output/state_000010.h5','r')
   !     phi = g['phi'][:]                                # shape (Nz,Nx) --
@@ -80,6 +92,7 @@ module output_mod
   ! change as long as the field order matches.
   !---------------------------------------------------------------------------
   use hdf5
+  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
   implicit none
   private
 
@@ -122,6 +135,12 @@ module output_mod
 
   integer(HSIZE_T), parameter :: DIAG_CHUNK_ROWS = 64_HSIZE_T
 
+  ! --- optional apparent-horizon diagnostics (see header) ------------------
+  integer, parameter, public :: OUT_NHZ = 7
+  character(len=10), parameter :: HZ_NAMES(OUT_NHZ) = &
+       [character(len=10) :: 'hz_found', 'hz_area', 'hz_m_irr', 'hz_j_spin', &
+                              'hz_m_H', 'hz_rmin', 'hz_rmax']
+
   logical :: hdf5_lib_open = .false.
 
   ! --- diagnostics HDF5 state (mirrors the old diag_unit/diag_open) --------
@@ -130,6 +149,8 @@ module output_mod
   integer(HSIZE_T) :: diag_nrows = 0
   logical          :: diag_open = .false.
   logical          :: diag_has_matter = .false.
+  logical          :: diag_has_horizon = .false.
+  integer          :: diag_nbase = 0          ! columns before the hz_* block
 
   ! --- XDMF time-series description (for ParaView animation) --------------
   integer :: xdmf_unit = -1
@@ -141,13 +162,14 @@ module output_mod
 contains
 
   !---------------------------------------------------------------------------
-  subroutine output_init(out_dir, has_matter)
+  subroutine output_init(out_dir, has_matter, has_horizon)
     ! Create the output directory and open diagnostics.h5 with an
     ! extendible "diagnostics" dataset matching the run type. has_matter
     ! =.false. (default) is for the vacuum driver (main.f90); pass .true.
     ! for main_tov/main_kerr_tov.
     character(len=*), intent(in)           :: out_dir
     logical,          intent(in), optional :: has_matter
+    logical,          intent(in), optional :: has_horizon   ! add hz_* columns
 
     integer            :: ios, hdferr
     integer(HSIZE_T)   :: dims(2), maxdims(2), chunk(2)
@@ -156,6 +178,8 @@ contains
 
     diag_has_matter = .false.
     if (present(has_matter)) diag_has_matter = has_matter
+    diag_has_horizon = .false.
+    if (present(has_horizon)) diag_has_horizon = has_horizon
 
     call execute_command_line('mkdir -p '//trim(out_dir), exitstat=ios)
     if (ios /= 0) then
@@ -177,6 +201,13 @@ contains
       diag_ncols = 10
       colnames = 'step time dt alpha_min alpha_max phi_min phi_max '// &
                  'ham_max ham_rms n_nan_metric'
+    end if
+    diag_nbase = diag_ncols
+    if (diag_has_horizon) then
+      diag_ncols = diag_ncols + OUT_NHZ
+      colnames = trim(colnames)//' '//trim(HZ_NAMES(1))//' '//trim(HZ_NAMES(2))// &
+                 ' '//trim(HZ_NAMES(3))//' '//trim(HZ_NAMES(4))//' '// &
+                 trim(HZ_NAMES(5))//' '//trim(HZ_NAMES(6))//' '//trim(HZ_NAMES(7))
     end if
 
     call h5fcreate_f(trim(out_dir)//'/diagnostics.h5', H5F_ACC_TRUNC_F, &
@@ -219,7 +250,7 @@ contains
   !---------------------------------------------------------------------------
   subroutine output_write_diagnostics(step, time, dt, Nx, Nz, metric, &
                                        ham_max, ham_rms, hydro_prim, &
-                                       n_recovery_fail)
+                                       n_recovery_fail, horizon_vals)
     ! Append one row of scalar run-health diagnostics. hydro_prim and
     ! n_recovery_fail are optional -- omit both for the vacuum driver.
     integer,  intent(in) :: step, Nx, Nz
@@ -227,8 +258,10 @@ contains
     real(dp), intent(in) :: metric(Nx,Nz,NVARS)
     real(dp), intent(in), optional :: hydro_prim(Nx,Nz,NPRIM)
     integer,  intent(in), optional :: n_recovery_fail
+    real(dp), intent(in), optional :: horizon_vals(OUT_NHZ)   ! found,area,m_irr,J,m_H,rmin,rmax
 
     integer          :: n_nan_metric, n_nan_hydro, recov, hdferr
+    real(dp)         :: hzv(OUT_NHZ)
     real(dp)         :: row(diag_ncols)
     integer(HSIZE_T) :: newdims(2), start(2), cnt(2)
     integer(HID_T)   :: fspace_id, mspace_id
@@ -245,17 +278,23 @@ contains
       n_nan_hydro = count_nan_3d(hydro_prim)
       recov = 0
       if (present(n_recovery_fail)) recov = n_recovery_fail
-      row = (/ real(step,dp), time, dt, &
+      row(1:diag_nbase) = (/ real(step,dp), time, dt, &
                minval(hydro_prim(:,:,P_RHO)), maxval(hydro_prim(:,:,P_RHO)), &
                minval(metric(:,:,I_ALPHA)),   maxval(metric(:,:,I_ALPHA)), &
                minval(metric(:,:,I_PHI)),     maxval(metric(:,:,I_PHI)), &
                ham_max, ham_rms, real(recov,dp), real(n_nan_metric,dp), &
                real(n_nan_hydro,dp) /)
     else
-      row = (/ real(step,dp), time, dt, &
+      row(1:diag_nbase) = (/ real(step,dp), time, dt, &
                minval(metric(:,:,I_ALPHA)), maxval(metric(:,:,I_ALPHA)), &
                minval(metric(:,:,I_PHI)),   maxval(metric(:,:,I_PHI)), &
                ham_max, ham_rms, real(n_nan_metric,dp) /)
+    end if
+
+    if (diag_has_horizon) then
+      hzv = 0.0_dp
+      if (present(horizon_vals)) hzv = horizon_vals
+      row(diag_nbase+1:diag_nbase+OUT_NHZ) = sanitize_hz(hzv)
     end if
 
     ! Extend the dataset by one row, select that row, write it.
@@ -280,7 +319,7 @@ contains
 
   !---------------------------------------------------------------------------
   subroutine output_write_snapshot(step, time, out_dir, Nx, Nz, xg, zg, &
-                                    metric, hydro_cons, hydro_prim)
+                                    metric, hydro_cons, hydro_prim, horizon_vals)
     ! Write the full state at this step to <out_dir>/state_NNNNNN.h5.
     ! hydro_cons/hydro_prim are optional -- omit both for the vacuum
     ! driver (metric-only datasets).
@@ -291,7 +330,9 @@ contains
     real(dp),         intent(in) :: metric(Nx,Nz,NVARS)
     real(dp),         intent(in), optional :: hydro_cons(Nx,Nz,NCONS)
     real(dp),         intent(in), optional :: hydro_prim(Nx,Nz,NPRIM)
+    real(dp),         intent(in), optional :: horizon_vals(OUT_NHZ)
 
+    real(dp)           :: hzv(OUT_NHZ)
     character(len=256) :: fname
     character(len=32)  :: state_basename
     logical             :: have_hydro
@@ -314,6 +355,14 @@ contains
     call write_int_attr(file_id, 'Nx', Nx)
     call write_int_attr(file_id, 'Nz', Nz)
     call write_int_attr(file_id, 'have_hydro', merge(1, 0, have_hydro))
+
+    if (diag_has_horizon .and. present(horizon_vals)) then
+      hzv = sanitize_hz(horizon_vals)
+      call write_int_attr(file_id, trim(HZ_NAMES(1)), nint(hzv(1)))
+      do k = 2, OUT_NHZ
+        call write_dbl_attr(file_id, trim(HZ_NAMES(k)), hzv(k))
+      end do
+    end if
 
     call write_dataset_1d(file_id, 'x', xg, Nx)
     call write_dataset_1d(file_id, 'z', zg, Nz)
@@ -423,6 +472,20 @@ contains
       xdmf_open = .false.
     end if
   end subroutine output_finalize
+
+  !---------------------------------------------------------------------------
+  ! hz_found < 0.5  ->  flag 0 and the other six values become NaN.
+  function sanitize_hz(v) result(w)
+    real(dp), intent(in) :: v(OUT_NHZ)
+    real(dp)             :: w(OUT_NHZ)
+    if (v(1) >= 0.5_dp) then
+      w = v
+      w(1) = 1.0_dp
+    else
+      w = ieee_value(1.0_dp, ieee_quiet_nan)
+      w(1) = 0.0_dp
+    end if
+  end function sanitize_hz
 
   !---------------------------------------------------------------------------
   integer function count_nan_3d(arr) result(n)

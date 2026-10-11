@@ -1,3 +1,4 @@
+! VERSION v3 (2026-10-01): vars tables ICONFMET/IATILDE + horizon_adm_from_state(u,...) adapter
 module vars_mod
   use kinds_mod, only: dp
   implicit none
@@ -9,6 +10,7 @@ module vars_mod
   public :: IALPHA, IBETAX, IBETAY, IBETAZ
   public :: IBX, IBY, IBZ
   public :: alloc_state, is_tensor_var, is_vector_var
+  public :: ICONFMET, IATILDE
 
   integer, parameter :: NVARS = 24
 
@@ -36,6 +38,12 @@ module vars_mod
   integer, parameter :: IBX    = 22 !auxiliary variable
   integer, parameter :: IBY    = 23
   integer, parameter :: IBZ    = 24
+
+  ! Component tables for code that wants to loop over a symmetric tensor
+  ! (used by horizon_mod).  Packed order: xx, xy, xz, yy, yz, zz.
+  ! These are just aliases of the indices above -- no new state variables.
+  integer, parameter :: ICONFMET(6) = [IGXX, IGXY, IGXZ, IGYY, IGYZ, IGZZ]  ! conformal metric
+  integer, parameter :: IATILDE(6)  = [IAXX, IAXY, IAXZ, IAYY, IAYZ, IAZZ]  ! traceless A-tilde
 
 contains
 

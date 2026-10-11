@@ -1,13 +1,16 @@
 module bssn_rhs_mod
   use kinds_mod, only: dp
-  use params_mod, only: Nx, Nz, gauge_eta, r_excise
+  use params_mod, only: Nx, Nz, gauge_eta, puncture_sign, gamma_driver_mode, &
+                        slicing_mode
+  use params_mod, only: bh_mass, bh_spin, bh_center_x, bh_center_z
   use grid_mod, only: xg, zg
   use vars_mod
   use stencil_mod, only: stencil_t, compute_stencil
   use geometry_mod, only: conformal_geometry_t, compute_conformal_geometry, pack6, pack6A
+  use excision_mod, only: is_excised, excision_status
   implicit none
   private
-  public :: compute_rhs_interior
+  public :: compute_rhs_interior, compute_rhs_point
 
 contains
 
@@ -15,19 +18,31 @@ contains
     real(dp), intent(in)    :: u(:,:,:)
     real(dp), intent(inout) :: rhs(:,:,:)
     real(dp), intent(in), optional :: msrc(:,:,:)  ! (Nx,Nz,10): E,Sx,Sy,Sz,Sxx,Sxy,Sxz,Syy,Syz,Szz
+    real(dp) :: pt_rhs(NVARS)
     integer :: i, k
 
     do k = 2, Nz - 1
       do i = 1, Nx - 1
-        if (sqrt(xg(i)**2 + zg(k)**2) < r_excise) cycle  ! frozen inside excision radius
+        if (is_excised(i,k)) cycle  ! frozen inside excision radius; refreshed by extrapolate_excised() each step
         if (present(msrc)) then
-          call rhs_point(u, i, k, rhs(i,k,:), msrc(i,k,:))
+          call rhs_point(u, i, k, pt_rhs, msrc(i,k,:))
         else
-          call rhs_point(u, i, k, rhs(i,k,:))
+          call rhs_point(u, i, k, pt_rhs)
         end if
+        rhs(i,k,:) = pt_rhs
       end do
     end do
   end subroutine compute_rhs_interior
+
+  ! Point-level entry point used by reduced/first-order drivers.  Keeping the
+  ! legacy point operator as the single source of truth avoids silently
+  ! introducing a second (and inevitably different) BSSN evolution system.
+  subroutine compute_rhs_point(u, i, k, rhs_out)
+    real(dp), intent(in)  :: u(:,:,:)
+    integer, intent(in)   :: i, k
+    real(dp), intent(out) :: rhs_out(NVARS)
+    call rhs_point(u, i, k, rhs_out)
+  end subroutine compute_rhs_point
 
   subroutine rhs_point(u, i, k, rhs_out, msrc_pt)
     real(dp), intent(in)  :: u(:,:,:)
@@ -51,9 +66,12 @@ contains
     real(dp) :: divbeta_deriv(3)
     real(dp) :: RHS_gt(3,3), RHS_A(3,3)
     real(dp) :: RHS_Gam(3), term_a(3), term_b(3), term_c(3), term_d(3)
+    real(dp) :: Gpun(3)
+    real(dp) :: dBx, dBy, dBz, lbeta_gam1, lbeta_gam2, lbeta_gam3
+    real(dp) :: lbeta_B1, lbeta_B2, lbeta_B3
     integer  :: a, b, c
 
-    call compute_stencil(u, i, k, S)
+    call compute_stencil(u, i, k, excision_status, S)
     call compute_conformal_geometry(S, G)
 
     gt    = G%gt
@@ -190,11 +208,15 @@ contains
 
     if (present(msrc_pt)) then
       block
-        real(dp) :: fourpi, Smat_low(3), term_mom(3)
+        real(dp) :: fourpi, Smat_low(3), term_mom(3), gphysinv_mom(3,3)
         fourpi = 4.0_dp*3.14159265358979323846_dp
         Smat_low = msrc_pt(2:4)
+        ! S^i = gamma^{ij} S_j uses the PHYSICAL inverse metric
+        ! exp(-4phi)*gtinv, matching the gphysinv used for Strace above --
+        ! not the bare conformal gtinv.
+        gphysinv_mom = exp(-4.0_dp*phi)*gtinv
         do a = 1, 3
-          term_mom(a) = -4.0_dp*fourpi*alpha*sum(gtinv(a,:)*Smat_low(:))
+          term_mom(a) = -4.0_dp*fourpi*alpha*sum(gphysinv_mom(a,:)*Smat_low(:))
         end do
         RHS_Gam = RHS_Gam + term_mom
       end block
@@ -202,16 +224,123 @@ contains
 
     rhs_out(IGTX) = RHS_Gam(1); rhs_out(IGTY) = RHS_Gam(2); rhs_out(IGTZ) = RHS_Gam(3)
 
-    ! ---------- gauge: 1+log slicing, Gamma-driver shift ----------
-    rhs_out(IALPHA) = -2.0_dp*alpha*Ktr + sum(beta*dalpha_l)
-    rhs_out(IBETAX) = 0.75_dp*S%val(IBX)
-    rhs_out(IBETAY) = 0.75_dp*S%val(IBY)
-    rhs_out(IBETAZ) = 0.75_dp*S%val(IBZ)
-    rhs_out(IBX) = RHS_Gam(1) - gauge_eta*S%val(IBX)
-    rhs_out(IBY) = RHS_Gam(2) - gauge_eta*S%val(IBY)
-    rhs_out(IBZ) = RHS_Gam(3) - gauge_eta*S%val(IBZ)
+    ! ---------- gauge: 1+log slicing, puncture Gamma-driver shift ----------
+    !
+    ! Gamma-driver with puncture:
+    !
+    !     d_t beta^a = (3/4) Gbar^a
+    !     d_t Gbar^a = -eta (Gbar^a - Gamma^a),   Gamma^a = s * 2 M x^a / r^3
+    !
+    ! Gbar is carried in IBX/IBY/IBZ and is initialised from the data by
+    ! compute_conformal_connections.  Note that d_t Gbar has NO Gtilde RHS:
+    ! in a Gamma-driver the driver variable is driven purely towards the
+    ! analytic profile.  Feeding it RHS_Gam (the Gtilde equations) as well --
+    ! as this code used to -- couples Gbar to a different variable and lets
+    ! the shift drift instead of being anchored.
+    !
+    ! s = puncture_sign: the equilibrium shift must point INWARD for a black
+    ! hole, so the default is -1.
+    ! Bona-Masso slicing  d_perp alpha = -alpha^2 f K  (Brown et al. eq. 2.11).
+    !   f = 2/alpha -> 1+log (d_perp alpha = -2 alpha K)   [slicing_mode 0]
+    !   f = 1/alpha -> maximal  (d_perp alpha = -alpha K)   [slicing_mode 1]
+    if (slicing_mode == 2) then
+      ! Freeze the Kerr-Schild lapse for the stationary-background control.
+      rhs_out(IALPHA) = 0.0_dp
+    else if (slicing_mode == 1) then
+      rhs_out(IALPHA) = -alpha*Ktr + sum(beta*dalpha_l)
+    else
+      rhs_out(IALPHA) = -2.0_dp*alpha*Ktr + sum(beta*dalpha_l)
+    end if
+    if (gamma_driver_mode == 2) then
+      ! Freeze the Kerr-Schild shift and its unused driver variable.
+      rhs_out(IBETAX:IBETAZ) = 0.0_dp
+      rhs_out(IBX:IBZ) = 0.0_dp
+    else if (gamma_driver_mode == 3) then
+      ! Advective Gamma-driver in the Brown et al. convention:
+      !   (d_t - beta^j D_j) beta^i = 3/4 B^i.
+      rhs_out(IBETAX) = 0.75_dp*S%val(IBX) + sum(beta*dbeta(:,1))
+      rhs_out(IBETAY) = 0.75_dp*S%val(IBY) + sum(beta*dbeta(:,2))
+      rhs_out(IBETAZ) = 0.75_dp*S%val(IBZ) + sum(beta*dbeta(:,3))
+    else
+      rhs_out(IBETAX) = 0.75_dp*S%val(IBX)
+      rhs_out(IBETAY) = 0.75_dp*S%val(IBY)
+      rhs_out(IBETAZ) = 0.75_dp*S%val(IBZ)
+    end if
+    call puncture_gamma(i, k, Gpun)
+    if (gamma_driver_mode == 1) then
+      rhs_out(IBX) = -gauge_eta*(S%val(IBX) - puncture_sign*Gpun(1))
+      rhs_out(IBY) = -gauge_eta*(S%val(IBY) - puncture_sign*Gpun(2))
+      rhs_out(IBZ) = -gauge_eta*(S%val(IBZ) - puncture_sign*Gpun(3))
+    else if (gamma_driver_mode == 4) then
+      ! Non-advective Gamma-driver:
+      !   d_t beta^i = 3/4 B^i,
+      !   d_t B^i    = d_t Lambda-tilde^i - eta B^i.
+      ! This form admits a stationary B=0 solution whenever the BSSN fields
+      ! and conformal connection are stationary.  Keep it separate from mode
+      ! 0, whose material/Lie-derivative conversions are retained unchanged.
+      rhs_out(IBX) = RHS_Gam(1) - gauge_eta*S%val(IBX)
+      rhs_out(IBY) = RHS_Gam(2) - gauge_eta*S%val(IBY)
+      rhs_out(IBZ) = RHS_Gam(3) - gauge_eta*S%val(IBZ)
+    else if (gamma_driver_mode == 0) then
+      ! The driver equations use d_perp B^i = d_perp Lambda^i - eta B^i.
+      ! RHS_Gam is d_t Lambda^i and already contains beta.dLambda. Convert
+      ! both material derivatives to partial time derivatives explicitly.
+      dBx = beta(1)*S%d1x(IBX) + beta(2)*S%d1y(IBX) + beta(3)*S%d1z(IBX)
+      dBy = beta(1)*S%d1x(IBY) + beta(2)*S%d1y(IBY) + beta(3)*S%d1z(IBY)
+      dBz = beta(1)*S%d1x(IBZ) + beta(2)*S%d1y(IBZ) + beta(3)*S%d1z(IBZ)
+      lbeta_gam1 = sum(beta*dbeta(:,1)) + Gtvec(1)*div_beta
+      lbeta_gam2 = sum(beta*dbeta(:,2)) + Gtvec(2)*div_beta
+      lbeta_gam3 = sum(beta*dbeta(:,3)) + Gtvec(3)*div_beta
+      lbeta_B1   = dBx + S%val(IBX)*div_beta
+      lbeta_B2   = dBy + S%val(IBY)*div_beta
+      lbeta_B3   = dBz + S%val(IBZ)*div_beta
+      rhs_out(IBX) = RHS_Gam(1) - lbeta_gam1 - gauge_eta*S%val(IBX) + lbeta_B1
+      rhs_out(IBY) = RHS_Gam(2) - lbeta_gam2 - gauge_eta*S%val(IBY) + lbeta_B2
+      rhs_out(IBZ) = RHS_Gam(3) - lbeta_gam3 - gauge_eta*S%val(IBZ) + lbeta_B3
+    else if (gamma_driver_mode == 3) then
+      ! The standard choices in Brown et al. have H=e^(4 phi), so the
+      ! e^(-4 phi) H factor is one.  Apply d_0 = d_t-beta^j D_j to both
+      ! Lambda-tilde and B, then solve for d_t B:
+      !   d_t B^i = RHS_Gam^i - beta^j d_j Lambda-tilde^i
+      !             + beta^j d_j B^i - eta B^i.
+      dBx = beta(1)*S%d1x(IBX) + beta(2)*S%d1y(IBX) + beta(3)*S%d1z(IBX)
+      dBy = beta(1)*S%d1x(IBY) + beta(2)*S%d1y(IBY) + beta(3)*S%d1z(IBY)
+      dBz = beta(1)*S%d1x(IBZ) + beta(2)*S%d1y(IBZ) + beta(3)*S%d1z(IBZ)
+      rhs_out(IBX) = RHS_Gam(1) - sum(beta*dGt(:,1)) + dBx - gauge_eta*S%val(IBX)
+      rhs_out(IBY) = RHS_Gam(2) - sum(beta*dGt(:,2)) + dBy - gauge_eta*S%val(IBY)
+      rhs_out(IBZ) = RHS_Gam(3) - sum(beta*dGt(:,3)) + dBz - gauge_eta*S%val(IBZ)
+    end if
 
   end subroutine rhs_point
+
+  ! ---------------------------------------------------------------------------
+  ! Analytic puncture driver profile  Gamma^a = 2 M x^a / r^3, with x measured
+  ! from the black-hole centre and r the Kerr-Schild radius (which for a=0
+  ! reduces to the ordinary Euclidean radius).  The Cartesian y component
+  ! vanishes on the stored plane by symmetry.
+  !
+  ! Returns 0 outside the excision region so the 1/r^3 singularity can never be
+  ! evaluated at the puncture; those points are frozen anyway.
+  ! ---------------------------------------------------------------------------
+  subroutine puncture_gamma(i, k, Gpun)
+    integer, intent(in) :: i, k
+    real(dp), intent(out) :: Gpun(3)
+    real(dp) :: xr, zr, rho2, a2, r2, r3
+
+    Gpun = 0.0_dp
+    if (.not. allocated(xg)) return
+
+    xr = xg(i) - bh_center_x
+    zr = zg(k) - bh_center_z
+    a2 = bh_spin*bh_spin
+    rho2 = xr*xr + zr*zr
+    r2 = 0.5_dp*(rho2 - a2 + sqrt((rho2 - a2)*(rho2 - a2) + 4.0_dp*a2*zr*zr))
+    if (r2 <= 0.0_dp) return
+    r3 = r2*sqrt(r2)
+    Gpun(1) = 2.0_dp*bh_mass*xr/r3
+    Gpun(3) = 2.0_dp*bh_mass*zr/r3
+    Gpun(2) = 0.0_dp
+  end subroutine puncture_gamma
 
   ! Fills a 3x3 symmetric matrix of second derivatives (d2x,d2y,d2z,d2xy,d2xz,d2yz)
   ! for a single scalar field component ivar of the stencil bundle.

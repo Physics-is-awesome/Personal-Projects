@@ -6,9 +6,16 @@ module params_mod
   public :: bh_mass, bh_spin, bh_center_x, bh_center_z
   public :: star_center_x, star_center_z
   public :: gauge_eta
-  public :: cfl, nsteps, out_every
+  public :: puncture_sign
+  public :: slicing_mode
+  public :: gamma_driver_mode
+  public :: puncture_lapse_mode
+  public :: conformal_factor_mode
+  public :: cfl, nsteps, out_every, hz_every_par
   public :: ko_eps
   public :: r_excise
+  public :: excision_order
+  public :: excision_sat
   public :: init_params
 
   ! --- Grid ---
@@ -27,13 +34,48 @@ module params_mod
 
   ! --- Gauge ---
   real(dp) :: gauge_eta = 2.0_dp  ! Gamma-driver damping, ~ 2/M
+  ! Sign of the analytic puncture driver Gamma^a = puncture_sign * 2M x^a / r^3.
+  ! UNVALIDATED.  Matching Schwarzschild asymptotically requires an INWARD
+  ! Gbar^r ~ -M/(2r^2), but the normalisation and sign are not pinned down
+  ! against a solved puncture solution, because that solve is not
+  ! implemented.  Only consulted when gamma_driver_mode == 1 (off by default).
+  real(dp) :: puncture_sign = -1.0_dp
+  ! Bona-Masso slicing  d_perp alpha = -alpha^2 f K,  f = 2/alpha for
+  ! 1+log (mode 0) or f = 1/alpha for maximal slicing (mode 1).
+  ! mode 2 freezes the Kerr-Schild lapse; pair with gamma_driver_mode=2.
+  ! The Kerr-Schild initial data is a static gauge, so evolving it with
+  ! maximal slicing produces a much smaller gauge transient than 1+log.
+  integer  :: slicing_mode = 0
+  ! 0 = legacy: d_t Gbar = RHS_Gam - eta*Gbar   (Gbar is coupled to the
+  !     Gtilde equations and is only damped towards ZERO -- no puncture)
+  ! 1 = puncture: d_t Gbar = -eta (Gbar - puncture_sign*2M x^a/r^3)
+  ! 2 = freeze Kerr-Schild shift and driver (stationary-background control)
+  ! 3 = advective Gamma-driver, (d_t-beta.D)beta=3/4 B and
+  !     (d_t-beta.D)B=(d_t-beta.D)Lambda-eta B (experimental)
+  ! 4 = non-advective Gamma-driver, d_t beta=3/4 B and
+  !     d_t B=d_t Lambda-eta B (stationary-shift compatibility candidate)
+  integer  :: gamma_driver_mode = 0
+  ! Puncture-lapse shaping for the INITIAL data:
+  !   0 = off: lapse is whatever Kerr-Schild gives (maximal-slicing like,
+  !       alpha ~ 0.707 at the horizon -- does NOT vanish anywhere)
+  !   1 = puncture: rescale alpha by a factor vanishing at r_excise so the 1+log
+  !       lapse reaches zero on the excision boundary.
+  ! This is a diagnostic knob; it changes the solution and therefore injects a
+  ! constraint violation.  Validated only by the horizon-drift guard.
+  integer  :: puncture_lapse_mode = 0
+  ! 0 = phi=(1/12)ln det gamma (det gamma-tilde = 1)
+  ! 1 = phi=(1/4)ln(1+2H)    (standard Kerr-Schild, gamma-tilde -> delta)
+  integer  :: conformal_factor_mode = 0
 
   ! --- Time evolution ---
-  real(dp) :: cfl = 0.25_dp
+  real(dp) :: cfl = 0.005_dp
   integer  :: nsteps = 60
   integer  :: out_every = 10
+  integer  :: hz_every_par = 10
   real(dp) :: ko_eps = 0.2_dp   ! Kreiss-Oliger dissipation strength, typical 0.1-0.5
-  real(dp) :: r_excise = 1.5_dp ! excise inside this radius (horizon is at r=2M); frozen, not evolved
+  real(dp) :: r_excise = 1.0_dp ! keep the excision boundary well inside the Kerr horizon
+  logical  :: excision_sat = .false. ! requires a complete BSSN characteristic map
+  integer  :: excision_order = 2     ! bounded ghost extrapolation near the inner boundary
 
 contains
 
@@ -49,6 +91,7 @@ contains
 !==============================================================
   subroutine init_params(par_file)
     character(len=*), intent(in), optional :: par_file
+    real(dp) :: r_horizon
 
     if (present(par_file)) then
       call read_params(par_file)
@@ -67,11 +110,32 @@ contains
     call override_real("GR_STAR_X", star_center_x)
     call override_real("GR_STAR_Z", star_center_z)
     call override_real("GR_GAUGE_ETA", gauge_eta)
+    call override_real("GR_PUNCTURE_SIGN", puncture_sign)
+    call override_int("GR_GAMMA_DRIVER_MODE", gamma_driver_mode)
+    call override_int("GR_SLICING_MODE", slicing_mode)
+    call override_int("GR_PUNCTURE_LAPSE_MODE", puncture_lapse_mode)
+    call override_int("GR_CONFORMAL_FACTOR_MODE", conformal_factor_mode)
     call override_int("GR_NSTEPS", nsteps)
     call override_int("GR_OUT_EVERY", out_every)
+    call override_int("GR_HORIZON_EVERY", hz_every_par)
     call override_real("GR_CFL", cfl)
     call override_real("GR_KO_EPS", ko_eps)
     call override_real("GR_REXCISE", r_excise)
+    call override_logical("GR_EXCISION_SAT", excision_sat)
+    call override_int("GR_EXCISION_ORDER", excision_order)
+
+    if (bh_mass <= 0.0_dp) error stop 'Parameter error: bh_mass must be positive'
+    if (abs(bh_spin) >= bh_mass) error stop 'Parameter error: |bh_spin| must be smaller than bh_mass'
+    if (cfl <= 0.0_dp) error stop 'Parameter error: cfl must be positive'
+    if (nsteps < 0) error stop 'Parameter error: nsteps must be non-negative'
+    if (out_every <= 0) error stop 'Parameter error: out_every must be positive'
+    if (hz_every_par < 0) error stop 'Parameter error: hz_every must be non-negative'
+    if (r_excise <= 0.0_dp) error stop 'Parameter error: r_excise must be positive'
+    if (excision_order < 1 .or. excision_order > 4) then
+      error stop 'Parameter error: excision_order must be in [1,4]'
+    end if
+    r_horizon = bh_mass + sqrt(bh_mass**2 - bh_spin**2)
+    if (r_excise >= r_horizon) error stop 'Parameter error: r_excise must lie inside the Kerr outer horizon'
 
     dx = xmax / real(Nx - 1, dp)
     dz = 2.0_dp * zmax / real(Nz - 1, dp)
@@ -135,11 +199,22 @@ contains
         case ('star_center_x');  read(value, *, iostat=val_ios) star_center_x
         case ('star_center_z');  read(value, *, iostat=val_ios) star_center_z
         case ('gauge_eta');      read(value, *, iostat=val_ios) gauge_eta
+        case ('puncture_sign');  read(value, *, iostat=val_ios) puncture_sign
+        case ('gamma_driver_mode'); read(value, *, iostat=val_ios) gamma_driver_mode
+        case ('slicing_mode'); read(value, *, iostat=val_ios) slicing_mode
+        case ('puncture_lapse_mode'); read(value, *, iostat=val_ios) puncture_lapse_mode
+        case ('conformal_factor_mode'); read(value, *, iostat=val_ios) conformal_factor_mode
         case ('cfl');            read(value, *, iostat=val_ios) cfl
         case ('nsteps');         read(value, *, iostat=val_ios) nsteps
         case ('out_every');      read(value, *, iostat=val_ios) out_every
         case ('ko_eps');         read(value, *, iostat=val_ios) ko_eps
         case ('r_excise');       read(value, *, iostat=val_ios) r_excise
+        case ('excision_order'); read(value, *, iostat=val_ios) excision_order
+        case ('excision_sat');    read(value, *, iostat=val_ios) excision_sat
+        ! Both spellings accepted: parameter_files/vacuum_kerr.par says
+        ! 'hz_every', the compiled-in variable is hz_every_par.
+        case ('hz_every');       read(value, *, iostat=val_ios) hz_every_par
+        case ('hz_every_par');   read(value, *, iostat=val_ios) hz_every_par
         case default
           print *, 'Warning: unknown parameter "', trim(key), &
                    '" in ', trim(par_file), ' (ignored)'
@@ -201,5 +276,20 @@ contains
       end if
     end if
   end subroutine override_real
+
+  subroutine override_logical(env_name, var)
+    character(len=*), intent(in) :: env_name
+    logical, intent(inout) :: var
+    character(len=64) :: val_str
+    integer :: length, ios
+
+    call get_environment_variable(env_name, val_str, length)
+    if (length > 0) then
+      read(val_str, *, iostat=ios) var
+      if (ios /= 0) then
+        print *, 'Warning: could not parse ', trim(env_name), ' = ', trim(val_str)
+      end if
+    end if
+  end subroutine override_logical
 
 end module params_mod

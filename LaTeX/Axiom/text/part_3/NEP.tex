@@ -1,0 +1,1921 @@
+\chapter{NEP}
+
+\section{Preliminary plans}
+\subsection{Second week}
+\subsubsection{Goals for next week}
+We are currently working to establish what thruster type we will use. Likely our next steps will be propellant and creating design targets. I will assign
+\begin{itemize}
+  \item Find NASA resources to create target
+  \item Xeon(Hall, ion, RF)
+  \item Krypton(hall or ion)
+  \item Iodine(Hall, Ion)
+  \item Argon(MHD or RF)
+  \item Hydrogent(MHD, RF)
+  \item Research Rover
+  \item Research Atomic in Orbit
+  \item Research Atomic at Lagrangian
+\end{itemize}
+
+\subsubsection{Goal}
+Fly by, Rover, Atomic in Orbit, or Lagrandian
+
+This document compares four candidate mission architectures for an
+undergraduate nuclear-electric-propulsion (NEP) project centered on
+the design and computational evaluation of a Hall-effect thruster:
+(1) an atomic-clock spacecraft in Mars orbit, (2) an atomic-clock
+spacecraft near the Mars--Sun first Lagrange point, (3) a spacecraft
+performing a Mars flyby, and (4) a Mars rover mission.
+
+The comparison separates mission utility from propulsion-system
+suitability. These objectives overlap, but they are not equivalent.
+A mission may have substantial scientific value while imposing
+requirements that are poorly matched to the team's intended
+propulsion study. Conversely, a comparatively modest mission may
+provide a better engineering case if its trajectory, payload,
+power demand, and operational lifetime can be translated into
+well-defined thruster requirements.
+
+The central conclusion is conditional. A Mars-orbit atomic-clock
+mission has a strong connection to established concepts in deep-space
+radiometric navigation and Mars communications infrastructure.
+A clock near Mars--Sun L1 could provide different measurement
+geometry, but its advantage must be demonstrated using a specified
+navigation architecture rather than inferred from the Lagrange-point
+location alone. A flyby is attractive for a focused transfer and
+encounter study, whereas a rover mission offers an obvious surface
+exploration objective but introduces atmospheric entry, descent,
+landing, and surface-operation requirements that can obscure the
+propulsion question.
+
+No architecture can be declared the best Hall-thruster application
+without a quantitative mission model. The most defensible selection
+is the one for which the team can establish a traceable chain from
+mission objectives to spacecraft mass, trajectory, electrical power,
+propellant consumption, thrust, and thruster operating conditions.
+
+
+% ============================================================
+\paragraph{Scope, Assumptions, and Decision Criteria}
+% ============================================================
+
+\subparagraph{The actual decision}
+
+The decision is not simply which mission is ``most useful.'' Four
+distinct questions must be answered:
+
+\begin{enumerate}
+    \item \textbf{Mission utility:} What scientific, operational,
+    or infrastructure capability does the mission provide?
+
+    \item \textbf{Trajectory compatibility:} Does the mission
+    benefit from continuous low thrust, or can it be accomplished
+    more simply using conventional chemical propulsion?
+
+    \item \textbf{Thruster-design value:} Does the mission impose
+    sufficiently concrete requirements to guide channel geometry,
+    magnetic-field configuration, discharge power, propellant flow,
+    thermal management, and cathode integration?
+
+    \item \textbf{Undergraduate feasibility:} Can the group evaluate
+    the mission with accessible trajectory tools, published
+    reference data, and a defensible simulation hierarchy without
+    needing to solve every spacecraft subsystem?
+\end{enumerate}
+
+These questions should be scored separately before a final mission
+is selected. Otherwise, a mission may be chosen because it sounds
+scientifically compelling even though its requirements do not
+meaningfully constrain the thruster design.
+
+\subparagraph{Assumed propulsion architecture}
+
+The baseline assumption is a spacecraft using a Hall-effect
+thruster powered by an electric power system ultimately associated
+with a nuclear-electric-propulsion concept. The project focuses on
+the thruster and its interaction with the mission, rather than on
+designing a nuclear reactor.
+
+The relevant spacecraft-level variables include
+
+\begin{itemize}
+    \item initial wet mass, \(m_0\);
+    \item dry spacecraft mass, \(m_{\mathrm{dry}}\);
+    \item propellant mass, \(m_p\);
+    \item thruster electrical input power, \(P_{\mathrm{in}}\);
+    \item thrust, \(T\);
+    \item specific impulse, \(I_{\mathrm{sp}}\);
+    \item total thruster operating time, \(t_{\mathrm{on}}\);
+    \item required mission \(\Delta v\);
+    \item mission duration and operational lifetime;
+    \item payload power and spacecraft bus power;
+    \item propellant type and storage requirements.
+\end{itemize}
+
+The analysis assumes that the team is evaluating a plausible mission
+concept, not proposing a fully qualified flight system. A first-order
+trajectory and propulsion analysis is appropriate, provided its
+assumptions and limitations are explicit.
+
+\subparagraph{Performance relations}
+
+For an idealized electric thruster, the effective exhaust velocity is
+
+\[
+    v_e = g_0 I_{\mathrm{sp}},
+\]
+
+where \(g_0 \simeq 9.80665\ \mathrm{m\,s^{-2}}\).
+
+The thrust is related to propellant mass flow by
+
+\[
+    T = \dot{m}v_e
+      = \dot{m}g_0 I_{\mathrm{sp}},
+\]
+
+where \(\dot{m}\) is the propellant mass-flow rate. For a steady
+operating point, an idealized jet-power relation is
+
+\[
+    P_{\mathrm{jet}}
+    = \frac{1}{2}\dot{m}v_e^2
+    = \frac{T v_e}{2}.
+\]
+
+If the total thruster efficiency is \(\eta_t\), then
+
+\[
+    P_{\mathrm{in}}
+    \simeq \frac{P_{\mathrm{jet}}}{\eta_t},
+\]
+
+and therefore
+
+\[
+    T \simeq \frac{2\eta_t P_{\mathrm{in}}}{v_e}
+      = \frac{2\eta_t P_{\mathrm{in}}}
+             {g_0 I_{\mathrm{sp}}}.
+\]
+
+These equations are useful for preliminary sizing, but they do not
+replace a real Hall-thruster performance map. Efficiency, discharge
+voltage, mass utilization, divergence, cathode losses, magnetic
+configuration, and thermal constraints all affect the actual
+operating point.
+
+The rocket equation gives a useful first-order estimate of
+propellant requirements for a specified ideal velocity increment:
+
+\[
+    \Delta v
+    = v_e \ln\left(\frac{m_0}{m_f}\right),
+\]
+
+where \(m_f\) is the final mass after propellant expenditure. This
+equation is not, by itself, a trajectory solver. In particular, a
+low-thrust trajectory must account for the direction and duration of
+acceleration, changing spacecraft mass, planetary gravity, solar
+gravity, and mission boundary conditions.
+
+\subparagraph{What constitutes a good mission for this project?}
+
+The most useful mission is one that constrains the thruster rather
+than merely carrying it.
+
+For example, a mission duration of several years may make high
+specific impulse attractive because propellant mass is expensive.
+However, increasing specific impulse at fixed electrical power
+usually decreases thrust. A longer transfer may reduce the required
+propellant or improve payload fraction while simultaneously increasing
+the required spacecraft lifetime and total time spent operating the
+thruster.
+
+The mission therefore creates a trade between
+
+\[
+\text{propellant mass},\quad
+\text{electrical power},\quad
+\text{thrust},\quad
+\text{transfer time},\quad
+\text{spacecraft lifetime}.
+\]
+
+A strong mission concept makes these competing requirements
+quantifiable.
+
+% ============================================================
+\paragraph{Mission A: Atomic Clock in Mars Orbit}
+% ============================================================
+
+\subparagraph{Concept and potential purpose}
+
+The spacecraft enters a bound orbit around Mars and carries a
+high-stability atomic clock. Depending on the communications and
+navigation architecture, the spacecraft could support one or more
+of the following:
+
+\begin{itemize}
+    \item one-way radiometric tracking and spacecraft orbit
+    determination;
+    \item autonomous or partially autonomous navigation;
+    \item precision timing for a distributed Mars communications
+    or navigation system;
+    \item radio-science measurements and improved orbit knowledge;
+    \item timing and navigation experiments supporting future
+    Mars surface and orbital missions.
+\end{itemize}
+
+The clock is not, by itself, a navigation system. Its value depends
+on the signals measured, the stability of the clock, the spacecraft's
+orbit, the availability of external references, and the algorithms
+used to infer position and velocity.
+
+NASA's Deep Space Atomic Clock work explicitly examined one-way
+radiometric tracking, autonomous navigation concepts, Mars-orbiter
+orbit determination, and radio-science applications
+\cite{DSACNavigation}. This provides a direct technical precedent
+for an atomic-clock spacecraft in the Mars environment.
+
+\subparagraph{Arguments in favor}
+
+\textbf{A. The mission has a concrete operational context}
+
+A clock-equipped Mars orbiter can be connected to a recognizable
+operational need: accurately determining spacecraft position and
+time while operating far from Earth.
+
+Conventional deep-space tracking often relies on measurements
+involving signals transmitted from Earth and received or retransmitted
+by the spacecraft. Such tracking depends on ground assets, scheduling,
+signal geometry, communications links, and the ability to interpret
+the returned measurements.
+
+A sufficiently stable onboard clock can support one-way
+radiometric measurements. These can reduce dependence on a
+round-trip measurement architecture and may permit more flexible
+tracking and navigation operations. The potential benefit is not
+that the clock removes the need for tracking, but that it changes
+which measurements can be used and how often they can be collected.
+
+The technical advantage is therefore conditional on the complete
+measurement system. The clock must be sufficiently stable over the
+relevant measurement interval, and the radio system must provide
+measurements with suitable accuracy and geometry.
+
+For a student project, this is valuable because the scientific
+objective can be expressed in testable terms. For example:
+
+\begin{quote}
+Determine whether a specified onboard clock stability and
+one-way radio-tracking architecture can achieve a target orbit
+determination accuracy for a spacecraft in a specified Mars orbit.
+\end{quote}
+
+That question can be studied using published clock stability
+specifications, an orbital dynamics model, simulated radio
+measurements, and an orbit-estimation algorithm.
+
+\textbf{B. Mars already has an operational relay infrastructure}
+
+Mars exploration is not limited to isolated landers. Orbiters have
+served as communications relays between the Martian surface and
+Earth. NASA describes the Mars Relay Network as a collection of
+orbiters that transmit data from surface missions back to Earth
+\cite{MarsRelayNetwork}.
+
+This provides a plausible operational environment for studying
+how precise timing could complement existing Mars infrastructure.
+A clock-equipped spacecraft could potentially be designed as a
+new node in a broader system rather than as an entirely isolated
+scientific experiment.
+
+There is an important distinction, however, between a communications
+relay and a precision-navigation node. A spacecraft that forwards
+data does not automatically provide the timing stability,
+ranging capability, signal coverage, or orbit knowledge needed for
+navigation. The mission architecture must specify which role the
+clock-equipped spacecraft is expected to perform.
+
+A defensible concept might therefore define the spacecraft as
+a precision timing and navigation demonstrator that also supports
+communications, rather than assuming that the clock alone creates
+a complete Mars navigation service.
+
+\textbf{C. The orbit provides repeated access to the Mars environment}
+
+Unlike a flyby, a Mars orbiter can make repeated observations of
+the same planetary environment. It can remain available for multiple
+navigation experiments, repeated radio links, and comparisons
+between predicted and observed spacecraft states.
+
+This repeated access is useful for evaluating whether clock
+performance improves orbit estimates over time. It also provides
+a natural reason to consider long operational lifetimes, which may
+be relevant to an electric-propulsion spacecraft.
+
+The orbital design remains a major decision. A low Mars orbit,
+high Mars orbit, eccentric orbit, and polar orbit differ in
+coverage, orbital period, radiation environment, communications
+geometry, and station-keeping requirements. The best orbit depends
+on the mission's intended service, not simply on the fact that
+the spacecraft is near Mars.
+
+\textbf{D. The mission has a relatively clear connection to
+a Hall-thruster design}
+
+An orbital mission allows the team to connect propulsion decisions
+to a well-defined arrival condition. The spacecraft must depart
+Earth, travel to Mars, and enter or achieve the desired bound orbit.
+
+A low-thrust trajectory model can estimate the required thrust
+history and propellant consumption. Those results constrain
+the spacecraft's electrical power system and thruster operating
+point.
+
+The mission also creates a meaningful distinction between
+thruster operation during transfer and operation during the
+science phase. The thruster might be used primarily during
+interplanetary cruise, during orbit insertion, for orbit changes,
+or for some combination of these functions. The team should not
+assume that the thruster must remain continuously active after
+arrival.
+
+A useful engineering study would compare at least two cases:
+
+\begin{enumerate}
+    \item chemical or other conventional injection into the
+    desired Mars orbit, followed by electric-propulsion
+    station-keeping or orbit adjustment;
+    \item electric propulsion used for a substantial fraction
+    of the Earth-to-Mars transfer and, if required, arrival
+    orbit acquisition.
+\end{enumerate}
+
+This comparison determines whether the NEP system creates a
+meaningful mass or mission-duration advantage rather than simply
+adding complexity.
+
+\textbf{E. The mission can be scoped around a measurable
+navigation objective}
+
+A strong undergraduate project should define a baseline architecture
+and then evaluate one change at a time.
+
+For example, the team could compare a conventional tracking case
+against a case with a specified onboard clock and one-way
+radiometric tracking. Performance metrics could include
+
+\begin{itemize}
+    \item position and velocity estimation error;
+    \item sensitivity to clock frequency drift;
+    \item measurement availability;
+    \item dependence on ground-station tracking;
+    \item navigation performance under communication outages;
+    \item sensitivity to uncertainty in the spacecraft's initial state.
+\end{itemize}
+
+The group would not need to build or validate a real atomic clock.
+It would need to use defensible published clock specifications
+and model their effect on navigation measurements.
+
+\subparagraph{Arguments against}
+
+\textbf{A. One clock-equipped orbiter is not a Mars GPS system}
+
+The most important limitation is that a clock does not provide
+position by itself. Navigation requires measurements that constrain
+the spacecraft's state.
+
+An onboard clock can support timing and one-way radiometric
+tracking, but the achievable navigation accuracy depends on the
+measurement architecture, signal geometry, orbit model, clock
+noise, radio-system errors, and reference information.
+
+A single spacecraft also does not automatically provide a global
+positioning service to rovers or other orbiters. A Mars-local
+navigation network would require a defined architecture with
+appropriate signal sources, timing references, communications
+links, coverage, and orbit knowledge. Depending on the design,
+multiple spacecraft or additional ground and inter-spacecraft
+measurements may be necessary.
+
+Consequently, the claim that ``an atomic clock in Mars orbit will
+provide Mars GPS'' is too strong unless a specific system is
+designed and analyzed.
+
+A better claim is:
+
+\begin{quote}
+A clock-equipped Mars orbiter could demonstrate a component of
+a future Mars navigation architecture, provided that the
+measurement system and its navigation performance are specified.
+\end{quote}
+
+\textbf{B. The payload's benefit may not justify a dedicated
+spacecraft}
+
+The clock could potentially be hosted on an existing orbiter or
+included as a secondary payload. If so, a dedicated spacecraft
+may not be necessary to demonstrate the clock's scientific
+utility.
+
+This creates a challenge for the mission justification. The team
+must explain why a new NEP spacecraft is useful instead of placing
+the clock on an existing or otherwise planned platform.
+
+There are several possible answers: the mission could test a
+new orbit, demonstrate autonomous navigation, support a future
+network, or provide an independent measurement geometry. But each
+answer should be tied to an identifiable technical requirement.
+
+If the only objective is to demonstrate that an atomic clock
+can operate near Mars, the proposed mission may be unnecessarily
+ambitious. If the objective is to demonstrate an end-to-end
+navigation architecture with specific performance targets, the
+dedicated spacecraft has a stronger justification.
+
+\textbf{C. The trajectory may not require nuclear electric
+propulsion}
+
+An atomic-clock payload does not intrinsically require an electric
+thruster. A clock-equipped spacecraft could reach Mars using a
+chemical launch and transfer architecture, potentially with
+chemical orbit insertion.
+
+Whether NEP is advantageous depends on spacecraft mass, power,
+launch constraints, transfer duration, the desired Mars orbit,
+and the propellant mass saved by electric propulsion.
+
+The project must avoid circular reasoning: it should not assume
+that an NEP spacecraft is needed merely because the group wants
+to design an NEP thruster.
+
+A proper comparison would evaluate the same payload and mission
+requirements under at least two propulsion architectures. If
+NEP significantly improves payload fraction or enables a
+trajectory that the baseline cannot support, the propulsion
+case is stronger. If the benefit is small, the mission may still
+be useful for navigation research but weak as a justification
+for the thruster.
+
+\textbf{D. Orbit insertion and mission duration may dominate
+the design}
+
+A bound Mars orbit requires the spacecraft to arrive with a
+suitable velocity and energy. A low-thrust arrival architecture
+can be more complicated than simply adding a cruise \(\Delta v\)
+to a transfer estimate.
+
+The trajectory must account for the desired arrival orbit, the
+available thrust, planetary gravity, and the time at which thrust
+is applied. The feasibility of capture or orbit acquisition
+depends on the specific trajectory and propulsion design.
+
+For an undergraduate project, this creates a risk of spending
+most of the effort on trajectory optimization rather than on
+the Hall thruster itself. The group can manage this risk by
+selecting a reference orbit, using an established trajectory
+tool, and treating detailed orbit design as a bounded subsystem
+study.
+
+\textbf{E. The clock payload does not necessarily demand
+large propulsion capability}
+
+A small clock instrument may not create a particularly large
+spacecraft mass or power requirement. The required NEP system
+could therefore be driven more by transfer duration and spacecraft
+architecture than by the payload.
+
+This is not automatically a disadvantage. It does mean, however,
+that the team must not use the clock payload as a substitute
+for a mass and power budget for the project.
+
+The clock's actual electrical power, thermal control needs,
+radio equipment, antenna, data handling, attitude control, and
+spacecraft bus must be estimated separately. The thruster should
+then be sized around the complete spacecraft, not around the
+payload label.
+
+\subparagraph{Assessment}
+
+The Mars-orbit atomic-clock mission is strongest when defined as
+a precision navigation or timing demonstrator with a clear
+measurement objective. It is less convincing when defined only
+as ``put an atomic clock around Mars.''
+
+Its strongest advantages are the direct connection to Mars
+operations, an established technical precedent for clock-enabled
+deep-space navigation, repeated access to the Martian environment,
+and a reasonably clear path from trajectory requirements to
+thruster sizing.
+
+Its principal weaknesses are the need for a real navigation
+architecture, the possibility that an existing spacecraft could
+host the payload, and the fact that NEP must be justified
+independently of the clock's scientific value.
+
+% ============================================================
+\paragraph{Mission B: Atomic Clock near Mars--Sun L1}
+% ============================================================
+
+\subparagraph{Clarifying the location}
+
+In this section, ``L1'' means the first collinear Lagrange point
+of the Mars--Sun system, not the Earth--Sun L1 point and not
+a point in the Mars--spacecraft system.
+
+The idealized Mars--Sun L1 point lies approximately between Mars
+and the Sun. In a rotating three-body model, it is an equilibrium
+location in the frame rotating with the two massive bodies.
+It is not a location where all forces vanish in an inertial frame.
+
+A spacecraft would generally not be placed at a perfectly fixed
+point. A practical mission might use a bounded orbit near L1,
+with its actual trajectory and station-keeping needs determined
+by the dynamical model and mission requirements.
+
+The precise orbit matters. A mission described only as
+``at L1'' is not yet a complete trajectory specification.
+
+\subparagraph{Arguments in favor}
+
+\textbf{A. It provides a different geometric location for
+navigation measurements}
+
+The most defensible argument for the L1 architecture is that
+it can occupy a location different from a Mars orbiter. If the
+spacecraft is part of a distributed timing and navigation system,
+that separation may create measurement geometry that is unavailable
+from a Mars-centered orbit alone.
+
+For example, suppose a future network includes multiple Mars
+orbiters, surface assets, and spacecraft with known or estimated
+states. A clock-equipped spacecraft near Mars--Sun L1 could
+potentially provide an additional measurement node. Depending
+on the geometry and measurement types, this node might improve
+the conditioning of the navigation problem or help distinguish
+some state errors from others.
+
+However, spatial separation is not automatically useful. A
+measurement contributes most when it adds information that is
+not already supplied by other measurements. A second spacecraft
+with nearly redundant geometry may add less value than one
+positioned to resolve an existing ambiguity.
+
+The claim should therefore be tested through an estimation model.
+A suitable comparison would use the same navigation system with
+and without the L1 spacecraft, then compare the resulting
+state-estimation errors and robustness.
+
+\textbf{B. It creates a more distinctive research question}
+
+The L1 architecture can be intellectually attractive because it
+requires the group to consider the interaction between
+interplanetary dynamics and a distributed timing system.
+
+The project could examine how spacecraft position, clock stability,
+radio-link geometry, and orbit uncertainty influence navigation
+performance. It could also compare different bounded orbits near
+L1, subject to a clearly defined mission requirement.
+
+This is a stronger research question than merely asking whether
+an atomic clock can operate near Mars. It asks whether a specific
+spacecraft placement creates a measurable advantage in a larger
+system.
+
+For a technically ambitious group, this can lead to a useful
+systems-engineering study involving
+
+\begin{itemize}
+    \item three-body orbital dynamics;
+    \item trajectory design and station-keeping;
+    \item clock error and frequency stability;
+    \item radio-ranging or Doppler measurement models;
+    \item navigation observability and covariance analysis;
+    \item sensitivity to spacecraft orbit uncertainty.
+\end{itemize}
+
+The main value is the opportunity to formulate and test a
+nontrivial systems-level hypothesis. It is not evidence that
+the L1 architecture is inherently superior.
+
+\textbf{C. It may support a future distributed infrastructure
+architecture}
+
+A dedicated node near L1 could be considered as part of a future
+Mars communications, timing, or navigation infrastructure.
+Its usefulness would depend on what the rest of the system
+contains.
+
+For instance, the architecture might include multiple spacecraft
+with stable clocks, cross-links, radio ranging, known ephemerides,
+and a method for distributing time or navigation solutions to
+Mars orbiters and surface assets. Under such an architecture,
+the L1 node could contribute an additional reference or
+measurement path.
+
+This is a plausible concept, but it is a system-level proposition.
+It should not be confused with an immediate operational requirement
+for Mars exploration.
+
+The group would need to explain why the node belongs near L1
+rather than in Mars orbit, in a different solar orbit, or on
+another spacecraft already serving the network. The answer
+should follow from the geometry and performance analysis.
+
+\subparagraph{Arguments against}
+
+\textbf{A. L1 does not provide an intrinsic atomic-clock
+advantage}
+
+There is no general principle that an atomic clock becomes more
+accurate or useful merely because its spacecraft is near L1.
+
+The clock's frequency stability is determined by the clock
+technology, environmental conditions, and its implementation.
+The mission location affects the system through dynamics,
+communications, radiation, thermal conditions, and measurement
+geometry, but the location alone does not guarantee improved
+timing performance.
+
+The L1 architecture therefore needs an external justification:
+a navigation or timing task that benefits from the location.
+Without that task, the mission risks being a technically
+interesting placement exercise without a sufficiently clear
+operational purpose.
+
+\textbf{B. A single clock at L1 does not create a navigation
+network}
+
+The same limitation applies here as in Mars orbit, but it is
+particularly important for the L1 concept. A clock-equipped
+spacecraft near L1 does not automatically provide position
+fixes to Mars orbiters or rovers.
+
+A navigation service requires defined signals and measurements.
+Depending on the design, these might include one-way or
+two-way radio links, Doppler measurements, ranging, cross-links,
+known ephemerides, and clock synchronization or calibration.
+
+If the spacecraft does not communicate with other nodes in
+a way that improves their state estimates, its location near
+L1 has no operational navigation benefit.
+
+A convincing proposal must answer at least four questions:
+
+\begin{enumerate}
+    \item Which spacecraft or surface assets receive a benefit?
+    \item Which measurements does the L1 spacecraft provide?
+    \item What information does it add beyond existing nodes?
+    \item How much does that information improve a stated
+    navigation or timing metric?
+\end{enumerate}
+
+If these questions cannot be answered, the L1 mission is not
+yet justified as a navigation mission.
+
+\textbf{C. The dynamical environment introduces additional
+trajectory requirements}
+
+A practical L1 mission needs an actual reference trajectory,
+not just a nominal equilibrium point. The spacecraft may follow
+a bounded orbit around the point, and the trajectory can be
+sensitive to injection errors and perturbations.
+
+The exact station-keeping requirements depend on the chosen
+orbit, the dynamical model, the mission duration, and acceptable
+position error. They cannot be established merely by noting
+that L1 is a Lagrange point.
+
+The team must also define how the spacecraft reaches the
+operational orbit. A transfer from Earth to the vicinity of
+Mars--Sun L1 is not the same problem as a transfer to Mars
+orbit. The spacecraft may never need to enter a Mars-centered
+bound orbit, but it still needs to reach the target region
+with appropriate position and velocity.
+
+For the Hall-thruster project, the trajectory can become a
+substantial study in its own right. This may be desirable
+if the team wants to explore three-body dynamics and low-thrust
+control, but it creates scope risk if the primary deliverable
+is a thruster design.
+
+\textbf{D. It may be difficult to demonstrate a direct
+operational need}
+
+Mars orbiters already have clear roles in imaging, communications
+relay, atmospheric science, and other Mars operations. An L1
+clock spacecraft needs a similarly explicit function.
+
+If the mission's only proposed benefit is improved navigation,
+then the group should compare the L1 node with alternatives:
+another Mars orbiter, a surface timing node, a different
+interplanetary orbit, or an additional clock on an existing
+spacecraft.
+
+The L1 architecture becomes compelling only if it produces
+a meaningful advantage that these alternatives do not provide
+as effectively. Otherwise, it may be more complicated without
+being more useful.
+
+\textbf{E. The propulsion benefit is not guaranteed}
+
+The L1 location does not, by itself, imply that Hall propulsion
+will be better than conventional propulsion. The answer depends
+on the transfer trajectory, spacecraft mass, available power,
+flight time, and target-orbit requirements.
+
+A high-specific-impulse system can reduce propellant consumption,
+but its lower thrust at fixed power may increase transfer time.
+A station-keeping requirement may favor continuous or intermittent
+electric propulsion, but that must be demonstrated for the
+chosen trajectory.
+
+The project should not assume that an L1 mission is an especially
+good NEP application simply because it is unusual. It must
+show a quantitative benefit relative to a reasonable baseline.
+
+\subparagraph{Assessment}
+
+The L1 architecture has its strongest case as a research-oriented
+distributed-navigation concept. Its potential advantage is
+different measurement geometry and a possible role in a broader
+infrastructure system.
+
+Its weakness is that these advantages are conditional. Without
+a specified network, measurement model, bounded orbit, and
+quantitative performance comparison, ``L1'' is a location rather
+than a demonstrated mission requirement.
+
+For a project whose main goal is Hall-thruster design, the L1
+option should be selected only if the group is prepared to make
+the navigation and trajectory analysis part of the central
+research question.
+
+% ============================================================
+\paragraph{Mars Orbit versus Mars--Sun L1}
+% ============================================================
+
+\subparagraph{The fundamental difference}
+
+The Mars-orbit concept begins with a relatively direct operational
+context: a spacecraft operates in the Martian environment and
+may support navigation, timing, or communications services
+associated with Mars.
+
+The L1 concept begins with a different proposition: a spacecraft
+is placed at a distinct location in the Mars--Sun dynamical
+environment in order to create a potentially useful measurement
+or infrastructure node.
+
+The first has a clearer immediate application. The second has
+a more conditional systems-level argument.
+
+Neither location inherently produces better navigation. The
+relevant quantity is the information available to the navigation
+system after accounting for all measurements, errors, and
+uncertainties.
+
+\subparagraph{A quantitative way to compare them}
+
+Let the spacecraft state be represented by
+
+\[
+    \mathbf{x}
+    =
+    \begin{bmatrix}
+        \mathbf{r} \\
+        \mathbf{v} \\
+        b \\
+        d
+    \end{bmatrix},
+\]
+
+where \(\mathbf{r}\) is position, \(\mathbf{v}\) is velocity,
+\(b\) is clock bias, and \(d\) is clock drift. A measurement
+model can be written abstractly as
+
+\[
+    \mathbf{y}
+    =
+    h(\mathbf{x})+\boldsymbol{\epsilon},
+\]
+
+where \(h\) maps the state to predicted measurements and
+\(\boldsymbol{\epsilon}\) represents measurement error.
+
+The navigation value of an additional spacecraft depends on
+how its measurements constrain the unknown state. In a
+linearized estimation framework, the measurement sensitivity
+matrix is
+
+\[
+    H
+    =
+    \frac{\partial h}{\partial \mathbf{x}}.
+\]
+
+If the measurement-noise covariance is \(R\), a simplified
+information contribution is proportional to
+
+\[
+    \mathcal{I}
+    =
+    H^{\mathsf T}R^{-1}H.
+\]
+
+This expression is not a complete navigation solution. It
+illustrates the key point: a spacecraft is useful when its
+measurements add sufficiently independent information relative
+to the errors and information already present in the system.
+
+The comparison should therefore hold the clock assumptions,
+measurement types, radio-system assumptions, and estimator
+constant, then compare the navigation performance obtained
+from the two candidate locations.
+
+\subparagraph{Recommended comparison experiment}
+
+The team could formulate the following study:
+
+\begin{enumerate}
+    \item Define a baseline navigation network consisting of
+    a ground reference and a specified set of Mars orbiters.
+
+    \item Define a clock stability model and a radio measurement
+    model using published or explicitly assumed parameters.
+
+    \item Simulate the baseline navigation performance without
+    the proposed clock spacecraft.
+
+    \item Add the clock-equipped Mars orbiter and calculate the
+    resulting position and velocity estimation errors.
+
+    \item Repeat the experiment with a spacecraft on a specified
+    bounded orbit near Mars--Sun L1.
+
+    \item Compare accuracy, measurement availability, sensitivity
+    to clock drift, sensitivity to ephemeris error, and robustness
+    to measurement outages.
+
+    \item Perform a separate trajectory and propulsion analysis
+    for each architecture.
+\end{enumerate}
+
+The experiment must not assume that the two spacecraft provide
+identical measurements from different locations unless that is
+physically plausible. The measurement links, visibility, signal
+strength, and time dependence should follow from the geometry.
+
+\subparagraph{Decision}
+
+If the team wants the clearest mission justification and the
+most direct connection to established Mars operations, Mars
+orbit is the stronger baseline.
+
+If the team wants a more novel research problem and is prepared
+to investigate navigation geometry, three-body dynamics, and
+station-keeping, L1 is a defensible alternative.
+
+The L1 concept should not be selected solely because it sounds
+more advanced. It should be selected if a quantitative analysis
+shows that the location provides a useful capability that a
+Mars-orbit spacecraft does not provide as effectively.
+
+% ============================================================
+\paragraph{Mission C: Mars Flyby}
+% ============================================================
+
+\subparagraph{Concept and mission objective}
+
+In a Mars-flyby mission, the spacecraft approaches Mars, performs
+a close or distant encounter, and then continues along an
+outbound trajectory. It does not enter a long-term bound Mars
+orbit and does not land.
+
+A flyby could carry a scientific payload, perform a technology
+demonstration, collect measurements during the encounter, or
+use Mars as a gravity-assist body to alter its heliocentric
+trajectory. These are different mission concepts and should
+not be treated as interchangeable.
+
+A scientific flyby needs a defined encounter objective. A
+gravity-assist mission needs a defined post-encounter trajectory.
+A mission that combines both should identify the primary
+objective and show how the other supports it.
+
+NASA's descriptions of gravity-assist trajectories explain how
+a planetary encounter can change a spacecraft's heliocentric
+velocity by exchanging orbital energy and angular momentum
+with the planet \cite{NASATrajectories}. A flyby does not
+provide unlimited propulsion: the useful change depends on
+the encounter geometry and the planet's motion.
+
+\subparagraph{Arguments in favor}
+
+\textbf{A. The mission avoids the requirement to enter
+a long-term Mars orbit}
+
+A flyby does not require the spacecraft to remain bound to
+Mars after the encounter. This can simplify the mission
+relative to an architecture requiring Mars orbit insertion,
+long-term orbit maintenance, or a surface landing.
+
+The spacecraft must still reach the required encounter state.
+The arrival position, velocity, closest-approach altitude,
+and outbound state are constrained by the desired mission.
+However, the spacecraft does not have to satisfy the additional
+requirement of remaining in a selected Mars orbit.
+
+For a preliminary study, this provides a relatively clean
+mission boundary condition: deliver the spacecraft to a
+specified Mars encounter, then determine the resulting trajectory.
+
+This is attractive for an undergraduate group because the
+team can focus on the relationship between transfer trajectory,
+thruster performance, and total propellant use without designing
+a full Mars-orbit operations system.
+
+\textbf{B. A flyby provides a clear trajectory-analysis problem}
+
+A flyby naturally lends itself to a comparison between
+propulsion architectures. The team can estimate the transfer
+requirements, calculate a feasible encounter geometry, and
+compare a chemical baseline against a low-thrust trajectory.
+
+The required analysis may include
+
+\begin{itemize}
+    \item launch and departure conditions;
+    \item heliocentric transfer trajectory;
+    \item thrust magnitude and pointing history;
+    \item Mars-relative hyperbolic excess velocity;
+    \item closest-approach distance and encounter time;
+    \item outbound trajectory and final mission conditions.
+\end{itemize}
+
+The flyby can therefore provide a focused way to investigate
+whether the selected Hall thruster can deliver the required
+integrated velocity change within the available mission time.
+
+\textbf{C. A gravity assist may reduce the propulsion
+burden of a larger mission}
+
+If the spacecraft uses Mars as a gravity-assist body, the
+planet can redirect the trajectory and alter the spacecraft's
+heliocentric energy. Under suitable geometry, this may reduce
+the propulsion needed to reach a later destination or achieve
+a desired outbound state.
+
+This can make a flyby useful as part of a larger interplanetary
+mission, particularly when the propulsion system has limited
+available power or when propellant mass is a major constraint.
+
+The benefit must be assessed against the trajectory that would
+be used without the gravity assist. It is not enough to claim
+that Mars supplies free \(\Delta v\). The flyby changes the
+spacecraft's velocity relative to the Sun through a gravitational
+encounter with a moving planet; the result depends on the
+incoming asymptote, encounter geometry, and outgoing asymptote.
+
+A flyby can also be combined with electric propulsion. For
+example, the thruster may shape the approach and departure
+trajectory, while Mars provides an additional gravity-driven
+change in heliocentric velocity. Whether this is advantageous
+depends on the mission's actual boundary conditions.
+
+\textbf{D. The mission can be used to test a propulsion
+system over a finite operating campaign}
+
+A flyby mission may be designed around a finite cruise and
+encounter phase rather than a long period of Mars-local
+operations. That can be useful if the project aims to study
+thruster operating life, accumulated discharge time, or
+propellant consumption during a single transfer.
+
+The thruster requirements remain mission-dependent. A short
+mission with a tight arrival-time constraint may favor higher
+thrust, while a longer mission with relaxed timing may allow
+lower thrust and higher specific impulse. The team should
+calculate this trade rather than assuming that a flyby is
+automatically easier for electric propulsion.
+
+\textbf{E. The payload can be kept simple}
+
+A flyby can carry a relatively compact instrument or technology
+demonstrator. If the main objective is propulsion validation,
+the payload may be represented as a specified mass and power
+budget.
+
+This allows the team to isolate the propulsion design from
+a large surface system, relay network, or long-term orbital
+operations architecture. A simplified payload also reduces
+the number of spacecraft subsystems that must be estimated.
+
+\subparagraph{Arguments against}
+
+\textbf{A. A flyby may not create a compelling need for NEP}
+
+The absence of a Mars-orbit insertion requirement does not
+automatically make a flyby a good electric-propulsion mission.
+
+A conventional chemical trajectory may already accomplish
+the flyby with acceptable mass and duration. If the mission
+has a relatively modest velocity requirement, a high-power
+NEP system may add complexity without a proportionate benefit.
+
+The group must compare the required launch mass, propellant,
+power system, trajectory duration, and arrival conditions
+against a credible baseline.
+
+A flyby is a useful project when the analysis shows a meaningful
+advantage for electric propulsion or when the primary objective
+is to demonstrate low-thrust trajectory design. It is weaker
+when the mission could be completed more simply by a conventional
+architecture and no further benefit is established.
+
+\textbf{B. The encounter is a time- and geometry-constrained
+event}
+
+Unlike an orbiter, a flyby spacecraft has a limited interval
+during which it is near Mars. If the science objective depends
+on a close encounter, the trajectory must meet the required
+closest-approach conditions.
+
+Errors in arrival state can change the encounter geometry,
+measurement opportunity, and outbound trajectory. The group
+must define acceptable error margins and account for navigation
+and maneuver requirements.
+
+A flyby also creates a one-time operational window. There is
+no opportunity to repeat the encounter simply by waiting for
+the next orbit. A second encounter would require a new trajectory
+or a different mission design.
+
+This can make the mission operationally simple after the
+encounter but demanding in the approach phase.
+
+\textbf{C. The spacecraft does not provide sustained
+Mars-local infrastructure}
+
+A flyby spacecraft cannot serve as a persistent Mars navigation
+node or routine communications relay after it departs. It may
+collect useful data during the encounter, but its continued
+availability near Mars is limited.
+
+That is a major disadvantage if the intended purpose of the
+atomic clock is to support Mars operations over years. The
+clock might demonstrate one-way tracking or contribute to
+a technology experiment, but it would not be available as
+a long-term Mars-local timing reference.
+
+The flyby architecture is therefore poorly matched to a mission
+whose main value depends on repeated coverage, sustained
+communications, or long-term orbit determination at Mars.
+
+\textbf{D. A gravity assist is not a guaranteed propulsion
+substitute}
+
+The value of a gravity assist depends on the planetary encounter.
+A flyby can increase or decrease heliocentric energy, depending
+on the geometry. It cannot provide an arbitrary change in
+velocity while preserving any desired outgoing trajectory.
+
+The team must solve for the required incoming and outgoing
+states. A gravity-assist trajectory that is excellent for one
+destination may be unsuitable for another.
+
+Furthermore, a low-thrust spacecraft may spend considerable
+time and propellant shaping the encounter trajectory. The
+gravity assist must be evaluated as part of the complete
+trajectory, not as a standalone source of free performance.
+
+\textbf{E. A flyby can be less informative for long-duration
+thruster operations}
+
+A flyby may be suitable for studying integrated propellant
+consumption and finite-duration thruster performance. It is
+less directly suited to a project whose objective is to assess
+years of operation, repeated starts, long-term erosion, or
+the integration of the propulsion system with a persistent
+Mars-orbit service.
+
+These effects can still be studied using a flyby mission,
+but the connection is less direct. If the group wants to
+evaluate long operational lifetime, a long-duration orbital
+or infrastructure mission may provide a clearer requirements
+basis.
+
+\subparagraph{Assessment}
+
+A Mars flyby is the cleanest of these options for a focused
+trajectory and encounter study. It avoids long-term Mars-orbit
+operations and surface landing, and it gives the team a clear
+set of encounter conditions to target.
+
+Its primary weakness is that it offers little sustained Mars-local
+utility. It is also not automatically a strong NEP application:
+the mission must demonstrate that electric propulsion provides
+a meaningful benefit over a conventional baseline.
+
+The flyby is most appropriate if the group prioritizes a bounded
+propulsion and trajectory problem rather than a persistent
+Mars navigation or communications capability.
+
+% ============================================================
+\paragraph{Mission D: Mars Rover}
+% ============================================================
+
+\subparagraph{Concept and mission objective}
+
+A Mars rover mission delivers a mobile surface platform to
+Mars to conduct geological, environmental, astrobiological,
+or other surface investigations. The rover may carry scientific
+instruments, communications equipment, autonomous navigation
+systems, and power systems needed for surface operation.
+
+The rover is an obvious mission concept because its scientific
+purpose is easy to explain. A rover can travel to a selected
+region, investigate local terrain, and return data through
+Mars orbiters or a direct-to-Earth communications link.
+
+However, a rover mission is a coupled transportation and
+surface-system problem. It requires not only interplanetary
+transport but also a viable Mars arrival and landing architecture.
+
+\subparagraph{Arguments in favor}
+
+\textbf{A. The scientific and operational objective is concrete}
+
+A rover has a direct, understandable purpose: reach a specified
+location and perform surface science or exploration.
+
+That gives the project a useful basis for a payload mass budget,
+mission duration, surface power estimate, and communications
+requirement. The team can specify a particular science region
+or surface task rather than just a general spacecraft destination.
+
+A concrete payload also makes it easier to define the spacecraft
+configuration. The rover, landing system, cruise stage, and
+communications equipment each contribute mass and operational
+requirements.
+
+For mission-level propulsion sizing, this can produce a meaningful
+payload-driven problem: the propulsion system must transport
+the complete vehicle, including the hardware needed to land
+and operate on Mars.
+
+\textbf{B. Electric propulsion may reduce the mass of
+the interplanetary transportation stage}
+
+For a sufficiently long transfer, high-specific-impulse
+electric propulsion may reduce the propellant required for
+interplanetary transportation relative to a chemical system
+with comparable mission constraints.
+
+If propellant mass is reduced, some of the saved mass may
+be available for the rover, scientific instruments, landing
+hardware, or power system. The actual result depends on the
+spacecraft architecture, the available electrical power, the
+transfer duration, and the required arrival conditions.
+
+This is an important distinction: electric propulsion does
+not automatically increase payload mass. The power system
+has its own mass, and lower thrust can lengthen the transfer.
+The correct comparison must include the entire propulsion
+and power subsystem rather than just the propellant tank.
+
+A useful design question is whether a nuclear-electric
+transport stage can deliver a specified rover and landing
+system to Mars with a better payload fraction, lower total
+mass, or improved mission flexibility than the selected
+baseline architecture.
+
+\textbf{C. The rover creates a real mass and power budget}
+
+Unlike a purely abstract payload, a rover has identifiable
+subsystems. The mission analysis can assign masses to the
+rover chassis, wheels, instruments, onboard computing,
+communications equipment, thermal control, and surface power.
+
+The landing system adds a separate mass contribution. Depending
+on the architecture, it may include an aeroshell, thermal
+protection, parachute, propulsion for terminal descent, landing
+legs, or other hardware.
+
+These contributions make the total spacecraft mass more
+meaningful and can constrain the propulsion design.
+
+The group should distinguish between
+
+\[
+m_{\mathrm{spacecraft}}
+=
+m_{\mathrm{cruise}}
++
+m_{\mathrm{rover}}
++
+m_{\mathrm{landing}}
++
+m_{\mathrm{payload}}
++
+m_{\mathrm{propellant}},
+\]
+
+where the exact categories must be defined to avoid double-counting.
+The equation is a bookkeeping framework, not a substitute for
+a detailed mass budget.
+
+\textbf{D. The mission offers a clear case for relay communications}
+
+Mars surface assets often rely on orbiters to relay substantial
+amounts of data to Earth. NASA describes the Mars Relay Network
+as an important part of the communications architecture for
+surface missions \cite{MarsRelayNetwork}.
+
+A rover mission can therefore be paired with a broader
+communications or navigation concept. For example, the rover
+might benefit from an orbital network that provides command
+and telemetry relay, and a future navigation system could
+potentially improve knowledge of spacecraft or rover states.
+
+An atomic clock could be studied as a separate component of
+that system, but it should not be assumed that the rover itself
+requires a dedicated clock-equipped spacecraft. The group
+would need to identify the specific measurement or operational
+benefit.
+
+\textbf{E. It has substantial engineering depth}
+
+A rover mission provides opportunities to study interactions
+between propulsion, spacecraft power, payload mass, thermal
+control, and landing architecture.
+
+For an undergraduate team, this can be an advantage if the
+goal is a multidisciplinary spacecraft design project. The
+project could include a top-level mass budget, an interplanetary
+trajectory, a propulsion trade, and a preliminary system
+architecture.
+
+It also creates a clear division of responsibilities. One
+subgroup can develop the Hall thruster and its operating map,
+another can estimate the transfer trajectory, and another
+can establish the rover and landing-system mass budget.
+
+This division is only useful if the interfaces are defined
+early. Otherwise, each subsystem may evolve around incompatible
+assumptions.
+
+\subparagraph{Arguments against}
+
+\textbf{A. Atmospheric entry, descent, and landing are
+separate major engineering problems}
+
+The most important drawback is that a rover must survive
+arrival at Mars and reach the surface safely. This introduces
+a mission phase that is not solved by the interplanetary
+propulsion system.
+
+The landing system must manage entry heating, aerodynamic
+loads, descent dynamics, and terminal landing conditions.
+The detailed architecture depends on rover mass, landing
+site elevation, atmospheric assumptions, terrain, and
+acceptable risk.
+
+An electric thruster used during interplanetary cruise does
+not automatically solve these problems. The team should not
+conflate a low-thrust transfer trajectory with the atmospheric
+entry and landing design.
+
+If the main project deliverable is a Hall thruster, designing
+a rover and its full landing system could consume substantial
+effort without improving the thruster model. The landing
+system should therefore be treated as a defined payload
+mass and interface unless entry and landing are explicitly
+part of the project.
+
+\textbf{B. The rover's surface power system is not the
+same as the spacecraft's electric-propulsion power system}
+
+A rover needs power after landing. A Hall thruster requires
+substantial electrical power during operation, along with
+power-processing equipment and associated thermal management.
+
+These requirements occur in different mission phases. The
+interplanetary spacecraft may use a nuclear-electric power
+system, while the rover may use a separate surface power
+architecture. The team must decide whether the nuclear power
+system is used only for transport, remains with the lander,
+or powers a larger integrated architecture.
+
+Each choice changes the mass budget and mission design.
+For example, carrying a large power system through landing
+may introduce additional mass and complexity, while separating
+the cruise stage from the landed system changes the spacecraft
+interfaces and operational concept.
+
+The group should not simply add a rover payload to a Hall
+thruster and assume that the complete vehicle is a consistent
+design.
+
+\textbf{C. The mission may become a landing-system project
+rather than a thruster project}
+
+A rover is a compelling exploration platform, but its
+requirements may be dominated by surface mobility, scientific
+instruments, thermal survival, landing risk, and communications.
+
+If the team tries to design all these elements in detail,
+the Hall-thruster study may become a relatively small part
+of the overall work. This is a scope-management problem,
+not a scientific argument against rover missions.
+
+A reasonable boundary is to define the rover and landing
+system through a reference mass, power requirement, and
+interface specification. The propulsion team can then
+evaluate the transfer stage required to deliver that payload.
+
+\textbf{D. The rover does not inherently require an
+atomic clock}
+
+A rover mission may benefit from accurate timing and navigation,
+but the presence of a rover does not establish the need for
+a dedicated atomic-clock spacecraft.
+
+The navigation architecture could rely on orbiters, ground
+tracking, onboard sensors, local mapping, and other techniques.
+Whether a precision clock adds useful capability depends on
+the task and the measurement architecture.
+
+If the mission includes an atomic clock, the proposal should
+explain whether it supports interplanetary navigation, Mars-orbit
+navigation, rover localization, or a broader network. These
+are distinct functions and require different performance
+analyses.
+
+A clock-equipped Mars orbiter might be a useful addition
+to a rover-support architecture, but it should be justified
+as a separate subsystem rather than treated as an automatic
+consequence of selecting a rover.
+
+\textbf{E. The mass benefit of NEP must be evaluated across
+the complete vehicle}
+
+A rover mission can make high specific impulse attractive
+because the payload and landing system may be substantial.
+However, the power system and electric-propulsion hardware
+also contribute mass.
+
+A fair comparison should include at least
+
+\begin{itemize}
+    \item thruster and power-processing-unit mass;
+    \item nuclear-electric power-system mass;
+    \item propellant and tank mass;
+    \item structural and thermal mass;
+    \item cruise-stage mass;
+    \item rover and scientific payload mass;
+    \item landing-system mass;
+    \item any additional hardware needed for the selected
+    transfer and arrival architecture.
+\end{itemize}
+
+The result may favor NEP, chemical propulsion, or a hybrid
+architecture. The answer depends on the mission and cannot
+be inferred from specific impulse alone.
+
+\subsection{Assessment}
+
+A rover is the strongest candidate if the group's central
+objective is an exploration mission with a concrete surface
+payload. It offers a clear science case and a meaningful
+spacecraft mass budget.
+
+It is less suitable if the goal is to isolate Hall-thruster
+design and computational validation. The landing system and
+surface operations create a large set of requirements that
+must either be handled explicitly or bounded as external
+interfaces.
+
+For a propulsion-focused project, the rover should be treated
+as a payload-delivery mission. The team should avoid expanding
+the scope to include full rover, entry, descent, landing,
+and surface-power design unless those are explicit project
+deliverables.
+
+% ============================================================
+\paragraph{Cross-Mission Comparison}
+% ============================================================
+
+\subparagraph{Qualitative comparison}
+
+The following table is a qualitative engineering assessment.
+It is not a numerical ranking derived from a trajectory simulation.
+The terms ``high'' and ``low'' refer to the relative clarity
+or complexity of the mission concept for the stated project.
+
+\begin{longtable}{
+    p{0.17\textwidth}
+    p{0.19\textwidth}
+    p{0.19\textwidth}
+    p{0.19\textwidth}
+    p{0.19\textwidth}
+}
+\toprule
+\textbf{Criterion}
+& \textbf{Mars-orbit clock}
+& \textbf{L1 clock}
+& \textbf{Mars flyby}
+& \textbf{Mars rover}
+\\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Criterion}
+& \textbf{Mars-orbit clock}
+& \textbf{L1 clock}
+& \textbf{Mars flyby}
+& \textbf{Mars rover}
+\\
+\midrule
+\endhead
+
+Immediate mission purpose
+& Strong if tied to navigation or timing
+& Conditional on a defined network role
+& Strong if a specific encounter or science objective is selected
+& Strong and easy to communicate
+\\
+
+Connection to existing Mars operations
+& Direct
+& Indirect unless integrated into a network
+& Limited after the encounter
+& Direct through surface exploration and relay
+\\
+
+Trajectory complexity
+& Moderate to high; depends on arrival orbit
+& High; target-region dynamics and bounded orbit must be specified
+& Moderate to high; encounter conditions are critical
+& High when the complete arrival and landing architecture is included
+\\
+
+Need for long-term Mars operations
+& Yes, if the clock is intended as a persistent Mars node
+& No Mars orbit is required, but sustained operations may still be intended
+& No
+& Yes, for surface exploration
+\\
+
+Navigation-system research potential
+& Strong and directly motivated
+& Potentially strong but conditional
+& Limited for persistent Mars navigation
+& Depends on whether navigation is a central payload objective
+\\
+
+Landing-system complexity
+& None
+& None
+& None
+& Major additional subsystem
+\\
+
+Scope risk for a thruster project
+& Moderate
+& High if navigation and three-body dynamics become dominant
+& Low to moderate for a bounded flyby study
+& High if landing and surface systems are included
+\\
+
+Clarity of NEP justification
+& Must be shown with trajectory and mass comparison
+& Must be shown with trajectory and mass comparison
+& Must be shown; chemical baseline may be competitive
+& Potentially strong for a large payload, but system mass must be counted
+\\
+
+Best project emphasis
+& Navigation and propulsion co-design
+& Distributed navigation and three-body dynamics
+& Low-thrust trajectory and encounter design
+& Payload delivery and multidisciplinary systems engineering
+\\
+\bottomrule
+\end{longtable}
+
+\subparagraph{The four missions answer different questions}
+
+The missions should not be ranked as if they were interchangeable
+payloads on the same trajectory.
+
+The Mars-orbit clock asks whether an onboard clock and a
+Mars-based spacecraft can improve navigation or timing in
+the Martian environment.
+
+The L1 clock asks whether a spacecraft near a different
+dynamical location can contribute useful information to a
+distributed navigation or timing system.
+
+The flyby asks whether the propulsion system can meet a
+finite-duration interplanetary encounter requirement, possibly
+including a useful gravity assist.
+
+The rover asks whether the propulsion and transportation
+architecture can deliver a comparatively complex surface
+payload while meeting the required arrival and landing
+conditions.
+
+The preferred mission depends on which of these questions
+the group actually wants to answer.
+
+% ============================================================
+\paragraph{Recommended Quantitative Evaluation}
+% ============================================================
+
+\subparagraph{Step 1: Define the mission requirements}
+
+Before selecting a thruster operating point, establish the
+requirements that all four architectures must satisfy or
+explicitly identify which requirements differ.
+
+At minimum, specify
+
+\begin{itemize}
+    \item launch date or launch-window assumptions;
+    \item initial spacecraft mass and payload mass;
+    \item destination or encounter conditions;
+    \item allowable transfer duration;
+    \item required operational lifetime;
+    \item available electrical power;
+    \item arrival or encounter velocity constraints;
+    \item communication and navigation objectives;
+    \item propellant and thermal constraints.
+\end{itemize}
+
+A mission concept without these parameters cannot support a
+defensible thruster selection. If exact values are not yet
+available, use a documented range and conduct sensitivity
+analysis.
+
+\subparagraph{Step 2: Build a baseline mass budget}
+
+For each mission, separate the payload, spacecraft bus,
+power system, propulsion system, and propellant. Avoid
+double-counting the cruise stage or landing system.
+
+A useful initial accounting identity is
+
+\[
+m_0 =
+m_{\mathrm{payload}}
++
+m_{\mathrm{bus}}
++
+m_{\mathrm{power}}
++
+m_{\mathrm{thruster}}
++
+m_{\mathrm{PPU}}
++
+m_{\mathrm{tank}}
++
+m_p
++
+m_{\mathrm{other}},
+\]
+
+where \(m_{\mathrm{other}}\) represents any additional
+subsystems not listed separately. The definition of each
+term must be consistent across the comparison.
+
+For the rover case, the rover and landing system should be
+represented separately. For the clock missions, the clock,
+radio hardware, and any communications or navigation equipment
+should be included in the payload or bus budget.
+
+The team should avoid assigning a highly precise value to
+a subsystem before the architecture is defined. Early mass
+budgets should use credible estimates and uncertainty ranges.
+
+\subparagraph{Step 3: Compute first-order propulsion requirements}
+
+For a chosen specific impulse and efficiency, estimate the
+thrust available at the selected electrical power:
+
+\[
+T \simeq
+\frac{2\eta_t P_{\mathrm{in}}}
+     {g_0 I_{\mathrm{sp}}}.
+\]
+
+The corresponding mass-flow rate is
+
+\[
+\dot{m} =
+\frac{T}{g_0 I_{\mathrm{sp}}}.
+\]
+
+The approximate propellant consumed during a period of
+continuous operation is
+
+\[
+m_p \simeq \dot{m}t_{\mathrm{on}}.
+\]
+
+This last expression is only a first-order estimate when
+the operating point is fixed. A trajectory with variable
+thrust, variable power, or changing specific impulse requires
+integration over time:
+
+\[
+m_p =
+\int_{t_0}^{t_f} \dot{m}(t)\,dt.
+\]
+
+The group should calculate several operating points rather
+than select a single arbitrary value. A useful trade study
+would vary specific impulse, power, and efficiency, then
+determine which combinations are compatible with the
+trajectory and lifetime requirements.
+
+\subparagraph{Step 4: Model the trajectory at an appropriate fidelity}
+
+A first-order impulsive transfer estimate can help establish
+whether a mission is plausible, but a Hall-thruster mission
+ultimately requires low-thrust trajectory analysis.
+
+The trajectory model should include the relevant gravitational
+environment, spacecraft mass variation, thrust magnitude,
+thrust direction, and mission boundary conditions.
+
+For Mars orbit, the arrival condition should specify the
+target orbit or a defined orbit-insertion objective.
+
+For L1, the target should be a specified bounded orbit or
+other explicitly defined operational trajectory near the
+Mars--Sun L1 region.
+
+For a flyby, the model should specify encounter time,
+closest-approach distance, incoming and outgoing states,
+and any post-encounter objective.
+
+For a rover, the transfer should deliver the defined lander
+and rover mass to the required Mars arrival state. The entry,
+descent, and landing system can remain outside the detailed
+thruster model if its mass and interface requirements are
+explicitly represented.
+
+\subparagraph{Step 5: Compare against a credible alternative}
+
+Each mission should be evaluated against a baseline that
+does not assume the proposed thruster is automatically
+the best option.
+
+Possible comparisons include
+
+\begin{itemize}
+    \item chemical transfer versus electric transfer;
+    \item chemical orbit insertion versus electric orbit acquisition;
+    \item electric propulsion with different power levels;
+    \item different specific-impulse operating points;
+    \item different mission durations;
+    \item different payload masses;
+    \item for the clock concepts, Mars orbit versus L1 using
+    the same navigation-performance assumptions.
+\end{itemize}
+
+The team should compare complete system outcomes, including
+power-system mass and transfer time, rather than compare
+only propellant mass or specific impulse.
+
+\subparagraph{Step 6: Tie the mission to the thruster design}
+
+Once the mission operating envelope is defined, it can
+inform the thruster's preliminary design.
+
+Relevant design variables include
+
+\begin{itemize}
+    \item discharge voltage and current;
+    \item channel inner and outer radii;
+    \item channel length;
+    \item magnetic-field topology and field strength;
+    \item propellant injection and distribution;
+    \item cathode placement and coupling;
+    \item thermal loads and material limits;
+    \item expected operating duration and erosion exposure.
+\end{itemize}
+
+These variables should not be selected independently of the
+required operating point. For example, the mission-level
+power and thrust target may constrain the discharge power,
+while the chosen propellant and desired specific impulse
+influence the voltage and mass-flow regime.
+
+A simulation of the entire thruster should be treated as a
+separate validation hierarchy. A spacecraft trajectory model
+does not validate the plasma physics, and a plasma simulation
+does not establish mission feasibility by itself.
+
+A defensible workflow is
+
+\[
+\text{mission requirements}
+\rightarrow
+\text{trajectory}
+\rightarrow
+\text{thruster operating point}
+\rightarrow
+\text{thruster geometry and physics}
+\rightarrow
+\text{performance validation}.
+\]
+
+The chain must also be iterated in the reverse direction:
+if the thruster cannot deliver the assumed performance,
+the trajectory and mission mass budget must be updated.
+
+% ============================================================
+\paragraph{Final Recommendation}
+% ============================================================
+
+\subparagraph{If the priority is a clear mission justification}
+
+Choose the \textbf{atomic clock in Mars orbit} as the baseline
+concept, provided that the mission is defined as a navigation
+or timing demonstrator rather than merely as a clock placed
+near Mars.
+
+It has a direct operational context, an identifiable relationship
+to deep-space navigation research, and a straightforward
+way to define a bounded mission architecture. The team can
+compare conventional and electric-propulsion transfer options,
+then assess whether the resulting spacecraft can meet the
+required orbit and operational lifetime.
+
+The principal unresolved question is whether a dedicated
+NEP spacecraft offers enough advantage over hosting the
+clock on another platform. That question should be addressed
+through the mass, power, and trajectory comparison.
+
+\subparagraph{If the priority is a more novel navigation study}
+
+Choose the \textbf{Mars--Sun L1 clock} only if the group is
+willing to investigate the distributed navigation system
+in detail.
+
+The proposal should identify the other nodes, the measurements
+made by the L1 spacecraft, the target bounded orbit, and the
+metric by which the new node improves system performance.
+The analysis should compare the L1 architecture against
+a Mars-orbit alternative using consistent clock and radio
+assumptions.
+
+Without that analysis, L1 is a less defensible choice because
+the location itself does not establish a useful navigation
+service.
+
+\subparagraph{If the priority is a focused trajectory project}
+
+Choose the \textbf{Mars flyby} if the primary deliverable is
+a well-bounded low-thrust trajectory and encounter study.
+
+It avoids landing-system design and long-term Mars-orbit
+operations. It can support a clear comparison between
+propulsion architectures, but the team must show that the
+electric-propulsion option provides a meaningful benefit
+for the chosen encounter and post-encounter objective.
+
+\subparagraph{If the priority is an exploration mission}
+
+Choose the \textbf{Mars rover} if the group wants a
+multidisciplinary payload-delivery mission with an obvious
+scientific purpose.
+
+For a thruster-focused project, however, define the rover
+and landing system as an externally specified payload and
+interface. Do not allow full entry, descent, landing, and
+surface-system design to dominate the propulsion work unless
+those subjects are part of the intended scope.
+
+\subparagraph{Overall conclusion}
+
+For a group whose main deliverable is the design and
+computational evaluation of a Hall thruster, the recommended
+starting point is a Mars-orbit atomic-clock mission with a
+clearly stated navigation objective. It offers a useful
+balance between mission relevance, technical specificity,
+and manageable scope.
+
+The L1 clock is a stronger choice only if a distributed
+navigation analysis can demonstrate a measurable benefit
+from its location. The flyby is the cleanest alternative
+for a propulsion-and-trajectory-focused study. The rover
+is the strongest surface-exploration concept, but it carries
+the greatest risk of expanding the project beyond thruster
+design.
+
+The final choice should be made only after a preliminary
+mass budget and trajectory comparison. In particular, the
+team should establish whether NEP improves payload fraction,
+transfer feasibility, or mission flexibility relative to
+a credible alternative. That result, rather than the
+apparent sophistication of the destination, should determine
+which mission becomes the baseline.
+
+% ============================================================
+\begin{thebibliography}{9}
+
+\bibitem{DSACNavigation}
+A. S. Ely et al.,
+\textit{Advancing Navigation, Timing, and Science with the
+Deep Space Atomic Clock},
+NASA Technical Reports Server, 2016.
+\url{https://ntrs.nasa.gov/citations/20160008206}
+
+\bibitem{DSACParadigm}
+\textit{The Deep Space Atomic Clock: Ushering in a New Paradigm
+for Radio Navigation and Science},
+NASA Technical Reports Server.
+\url{https://ntrs.nasa.gov/citations/20150007332}
+
+\bibitem{MarsRelayNetwork}
+NASA Science,
+\textit{Mars Relay Network}.
+\url{https://science.nasa.gov/mars/mars-relay-network/}
+
+\bibitem{NASATrajectories}
+NASA Science,
+\textit{Basics of Space Flight: Trajectories}.
+\url{https://science.nasa.gov/learn/basics-of-space-flight/chapter4-1/}
+
+\bibitem{MarsRelayTechnical}
+NASA Technical Reports Server,
+\textit{A Martian Telecommunications Network: UHF Relay Support
+of the Mars Exploration Rovers by the Mars Global Surveyor,
+Mars Odyssey, and Mars Express Orbiters}.
+\url{https://ntrs.nasa.gov/search.jsp?R=20070023754}
+
+\bibitem{DSACOnboard}
+NASA Technical Reports Server,
+\textit{Preliminary Investigation of Onboard Orbit Determination
+Using Deep Space Atomic Clock Based Radio Tracking}.
+\url{https://ntrs.nasa.gov/citations/20190025513}
+
+\end{thebibliography}
+
+
+
+\textbf{Outline of plan}
+\begin{enumerate}
+  \item Find parameters
+  \item Baseline operating point(discharge voltage, flow rate, etc)
+  \item Find secondary performance via calculations
+  \item Design vague physical architecture
+  \item Optimize for size of channel and magnetic circut
+  \item Design propellant delivery
+  \item Simulate and further optimize
+  \item Integrate models
+  \item Write report
+\end{enumerate}
+
+
+\section{Design}
+
+
+\section{Optimization}
+
+
+
+\section{Teachings}
+
+\subsection{Numerics}
+
+\textbf{Preliminary Workshop}
+
+I didn't use this for planning but I will probably write notes on how it went and next steps.
+
+\textbf{CFL/finite Difference}
+
+Didn't use this for planning but may not evaluation and next steps
+
+\textbf{*MHD}
+
+
+\subsection{Plasma Physics}
+
+
+\textbf{First Go}
+
+\begin{itemize}
+  \item What is plasma
+  \item Lorentz Force
+  \item Parameters
+  \item Types of representation's
+  \item MHD in more detail
+  \item How plasma Produces Thrust
+  \item Plasma in relation to our Thruster
+\end{itemize}
