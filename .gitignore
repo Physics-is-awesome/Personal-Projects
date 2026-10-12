@@ -175,7 +175,7 @@ cython_debug/
 .pdf
 .mod
 .obj
-
+.mp4
 
 # PyPI configuration file
 .pypirc
