@@ -160,6 +160,8 @@ program test_eq_schwarzschild_data
        error stop 'Schwarzschild K disagrees with independent spherical anchor'
   if (abs(measured_beta-expected_beta)>1.0e-5_dp) &
        error stop 'Schwarzschild shift disagrees with areal-coordinate anchor'
+  if (legacy_b_rhs<1.0e-6_dp .or. stationary_b_rhs>=0.1_dp*legacy_b_rhs) &
+       error stop 'non-advective Gamma-driver did not reduce the stationary B residual'
   if (hmx>5.0e-2_dp .or. hrms>1.0e-2_dp .or. mrad>5.0e-2_dp .or. &
       mphi>5.0e-2_dp .or. my>5.0e-2_dp) error stop 'Schwarzschild constraint gate failed'
   write(*,'(A)') 'PASS: nonzero Schwarzschild anchor and full constraint-vector checks.'

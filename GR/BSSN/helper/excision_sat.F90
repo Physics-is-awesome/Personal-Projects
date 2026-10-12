@@ -26,9 +26,12 @@ module excision_sat_mod
   !                data that must be damped at the excision boundary.
   !   lambda < 0 : travels into the excised interior  -> harmless.
   !
-  ! This is the same convention as excision_characteristic_check(), which
-  ! flags speed = -beta_n + alpha*sqrt(2 gamma_nn) >= 0 at the inner ring.
-  logical, parameter, public :: exact_excision_characteristics = .true.
+  ! excision_characteristic_check() reports only the lapse-gauge family.  The
+  ! SAT below applies three reduced 3x3 blocks to the second-order BSSN state;
+  ! the production RHS has no complete first-order principal symbol or full
+  ! characteristic transform.  This penalty is experimental and is NOT an
+  ! exact characteristic boundary treatment for the production system.
+  logical, parameter, public :: exact_excision_characteristics = .false.
 
   public :: apply_legacy_excision_sat
   public :: apply_characteristic_sat

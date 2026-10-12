@@ -1,7 +1,7 @@
 module excision_mod
 
   use kinds_mod,  only: dp
-  use params_mod, only: Nx, Nz, r_excise, dx, bh_spin, excision_order
+  use params_mod, only: Nx, Nz, r_excise, dx, bh_spin, excision_order, slicing_mode
   use grid_mod,   only: xg, zg
   use vars_mod,   only: NVARS, IPHI, IGXX, IGXY, IGXZ, IGYY, IGYZ, IGZZ, &
                         IALPHA, IBETAX, IBETAZ
@@ -129,9 +129,10 @@ contains
     real(dp), intent(out) :: max_speed
     integer, intent(out) :: n_bad
     integer :: i,k
-    real(dp) :: phi, alpha, beta_n, gamma_nn, speed, r
+    real(dp) :: phi, alpha, beta_n, gamma_nn, speed
     real(dp) :: gxx, gxy, gxz, gyy, gyz, gzz, det
     real(dp) :: gi11, gi12, gi13, gi22, gi23, gi33, normal_x, normal_z
+    real(dp) :: rho2, a2, disc, grad_norm, grad_qx, grad_qz
 
     max_speed = -huge(1.0_dp)
     n_bad = 0
@@ -139,10 +140,19 @@ contains
       do i = 2, Nx-1
         if (is_excised(i,k)) cycle
         if (kerr_radius_squared(xg(i),zg(k)) > (r_excise+2.0_dp*max(dx,abs(zg(2)-zg(1))))**2) cycle
-        r = sqrt(xg(i)**2 + zg(k)**2)
-        if (r <= 0.0_dp) cycle
-        normal_x = xg(i)/r
-        normal_z = zg(k)/r
+        ! The excision surface is r_Kerr(x,z)=constant, not a coordinate
+        ! sphere.  Use the Euclidean unit covector normal grad(r_Kerr^2) /
+        ! |grad(r_Kerr^2)| when contracting beta^i and gamma^{ij}.
+        rho2 = xg(i)**2 + zg(k)**2
+        a2 = bh_spin*bh_spin
+        disc = sqrt((rho2-a2)**2 + 4.0_dp*a2*zg(k)**2)
+        if (disc <= tiny(1.0_dp)) cycle
+        grad_qx = xg(i)*(1.0_dp + (rho2-a2)/disc)
+        grad_qz = zg(k)*(1.0_dp + (rho2+a2)/disc)
+        grad_norm = sqrt(grad_qx*grad_qx + grad_qz*grad_qz)
+        if (grad_norm <= tiny(1.0_dp)) cycle
+        normal_x = grad_qx/grad_norm
+        normal_z = grad_qz/grad_norm
         phi = u(i,k,IPHI)
         alpha = u(i,k,IALPHA)
         beta_n = u(i,k,IBETAX)*normal_x + u(i,k,IBETAZ)*normal_z
@@ -160,7 +170,18 @@ contains
         gamma_nn = exp(-4.0_dp*phi) * (gi11*normal_x*normal_x + &
           2.0_dp*gi13*normal_x*normal_z + gi33*normal_z*normal_z)
         if (gamma_nn <= 0.0_dp) cycle
-        speed = -beta_n + alpha*sqrt(2.0_dp*gamma_nn)
+        ! Bona-Masso lapse speed is alpha*sqrt(f*gamma^{nn}).  The
+        ! production 1+log slicing has f=2/alpha; maximal slicing has
+        ! f=1/alpha.  Mode 2 freezes the lapse, so it has no propagating
+        ! lapse-gauge characteristic to include in this check.
+        select case(slicing_mode)
+        case(1)
+          speed = -beta_n + sqrt(alpha*gamma_nn)
+        case(2)
+          speed = -beta_n
+        case default
+          speed = -beta_n + sqrt(2.0_dp*alpha*gamma_nn)
+        end select
         max_speed = max(max_speed, speed)
         if (speed >= 0.0_dp) n_bad = n_bad + 1
       end do

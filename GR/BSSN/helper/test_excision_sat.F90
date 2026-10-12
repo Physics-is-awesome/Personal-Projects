@@ -18,8 +18,10 @@ program test_excision_sat
   if (abs(rhs(1)-2.0_dp) > 1.0e-14_dp) error stop 'incoming SAT mismatch'
   if (maxval(abs(rhs(2:3))) > 1.0e-14_dp) error stop 'outgoing SAT was applied'
 
-  ! 2. Check that exact characteristic flag is now enabled
-  if (.not. exact_excision_characteristics) error stop 'characteristic SAT unexpectedly disabled'
+  ! 2. The available Kerr penalty is a reduced experimental SAT.  It must
+  ! never be presented as a complete characteristic treatment of production
+  ! second-order BSSN.
+  if (exact_excision_characteristics) error stop 'reduced SAT falsely marked exact'
 
   ! 3. Check inert behavior when enabled = .false.
   call init_params('missing-excision-sat.par')
@@ -29,7 +31,8 @@ program test_excision_sat
   call apply_legacy_excision_sat(u, legacy_rhs, dx, .false.)
   if (maxval(abs(legacy_rhs)) > 1.0e-14_dp) error stop 'legacy SAT is not inert when enabled=.false.'
 
-  ! 4. Active behaviour when enabled = .true.
+  ! 4. Smoke-check the opt-in reduced penalty when enabled = .true.; this is
+  ! not a validation of the missing full production characteristic map.
   !
   !    Which variable to perturb follows from the published characteristic
   !    fields (Brown et al. PRD 85 084004, Sec. III.C):

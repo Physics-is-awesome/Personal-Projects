@@ -7,7 +7,7 @@ from pptx.dml.color import RGBColor
 
 path = input("Insert path here")
 # Convert PDF pages to images
-pages = convert_from_path(path, dpi=200)
+pages = convert_from_path(path, dpi=600)
 
 # Create PowerPoint
 prs = Presentation()
@@ -28,5 +28,5 @@ for page in pages:
         height=prs.slide_height
     )
 
-prs.save("velocity.pptx")
+prs.save("LaTeX.pptx")
 print("Done → velocity.pptx")

@@ -114,7 +114,7 @@ program main
   call extrapolate_excised(u)
   call excision_characteristic_check(u, char_speed, n_char_bad)
   print '(A,ES12.4,A,I0)', " Initial max inner characteristic speed=", char_speed, &
-    "  noncausal points=", n_char_bad
+    "  incoming lapse-gauge points=", n_char_bad
 
   allocate(Hgrid(Nx,Nz))
   allocate(Mgrid(Nx,Nz,3))
@@ -212,7 +212,7 @@ program main
     call excision_characteristic_check(u, char_speed, n_char_bad)
     if (n_char_bad > 0 .and. mod(n, max(1,out_every)) == 0) then
       print '(A,I0,A,ES12.4,A,I0)', " WARNING step ", n, &
-        ": inner boundary has incoming characteristic modes; max speed=", char_speed, &
+        ": inner boundary has incoming lapse-gauge modes; max speed=", char_speed, &
         " points=", n_char_bad
     end if
     t = t + dt
