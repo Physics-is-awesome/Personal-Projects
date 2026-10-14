@@ -243,8 +243,10 @@ contains
     call horizon_adm_from_state(st, IPHI, IK, ICONFMET, IATILDE, 1, 1)
 
     s = hh
+    ok = .true.
     s%coef = (1.0_dp - eps)*hh%coef
     th_in = expansion(s, 0.5_dp, ok)
+    ok = .true.
     s%coef = (1.0_dp + eps)*hh%coef
     th_out = expansion(s, 0.5_dp, ok)
     write(*,'(A,ES12.4,A,ES12.4)') ' T4  Theta at (1-eps)h = ', th_in, &

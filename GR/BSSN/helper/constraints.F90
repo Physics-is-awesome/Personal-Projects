@@ -19,48 +19,89 @@ contains
 
   ! ---------------------------------------------------------------------------
   ! ---------------------------------------------------------------------------
-  ! Conformal (BSSN) momentum constraint, Brown et al.,
-  !   "Numerical simulations with a first order BSSN formulation of Einstein's
-  !    field equations", Phys. Rev. D 85, 084004 (2012), arXiv:1202.1038,
-  ! eq. (2.19b) of that paper:
+  ! Vacuum momentum constraint, in ADM form.
   !
-  !   Mtilde^i = Dtilde_j Atilde^{ij} + 6 Atilde^{ij} d_j phi
-  !              - (2/3) Dtilde^i K  =  0
+  !     M^i = D_j S^{ij} = 0 ,     S^{ij} = K^{ij} - gamma^{ij} K .
   !
-  ! with Dtilde the connection built from gamma-tilde, Atilde = e^{-4phi} K_ij
-  ! - (1/3) gamma-tilde_ij K, and Ktilde^{ij} = gamma-tilde^{ik} gamma-tilde^{jl}
-  ! Atilde_kl.  Note there are NO Gammabar / gamma_kk algebra terms in this
-  ! form -- they are already absorbed, which is why the earlier hand-derived
-  ! attempts (see git history) could not be made to converge on exact data.
+  ! Expressed in the stored BSSN variables via the exact relation for this
+  ! code's convention (gamma-tilde_ij = e^{-4phi} gamma_ij, det(gamma-tilde)=1):
   !
-  ! The same paper's Hamiltonian constraint (eq. 2.19a) is what
-  ! hamiltonian_constraint() below evaluates; its Ricci^phi contraction gives
-  ! -8 Dtilde^i Dtilde_i phi - 8 Dtilde^i phi Dtilde_i phi, matching the
-  ! Rphi term built in geometry_mod.
+  !     K_ij   = e^{4phi} ( Atilde_ij + (1/3) gamma-tilde_ij K )
+  !     K^{ij} = e^{-4phi} ( Atilde^{ij} + (1/3) gamma-tilde^{ij} K )
+  !  =>  S^{ij} = e^{-4phi} ( Atilde^{ij} - (2/3) gamma-tilde^{ij} K )
+  !
+  ! and the covariant derivative uses the PHYSICAL connection
+  !     Gamma^k_{ij} = gamma^{km} (1/2)( d_i gamma_{mj} + d_j gamma_{mi}
+  !                                    - d_m gamma_{ij} ) ,
+  !     d_m gamma_ij = 4 d_m phi gamma_ij + e^{4phi} d_m gamma-tilde_ij .
+  !
+  ! Differentiating S^{ij} = e^{-4phi} Q^{ij} once, with
+  ! Q^{ij} = Atilde^{ij} - (2/3) gamma-tilde^{ij} K, gives
+  !
+  !   d_j S^{ij} = e^{-4phi} [ d_j Atilde^{ij}
+  !                          - (2/3) K d_j gamma-tilde^{ij}
+  !                          - (2/3) gamma-tilde^{ij} d_j K
+  !                          - 4 d_j phi Atilde^{ij}
+  !                          + (8/3) d_j phi gamma-tilde^{ij} K ]
+  !
+  ! which are exactly the five derivative pieces returned below.
+  !
+  ! HISTORY / WARNING
+  !   The previous implementation evaluated
+  !       Dtilde_j Atilde^{ij} + 6 Atilde^{ij} d_j phi - (2/3) gamma-tilde^{ij} d_j K
+  !   with the CONFORMAL connection, cited as Brown et al. 2012 eq. (2.19b).
+  !   That expression is NOT equal to the ADM momentum constraint under this
+  !   code's det(gamma-tilde) = 1 convention.  Measured against an independent
+  !   ADM evaluation of the same state it disagreed by far more than the
+  !   discretisation error, and the gap did NOT shrink under refinement --
+  !   an algebraic identity failure, not a truncation error.  See
+  !   baseline/MOMENTUM_FINDINGS.md.
+  !
+  !   Do not reintroduce coefficients here from memory of the literature.  The
+  !   pieces below follow from the derivation above and are the ones verified
+  !   against exact Kerr-Schild data.
+  !
+  ! This routine is DIAGNOSTIC ONLY.  It is called by the driver for reporting
+  ! and by tests/diagnostics; nothing in the evolution RHS reads it.
   !
   ! Range: i in [2, Nx-1], k in [2, Nz-1] (one layer of derivatives needed).
   ! ---------------------------------------------------------------------------
-  subroutine momentum_constraint(u, Mout)
+  subroutine momentum_constraint(u, Mout, Mterms)
     real(dp), intent(in)  :: u(:,:,:)
     real(dp), intent(out) :: Mout(:,:,:)
+    ! Optional diagnostic decomposition, last index (each summed over j):
+    !   1 = e^{-4phi} d_j Atilde^{ij}
+    !   2 = -(2/3) e^{-4phi} K d_j gamma-tilde^{ij}
+    !   3 = -(2/3) e^{-4phi} gamma-tilde^{ij} d_j K
+    !   4 = -4 e^{-4phi} d_j phi Atilde^{ij}
+    !   5 = +(8/3) e^{-4phi} d_j phi gamma-tilde^{ij} K
+    !   6 = Gamma^i_{jk} S^{kj}      (physical connection)
+    !   7 = Gamma^j_{jk} S^{ik}      (physical connection)
+    real(dp), intent(out), optional :: Mterms(:,:,:,:)
     integer, parameter :: IA(6) = [1,1,1,2,2,3]
     integer, parameter :: IB(6) = [1,2,3,2,3,3]
     type(stencil_t) :: S
     type(conformal_geometry_t) :: G
-    real(dp) :: gt(3,3), gtinv(3,3), det, Ktr
+    real(dp) :: gt(3,3), gtinv(3,3), det, Ktr, phi, e4, e4m
     real(dp) :: Ab(3,3), dAb(3,3,3), Abup(3,3), dAbup(3,3,3)
     real(dp) :: dgt(3,3,3), dgtinv(3,3,3), dphi(3), dKtr(3)
+    real(dp) :: Qmat(3,3), Smat(3,3)
+    real(dp) :: dgamma(3,3,3), Gp(3,3,3)
     real(dp) :: t1(NVARS), t2(NVARS), t3(NVARS), tx(NVARS)
-    real(dp) :: acc, q
-    integer :: i, k, j, a, b, c, d, dir, iv
+    real(dp) :: acc, q, pieces(7)
+    integer :: i, k, jf, j2, a, b, c, d, m, dir, iv
 
     Mout = 0.0_dp
+    if (present(Mterms)) Mterms = 0.0_dp
     do k = 2, Nz - 1
       do i = 2, Nx - 1
         call compute_stencil(u, i, k, excision_status, S)
         call compute_conformal_geometry(S, G)
         gt = G%gt
         call sym3_inverse(gt, gtinv, det)
+        phi = u(i,k,IPHI)
+        e4  = exp(4.0_dp*phi)
+        e4m = 1.0_dp/e4
         Ktr = u(i,k,IK)
 
         t1 = S%d1x;  t2 = S%d1y;  t3 = S%d1z
@@ -126,27 +167,57 @@ contains
           end do
         end do
 
-        ! ---- Mtilde^i = Dtilde_j Atilde^{ij} + 6 Atilde^{ij} d_j phi
-        !              - (2/3) gamma-tilde^{ij} d_j K
-        !
-        ! with j and m summed, i free.  G%Gam(k,i,j) = Gtilde^k_{ij}.
-        do j = 1, 3                      ! here j plays the role of free index i
-          acc = 0.0_dp
-          do dir = 1, 3                  ! dir = j (summed)
-            ! d_j Atilde^{ij}
-            acc = acc + dAbup(dir,dir,j)
-            ! Gtilde^i_{jm} Atilde^{mj}   (m summed over a)
-            do a = 1, 3
-              acc = acc + G%Gam(j,dir,a)*Abup(a,dir)
-              ! Gtilde^m_{jm} Atilde^{ij}  (m summed over a)
-              acc = acc + G%Gam(a,dir,a)*Abup(dir,j)
-            end do
-            ! + 6 Atilde^{ij} d_j phi
-            acc = acc + 6.0_dp*Abup(dir,j)*dphi(dir)
-            ! - (2/3) gamma-tilde^{ij} d_j K
-            acc = acc - (2.0_dp/3.0_dp)*gtinv(dir,j)*dKtr(dir)
+        ! ---- Q^{ij} = Atilde^{ij} - (2/3) gamma-tilde^{ij} K
+        !      S^{ij} = e^{-4phi} Q^{ij}
+        do a = 1, 3
+          do b = 1, 3
+            Qmat(a,b) = Abup(a,b) - (2.0_dp/3.0_dp)*gtinv(a,b)*Ktr
+            Smat(a,b) = e4m*Qmat(a,b)
           end do
-          Mout(i,k,j) = acc
+        end do
+
+        ! ---- physical connection from d_m gamma_ij
+        do dir = 1, 3
+          do a = 1, 3
+            do b = 1, 3
+               dgamma(dir,a,b) = 4.0_dp*dphi(dir)*gt(a,b) + e4*dgt(dir,a,b)
+            end do
+          end do
+        end do
+        do a = 1, 3
+          do b = 1, 3
+            do c = 1, 3
+               ! Gamma^a_{bc} = e^{-4phi} gamma-tilde^{am}
+               !                  (1/2)( d_b gamma_{mc} + d_c gamma_{mb}
+               !                         - d_m gamma_{bc} )
+               acc = 0.0_dp
+               do m = 1, 3
+                  acc = acc + gtinv(a,m)*0.5_dp*( dgamma(b,m,c) &
+                                               + dgamma(c,m,b)   &
+                                               - dgamma(m,b,c) )
+               end do
+               Gp(a,b,c) = e4m*acc
+            end do
+          end do
+        end do
+
+        ! ---- assemble  M^i = d_j S^{ij} + Gamma^i_{jk} S^{kj}
+        !                              + Gamma^j_{jk} S^{ik}
+        do jf = 1, 3                     ! free index i
+          pieces = 0.0_dp
+          do j2 = 1, 3                  ! summed index j
+            pieces(1) = pieces(1) + e4m*dAbup(j2,jf,j2)
+            pieces(2) = pieces(2) -(2.0_dp/3.0_dp)*e4m*Ktr*dgtinv(j2,jf,j2)
+            pieces(3) = pieces(3) -(2.0_dp/3.0_dp)*e4m*gtinv(j2,jf)*dKtr(j2)
+            pieces(4) = pieces(4) -4.0_dp*e4m*dphi(j2)*Abup(j2,jf)
+            pieces(5) = pieces(5) +(8.0_dp/3.0_dp)*e4m*dphi(j2)*gtinv(j2,jf)*Ktr
+            do m = 1, 3
+              pieces(6) = pieces(6) + Gp(jf,j2,m)*Smat(m,j2)
+              pieces(7) = pieces(7) + Gp(j2,j2,m)*Smat(jf,m)
+            end do
+          end do
+          Mout(i,k,jf) = sum(pieces)
+          if (present(Mterms)) Mterms(i,k,jf,:) = pieces
         end do
       end do
     end do

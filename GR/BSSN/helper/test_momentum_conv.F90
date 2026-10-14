@@ -7,8 +7,12 @@
 ! analytically and any residual is pure truncation error.  A flat (order ~0)
 ! result means the constraint expression is wrong, not under-resolved.
 !
-! Formulation: Brown et al., Phys. Rev. D 85, 084004 (2012), arXiv:1202.1038,
-! eq. (2.19b).
+! Formulation: the ADM form  M^i = D_j(K^{ij} - gamma^{ij}K), rewritten in the
+! stored BSSN variables as S^{ij} = e^{-4phi}(Atilde^{ij} - (2/3)gtilde^{ij}K)
+! contracted with the PHYSICAL connection.  The previous implementation used a
+! conformal-connection form cited as Brown et al. 2012 eq. (2.19b) which is NOT
+! equivalent under this code's det(gtilde)=1 convention; see
+! baseline/MOMENTUM_FINDINGS.md.
 !
 ! Usage: test_momentum_conv [parfile] [rin] [rout] [refinements]
 !===============================================================================
@@ -28,7 +32,7 @@ program test_momentum_conv
   real(dp), allocatable :: mmax(:), mrms(:)
   character(len=256) :: par_file, buf
   real(dp) :: rin, rout
-  integer :: nx0, nz0, nref, ir, i, k
+  integer :: nx0, nz0, nref, ir, i, k, nfail
   real(dp) :: mx, rms, npts, rr
 
   par_file = 'parameter_files/vacuum_kerr.par'
@@ -99,7 +103,28 @@ program test_momentum_conv
            log(mrms(ir-1)/mrms(ir))/log(2.0_dp)
     end if
   end do
+
+  ! ---------------------------------------------------------------------------
+  ! REAL GATE.  This test used to print an observed order and then always
+  ! succeed, so it happily "passed" while momentum_constraint implemented the
+  ! wrong expression (see baseline/MOMENTUM_FINDINGS.md).  Require the RMS
+  ! residual to actually decrease under 2x refinement: for exact Kerr-Schild
+  ! data the constraint vanishes analytically, so a residual that does not
+  ! fall is a formulation error, not under-resolution.
+  ! ---------------------------------------------------------------------------
+  nfail = 0
+  do ir = 2, nref
+     if (.not. (mrms(ir) < mrms(ir-1))) then
+        write(*,'(A,I0,A,I0)') &
+             'FAIL: rms|M| did not decrease from ref ', ir-1, ' to ref ', ir
+        nfail = nfail + 1
+     end if
+  end do
+  if (nfail == 0) then
+     write(*,'(A)') 'PASS: rms|M| decreases monotonically under refinement'
+  end if
   write(*,'(A)') '============================================================'
+  if (nfail > 0) error stop 'test_momentum_conv: momentum residual is not converging'
 
 contains
 end program test_momentum_conv

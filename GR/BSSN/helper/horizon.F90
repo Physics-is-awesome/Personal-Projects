@@ -299,7 +299,7 @@ contains
     type(horizon_t), intent(in)    :: hh
     real(hdp),       intent(in)    :: rho, z
     real(hdp),       intent(out)   :: wx, wz, s(3), dens, gi(6), k(6)
-    logical,         intent(inout) :: ok
+    logical,         intent(inout) :: ok   ! caller seeds this .true.; sticky
     real(hdp) :: g(6), det, zp, r, mu, h, hmu, fr, fz, nn2, nn
     wx = 0; wz = 0; s = 0; dens = 1; gi = 0
     call interp_metric(rho, z, g, k, ok)
@@ -333,15 +333,20 @@ contains
   !-----------------------------------------------------------------------------
   ! Outgoing null expansion Theta at the surface point with polar cosine mu:
   !   Theta = div(s) - K + K_ij s^i s^j        (div via 4th-order FD of W^a)
+  ! NOTE: `ok` is a pure OUTPUT.  This routine sets it to .true. on success and
+  ! .false. on every failure path.  It used to be intent(inout) and only ever
+  ! wrote .false., which made the result depend on the caller's incoming value;
+  ! callers that failed to pre-initialise `ok` silently read garbage.
   function expansion(hh, mu, ok) result(theta)
     type(horizon_t), intent(in)    :: hh
     real(hdp),       intent(in)    :: mu
-    logical,         intent(inout) :: ok
+    logical,         intent(out)   :: ok
     real(hdp) :: theta
     real(hdp) :: h, hmu, rho, z, eps, wx(-2:2), wz(-2:2), dum1, dum2, ddum
     real(hdp) :: s(3), dens, gi(6), k(6), sd(3), gd(6), kd(6)
     real(hdp) :: dwx, dwz, div, ktr, kss
     integer :: m
+    ok = .true.
     call surf_h(hh, mu, h, hmu)
     if (h <= 0.0_hdp) then
        ok = .false.; theta = 1.0e30_hdp; return
@@ -416,8 +421,13 @@ contains
     real(hdp),       intent(out)   :: f(:)
     logical,         intent(inout) :: ok
     integer :: k
+    logical :: ok1
     do k = 1, size(mu)
-       f(k) = expansion(hh, mu(k), ok)
+       ! expansion() now RESETS ok each call, so accumulate explicitly:
+       ! a failure at any collocation point must survive later successes.
+       ok1 = ok
+       f(k) = expansion(hh, mu(k), ok1)
+       if (.not. ok1) ok = .false.
     end do
   end subroutine residual
 

@@ -41,6 +41,14 @@ program main
   real(dp) :: hz_vals(OUT_NHZ)   ! found, area, m_irr, J, m_H, r_min, r_max -> output_mod
   real(dp) :: hz_ref = 0.0_dp, hz_drift_tol = 0.0_dp, drift
   logical :: hz_abort_drift = .true.
+  ! DIAGNOSTIC PROBE (default off).  The excision fill is
+  !   u = background + one-sided-polynomial extrapolation of (u - background)
+  ! and set_excision_background() is otherwise called ONCE before the time
+  ! loop, so the interior stays pinned to the t=0 data while the exterior
+  ! evolves.  Setting GR_REFRESH_BG=1 re-anchors the background every step so
+  ! the A/B difference isolates how much the stale anchor contributes.  See
+  ! baseline/INNER_BOUNDARY_FINDINGS.md.
+  logical :: refresh_bg = .false.
   logical :: hz_eqsym
   ! Vacuum run: metric-only output
   ! Horizon switch is read BEFORE output_init so the hz_* columns can be created.
@@ -90,6 +98,16 @@ program main
   print '(A,F6.3,A,F6.3)', " BH mass M=", bh_mass, "   spin a=", bh_spin
   r_horizon = bh_mass + sqrt(max(bh_mass**2 - bh_spin**2, 0.0_dp))
   hz_drift_tol = 0.01_dp*max(r_horizon, 1.0_dp)
+  call get_environment_variable("GR_REFRESH_BG", buf, status=envstat)
+  if (envstat == 0) then
+    block
+      integer :: rbg_i
+      read(buf,*) rbg_i
+      refresh_bg = (rbg_i /= 0)
+    end block
+  end if
+  if (refresh_bg) &
+       print '(A)', " DIAGNOSTIC: excision background re-anchored every step (GR_REFRESH_BG=1)"
   call get_environment_variable("GR_HZ_ABORT", buf, status=envstat)
   if (envstat == 0) then
     block
@@ -207,6 +225,7 @@ program main
   call output_write_snapshot(0, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
 
   do n = 1, nsteps
+    if (refresh_bg) call set_excision_background(u)
     call rk4_step(u, dt, n)
     call extrapolate_excised(u)
     call excision_characteristic_check(u, char_speed, n_char_bad)
