@@ -85,6 +85,49 @@ from r=12M. A cheap first probe is to vary `ko_eps` **together with** the domain
 the convergence order in L persists when the Sommerfeld damping width is
 changed.
 
+## Is the 1/r falloff assumption the defect?  NO
+
+`sommerfeld.F90` applies `rhs = -c*dfdr - (f-f0)/r` to **all 24 variables**,
+i.e. it assumes `u - f0 ~ 1/r` universally. For exact Kerr–Schild data the true
+powers are much steeper: gtilde → 1 (no 1/r term), φ, α−1, β ~ 1/r³, and
+K, Atilde, Γ̃, B ~ 1/r⁴.
+
+Implemented as `GR_SOMMERFELD_DECAY=1` (per-variable power n, default off) and
+A/B tested at fixed dx=0.1008, 12M domain, t=0.5:
+
+| | rms\|H\| | max\|H\| |
+|---|---|---|
+| legacy (n=1 everywhere) | 6.098e-3 | 1.004e-1 |
+| per-variable (n=3/4, n=0 for gtilde) | **5.190e-2** | **5.274e-1** |
+
+**8.5x worse.** The asymptotically correct condition is dramatically worse than
+the incorrect uniform one.
+
+Interpretation: `-(f-f0)/r` is not acting as an asymptotic-correctness device —
+it is acting as **damping**, and the correct powers weaken it (n=0 removes it
+entirely for the gtilde diagonal, which is where the asymptotic answer says no
+1/r term belongs). That lets boundary-generated error propagate inward. The
+legacy n=1 is a better *compromise* than the correct one.
+
+So the defect is **not** the falloff exponent. It is the structure of the
+condition: a single-layer, all-fields, first-order outgoing prescription applied
+independently to each of the 24 variables. That is not a characteristic
+boundary condition — a coupled system has 24 characteristic fields, and
+prescribing `u_t` for each independently reflects incoming modes. The 2nd-order
+convergence in L is that reflection, decaying as the domain grows.
+
+## Outer-radius sweep is dx-independent
+
+Same 12M → 18M comparison at a second, coarser dx (~0.202):
+
+| xmax | rms\|H\| dx≈0.20 | rms\|H\| dx≈0.10 |
+|---|---|---|
+| 12M | 1.184e-3 | 6.098e-3 |
+| 18M | **5.274e-4** | 2.006e-3 |
+
+~2.2x reduction in both cases. The outer-boundary dominance is not a
+resolution artefact.
+
 ## Caveat
 
 Measured at t≈0.5, one spin (0.8), one `r_excise` (1.0), frozen gauge. The
