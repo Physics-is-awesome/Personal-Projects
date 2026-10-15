@@ -1,0 +1,241 @@
+diff --git a/GR/BSSN/helper/constraints.F90 b/GR/BSSN/helper/constraints.F90
+index ea11aec9..478b5dca 100644
+--- a/GR/BSSN/helper/constraints.F90
++++ b/GR/BSSN/helper/constraints.F90
+@@ -40,9 +40,14 @@ contains
+   !
+   ! Range: i in [2, Nx-1], k in [2, Nz-1] (one layer of derivatives needed).
+   ! ---------------------------------------------------------------------------
+-  subroutine momentum_constraint(u, Mout)
++  subroutine momentum_constraint(u, Mout, Mterms)
+     real(dp), intent(in)  :: u(:,:,:)
+     real(dp), intent(out) :: Mout(:,:,:)
++    ! Optional diagnostic decomposition, last index:
++    ! 1:3 = d_x/y/z A^{i x/y/z}, 4 = Gamma^i_{jm} A^{mj},
++    ! 5 = Gamma^j_{jm} A^{im}, 6 = 6 A^{ij} d_j phi,
++    ! 7 = -(2/3) gtilde^{ij} d_j K.
++    real(dp), intent(out), optional :: Mterms(:,:,:,:)
+     integer, parameter :: IA(6) = [1,1,1,2,2,3]
+     integer, parameter :: IB(6) = [1,2,3,2,3,3]
+     type(stencil_t) :: S
+@@ -51,10 +56,11 @@ contains
+     real(dp) :: Ab(3,3), dAb(3,3,3), Abup(3,3), dAbup(3,3,3)
+     real(dp) :: dgt(3,3,3), dgtinv(3,3,3), dphi(3), dKtr(3)
+     real(dp) :: t1(NVARS), t2(NVARS), t3(NVARS), tx(NVARS)
+-    real(dp) :: acc, q
++    real(dp) :: acc, q, pieces(7)
+     integer :: i, k, j, a, b, c, d, dir, iv
+ 
+     Mout = 0.0_dp
++    if (present(Mterms)) Mterms = 0.0_dp
+     do k = 2, Nz - 1
+       do i = 2, Nx - 1
+         call compute_stencil(u, i, k, excision_status, S)
+@@ -132,21 +138,33 @@ contains
+         ! with j and m summed, i free.  G%Gam(k,i,j) = Gtilde^k_{ij}.
+         do j = 1, 3                      ! here j plays the role of free index i
+           acc = 0.0_dp
++          pieces = 0.0_dp
+           do dir = 1, 3                  ! dir = j (summed)
+             ! d_j Atilde^{ij}
+-            acc = acc + dAbup(dir,dir,j)
++            q = dAbup(dir,dir,j)
++            acc = acc + q
++            pieces(dir) = pieces(dir) + q
+             ! Gtilde^i_{jm} Atilde^{mj}   (m summed over a)
+             do a = 1, 3
+-              acc = acc + G%Gam(j,dir,a)*Abup(a,dir)
++              q = G%Gam(j,dir,a)*Abup(a,dir)
++              acc = acc + q
++              pieces(4) = pieces(4) + q
+               ! Gtilde^m_{jm} Atilde^{ij}  (m summed over a)
+-              acc = acc + G%Gam(a,dir,a)*Abup(dir,j)
++              q = G%Gam(a,dir,a)*Abup(dir,j)
++              acc = acc + q
++              pieces(5) = pieces(5) + q
+             end do
+             ! + 6 Atilde^{ij} d_j phi
+-            acc = acc + 6.0_dp*Abup(dir,j)*dphi(dir)
++            q = 6.0_dp*Abup(dir,j)*dphi(dir)
++            acc = acc + q
++            pieces(6) = pieces(6) + q
+             ! - (2/3) gamma-tilde^{ij} d_j K
+-            acc = acc - (2.0_dp/3.0_dp)*gtinv(dir,j)*dKtr(dir)
++            q = -(2.0_dp/3.0_dp)*gtinv(dir,j)*dKtr(dir)
++            acc = acc + q
++            pieces(7) = pieces(7) + q
+           end do
+           Mout(i,k,j) = acc
++          if (present(Mterms)) Mterms(i,k,j,:) = pieces
+         end do
+       end do
+     end do
+diff --git a/GR/BSSN/helper/diagnose_stationary_ks_rhs.F90 b/GR/BSSN/helper/diagnose_stationary_ks_rhs.F90
+index 2370a861..63f5dc63 100644
+--- a/GR/BSSN/helper/diagnose_stationary_ks_rhs.F90
++++ b/GR/BSSN/helper/diagnose_stationary_ks_rhs.F90
+@@ -1,20 +1,26 @@
+-! Report the semidiscrete BSSN residual of exact Kerr-Schild data with the
+-! Kerr-Schild lapse and shift frozen. This separates spatial/RHS truncation
+-! from gauge evolution and is intentionally diagnostic, not an acceptance
+-! test: residuals should be nonzero at finite resolution.
++! Report semidiscrete residuals of exact Kerr-Schild data with Kerr-Schild
++! lapse and shift frozen. This is diagnostic, not an acceptance test: finite
++! difference residuals are expected to be nonzero. It separates inner-ring
++! behavior from the nearby bulk and reports every momentum component.
+ program diagnose_stationary_ks_rhs
+   use kinds_mod, only: dp
+-  use params_mod, only: Nx, Nz, r_excise, bh_spin, slicing_mode, gamma_driver_mode, init_params
++  use params_mod, only: Nx, Nz, dx, dz, r_excise, bh_spin, slicing_mode, gamma_driver_mode, init_params
+   use grid_mod, only: setup_grid, xg, zg
+   use vars_mod, only: NVARS, alloc_state
+   use initial_data_mod, only: set_kerr_schild_id, compute_conformal_connections
+   use excision_mod, only: set_excision_background, extrapolate_excised
+   use deriv_stencils_mod, only: init_deriv_stencils
+   use bssn_rhs_mod, only: compute_rhs_interior
++  use constraints_mod, only: hamiltonian_constraint, momentum_constraint
+   implicit none
+   real(dp), allocatable :: u(:,:,:), rhs(:,:,:)
+-  real(dp) :: rho2, a2, rks2, rks, near_max(NVARS), bulk_max(NVARS)
+-  integer :: i, k, v, inear(NVARS), knear(NVARS), ibulk(NVARS), kbulk(NVARS)
++  real(dp), allocatable :: H(:,:), Mcon(:,:,:), Mterms(:,:,:,:)
++  real(dp) :: rho2, a2, rks2, rks, hcell, target_r, best_dr, dr
++  real(dp) :: rhs_max(NVARS,2), rhs_sum(NVARS,2), con_max(4,2), con_sum(4,2)
++  integer :: i, k, v, c, reg, ncell(2), ncon(2), imin, imax, kmin, kmax
++  integer :: ibad, kbad, ictl, kctl
++  integer :: imaxloc(NVARS,2), kmaxloc(NVARS,2), icmax(4,2), kcmax(4,2)
++  real(dp) :: hstep, r_near_lo, r_near_hi
+ 
+   call init_params('parameter_files/vacuum_kerr.par')
+   slicing_mode = 2
+@@ -30,38 +36,113 @@ program diagnose_stationary_ks_rhs
+   rhs = 0.0_dp
+   call compute_rhs_interior(u, rhs)
+ 
+-  near_max = 0.0_dp; bulk_max = 0.0_dp
+-  inear = 0; knear = 0; ibulk = 0; kbulk = 0
++  allocate(H(Nx,Nz), Mcon(Nx,Nz,3), Mterms(Nx,Nz,3,7))
++  call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
++  call momentum_constraint(u,Mcon,Mterms)
++
++  rhs_max = 0.0_dp; rhs_sum = 0.0_dp; ncell = 0
++  con_max = 0.0_dp; con_sum = 0.0_dp; ncon = 0
++  imaxloc = 0; kmaxloc = 0; icmax = 0; kcmax = 0
+   a2 = bh_spin*bh_spin
++  hstep = max(dx,dz)
++  ! Hold physical-radius bands fixed across resolution runs. The lower cut
++  ! stays at least two cells outside excision, but never below r_excise+0.5M;
++  ! the upper near-field boundary is fixed at 2.3M.
++  r_near_lo = max(r_excise + 2.0_dp*hstep, r_excise + 0.5_dp)
++  r_near_hi = 2.3_dp
+   do k = 2, Nz-1
+     do i = 1, Nx-1
+       rho2 = xg(i)*xg(i) + zg(k)*zg(k)
+       rks2 = 0.5_dp*(rho2-a2 + sqrt((rho2-a2)*(rho2-a2) + &
+                                     4.0_dp*a2*zg(k)*zg(k)))
+       rks = sqrt(max(0.0_dp,rks2))
+-      if (rks < r_excise + 2.0_dp*max(abs(xg(2)-xg(1)),abs(zg(2)-zg(1)))) cycle
++      if (rks < r_near_lo) cycle
+       if (rks > 4.0_dp) cycle
++      if (rks < r_near_hi) then
++        reg = 1
++      else
++        reg = 2
++      end if
++      ncell(reg) = ncell(reg) + 1
+       do v = 1, NVARS
+-        if (rks < 2.3_dp) then
+-          if (abs(rhs(i,k,v)) > near_max(v)) then
+-            near_max(v) = abs(rhs(i,k,v))
+-            inear(v) = i; knear(v) = k
+-          end if
+-        else if (abs(rhs(i,k,v)) > bulk_max(v)) then
+-          bulk_max(v) = abs(rhs(i,k,v))
+-          ibulk(v) = i; kbulk(v) = k
++        rhs_sum(v,reg) = rhs_sum(v,reg) + rhs(i,k,v)*rhs(i,k,v)
++        if (abs(rhs(i,k,v)) > rhs_max(v,reg)) then
++          rhs_max(v,reg) = abs(rhs(i,k,v))
++          imaxloc(v,reg) = i; kmaxloc(v,reg) = k
+         end if
+       end do
++
++      ! Constraint routines have distinct valid index ranges. Use only their
++      ! overlap with the same fixed radial regions, preserving Mx, My, Mz.
++      if (i >= imin .and. i <= imax .and. k >= kmin .and. k <= kmax) then
++        ncon(reg) = ncon(reg) + 1
++        hcell = abs(H(i,k))
++        con_sum(1,reg) = con_sum(1,reg) + H(i,k)*H(i,k)
++        if (hcell > con_max(1,reg)) then
++          con_max(1,reg) = hcell; icmax(1,reg)=i; kcmax(1,reg)=k
++        end if
++        do c = 1, 3
++          con_sum(c+1,reg) = con_sum(c+1,reg) + Mcon(i,k,c)*Mcon(i,k,c)
++          if (abs(Mcon(i,k,c)) > con_max(c+1,reg)) then
++            con_max(c+1,reg)=abs(Mcon(i,k,c)); icmax(c+1,reg)=i; kcmax(c+1,reg)=k
++          end if
++        end do
++      end if
+     end do
+   end do
+ 
+-  write(*,'(A,I0,A,I0,A,ES10.3)') 'Frozen Kerr-Schild RHS in inner exterior: Nx=', &
+-       Nx, ' Nz=', Nz, ' dx=', abs(xg(2)-xg(1))
+-  write(*,'(A)') ' idx    near max|RHS|   at (x,z)       bulk max|RHS|   at (x,z)'
++  write(*,'(A,I0,A,I0,A,ES10.3,A,ES10.3)') &
++       'Frozen Kerr-Schild RHS: Nx=',Nx,' Nz=',Nz,' dx=',dx,' dz=',dz
++  write(*,'(A,ES10.3,A,ES10.3,A,ES10.3,A)') 'near=',r_near_lo,' .. ',r_near_hi, &
++       '; bulk=',r_near_hi,' .. 4M'
++  write(*,'(A,I0,A,I0)') 'Sample counts: near=',ncell(1),' bulk=',ncell(2)
++  write(*,'(A)') 'field  near max       near RMS       bulk max       bulk RMS       near location       bulk location'
+   do v = 1, NVARS
+-    write(*,'(I4,2(2X,ES12.4,2X,2F9.4))') v, near_max(v), &
+-         xg(max(1,inear(v))), zg(max(1,knear(v))), bulk_max(v), &
+-         xg(max(1,ibulk(v))), zg(max(1,kbulk(v)))
++    write(*,'(I4,4(1X,ES12.4),4(1X,F8.4))') v, rhs_max(v,1), &
++         sqrt(rhs_sum(v,1)/real(max(1,ncell(1)),dp)), rhs_max(v,2), &
++         sqrt(rhs_sum(v,2)/real(max(1,ncell(2)),dp)), &
++         xg(max(1,imaxloc(v,1))),zg(max(1,kmaxloc(v,1))), &
++         xg(max(1,imaxloc(v,2))),zg(max(1,kmaxloc(v,2)))
++  end do
++  write(*,'(A,I0,A,I0)') 'Constraint sample counts: near=',ncon(1),' bulk=',ncon(2)
++  write(*,'(A)') 'constraint       near max       near RMS       bulk max       bulk RMS       component'
++  do c = 1, 4
++    if (c == 1) then
++      write(*,'(A)',advance='no') 'H'
++    else
++      write(*,'(A,I0)',advance='no') 'M',c-1
++    end if
++    write(*,'(4(1X,ES12.4),2(1X,F8.4))') con_max(c,1), &
++         sqrt(con_sum(c,1)/real(max(1,ncon(1)),dp)),con_max(c,2), &
++         sqrt(con_sum(c,2)/real(max(1,ncon(2)),dp)), &
++         xg(max(1,icmax(c,1))),zg(max(1,kcmax(c,1)))
++  end do
++  ibad = icmax(4,1); kbad = kcmax(4,1)
++  rho2 = xg(ibad)*xg(ibad) + zg(kbad)*zg(kbad)
++  rks2 = 0.5_dp*(rho2-a2 + sqrt((rho2-a2)*(rho2-a2)+4.0_dp*a2*zg(kbad)*zg(kbad)))
++  target_r = sqrt(max(0.0_dp,rks2))
++  write(*,'(A,2(1X,F10.6),A,ES12.4)') 'Near-band Mz maximum at (x,z)=', &
++       xg(ibad),zg(kbad),'  Mz=',Mcon(ibad,kbad,3)
++  write(*,'(A,7(1X,ES13.5))') &
++       '  dAup_x, dAup_y, dAup_z, Gamma1, Gamma2, phi, gradK =',Mterms(ibad,kbad,3,:)
++
++  ! Compare at nearly the same Kerr radius but away from the axis strip.
++  best_dr = huge(1.0_dp); ictl = 1; kctl = 1
++  do k = 2, Nz-1
++    do i = 2, Nx-1
++      if (xg(i) < 5.0_dp*hstep) cycle
++      rho2 = xg(i)*xg(i) + zg(k)*zg(k)
++      rks2 = 0.5_dp*(rho2-a2 + sqrt((rho2-a2)*(rho2-a2)+4.0_dp*a2*zg(k)*zg(k)))
++      rks = sqrt(max(0.0_dp,rks2))
++      dr = abs(rks-target_r)
++      if (dr < best_dr) then
++        best_dr = dr; ictl = i; kctl = k
++      end if
++    end do
+   end do
++  write(*,'(A,2(1X,F10.6),A,ES12.4,A,ES10.3)') 'Same-radius off-axis control (x,z)=', &
++       xg(ictl),zg(kctl),'  Mz=',Mcon(ictl,kctl,3),'  |dr|=',best_dr
++  write(*,'(A,7(1X,ES13.5))') &
++       '  dAup_x, dAup_y, dAup_z, Gamma1, Gamma2, phi, gradK =',Mterms(ictl,kctl,3,:)
+   if (any(rhs /= rhs)) error stop 'non-finite frozen Kerr-Schild RHS'
+ end program diagnose_stationary_ks_rhs
