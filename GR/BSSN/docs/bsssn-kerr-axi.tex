@@ -1,0 +1,1825 @@
+% =====================================================================
+%  axisymmetric-vacuum-kerr-bssn.tex
+%
+%  A complete, from-scratch description of the BSSN/Cartoon axisymmetric
+%  vacuum Kerr code in GR/BSSN.  Written to be read by someone who has
+%  never seen the repository and who wants to be able to write their own
+%  evolution code afterwards.
+%
+%  Build:  pdflatex axisymmetric-vacuum-kerr-bssn.tex   (run twice)
+% =====================================================================
+\documentclass[11pt,openany]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!60!black,
+  citecolor=blue!50!black,
+  pdftitle={An Axisymmetric Vacuum Kerr BSSN Code},
+  pdfauthor={GR/BSSN},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\thechapter}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------- listings
+\definecolor{codegrey}{gray}{0.97}
+\definecolor{codeblue}{rgb}{0.10,0.25,0.55}
+\lstdefinestyle{fstyle}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codegrey},
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  breakatwhitespace=false,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  numbers=left,
+  numbersep=6pt,
+  numberstyle=\tiny\color{black!45},
+  xleftmargin=18pt,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{black!55}\itshape,
+  stringstyle=\color{red!50!black},
+  morekeywords={module,end,subroutine,function,program,use,only,implicit,none,&
+                integer,real,logical,parameter,allocatable,intent,in,out,inout,&
+                if,then,else,elseif,endif,do,while,cycle,exit,select,case,default,&
+                where,elsewhere,forall,contains,type,public,private,save,pointer,&
+                allocatable,character,len,dimension,interface,result,operator,&
+                assignment,procedure,true,false,kind,precision,dp,print,write,read,&
+                call,return,stop,error,format},
+  morecomment=[l]{!},
+}
+\lstset{style=fstyle}
+
+% ---------------------------------------------------------------- theorem
+\newtheorem{inv}{Invariant}
+\newtheorem{gotcha}{Gotcha}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\gam}{\tilde{\gamma}}
+\newcommand{\ph}{\tilde{\phi}}
+\newcommand{\At}{\tilde{A}}
+\newcommand{\Gt}{\tilde{\Gamma}}
+\newcommand{\gtinv}{\tilde{g}^{-1}}
+\newcommand{\etr}{\tilde{\gamma}}
+\newcommand{\etrT}{\tilde{\gamma}^{ab}}
+\newcommand{\adiv}[1]{\left(\nabla_{\!\mu} #1\right)}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\sgn}{sgn}
+
+\title{\Huge\bfseries An Axisymmetric Vacuum Kerr BSSN Code\\[0.4em]
+\Large A complete description of the mathematics, the discretisation,\\
+the boundaries, the diagnostics, and the failure modes\\[0.3em]
+\normalsize\path{GR/BSSN}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\chapter*{Preface}\addcontentsline{toc}{chapter}{Preface}
+\begin{quote}\small
+\noindent
+This document explains, in detail, a three-dimensional-code-written-as-two-dimensional
+numerical relativity code that evolves the vacuum Kerr spacetime in the BSSN
+formulation, restricted to axisymmetry about the $z$-axis and discretised on a
+Cartoon grid. The intent is not merely to describe the code but to teach the
+underlying subject: after reading it you should understand not just what each
+routine does, but \emph{why} it exists, what the alternatives were, what the
+traps are, and enough of the design that you could write your own evolution code
+from a blank file.
+
+Every equation in this document was transcribed from the source, not from
+memory or from the literature. Where the code deviates from textbook form the
+deviation is called out explicitly, because in every such case the deviation
+was deliberate and has a reason. Where the code is known to be wrong, that is
+stated too; several such cases are documented, and two of them were found only
+by the investigation recorded in Chapter~\ref{ch:findings}.
+
+\vspace{1em}
+\noindent
+\textbf{A warning about the current state.} This code does \emph{not}
+currently produce stable long-duration runs. It evolves exact Kerr--Schild
+data and develops an $O(1)$ Hamiltonian-constraint violation within one or two
+cells of the inner excision boundary, which grows until the conformal metric
+loses positive definiteness and the run aborts, typically at
+$t\approx 5.6$ in the production configuration. Chapter~\ref{ch:findings}
+documents the full investigation: what was ruled out, what was found, and what
+remains open. A large fraction of that chapter is about measurement errors that
+produced confident but wrong conclusions, which is itself instructive.
+\end{quote}
+
+\tableofcontents
+
+\frontmatter
+\mainmatter
+
+% =====================================================================
+\chapter{Orientation}
+\label{ch:orientation}
+
+\section{What this code is}
+
+The code evolves the vacuum Kerr spacetime in the \textbf{BSSN} formulation of
+general relativity, under the assumption of \textbf{axisymmetry about the
+$z$-axis}, using the \textbf{Cartoon method} to represent the $y$-direction
+derivatives, and \textbf{excising} a region inside the inner horizon so that no
+boundary condition is ever needed at the black hole.
+
+The test problem is exact: Kerr--Schild initial data, $M=1$, $a=0.8$. Because
+this is an exact vacuum solution, the continuum constraints vanish identically
+everywhere. Any constraint violation the code reports is therefore, by
+construction, \emph{pure discretisation error}. This makes the code an
+unusually clean testbed: there is no physics to blame.
+
+The domain is the half-plane $x \in [0, x_{\max}]$, $z \in [-z_{\max},
+z_{\max}]$, with the $y$-direction reconstructed on demand.
+
+\section{Why the design is shaped this way}
+
+Three decisions dominate the architecture, and each exists for a good reason:
+
+\begin{enumerate}
+\item \textbf{BSSN rather than ADM.} ADM's hyperbolic, constraint-preserving
+      properties degrade badly in practice; BSSN adds 21 extra variables (a
+      conformal factor, a traceless metric, a connection, a driver) and buys a
+      genuinely constraint-satisfying evolution. The cost is stiffness and a
+      much larger set of equations to discretise consistently.
+\item \textbf{A Cartoon grid rather than full 3D.} A full
+      $N^3$ grid is wasteful when the solution is axisymmetric. The Cartoon
+      method stores only $y=0$, $x \geq 0$ and synthesises the rest by
+      interpolating in radius and rotating. The price is that $y$-derivatives
+      are only as good as the radial interpolation, which in practice limits
+      them to second order.
+\item \textbf{Excision rather than a puncture condition.} Rather than imposing
+      regularity at a coordinate singularity, the code simply never evolves
+      points inside a surface $r_{\mathrm{KS}} < r_{\mathrm{excise}}$ and
+      fills them by extrapolation. The price is that stencils near the mask
+      degrade, and that degradation is where this code's problems live.
+\end{enumerate}
+
+\section{Quick start}
+
+\begin{lstlisting}
+# Build the production binary and run the full test suite (the gate).
+make check
+
+# Run the production configuration.
+make run
+
+# Run with runtime overrides, keeping output out of the tree.
+make run RUN_ENV='GR_NSTEPS=700 GR_HORIZON_EVERY=0 GR_HZ_ABORT=0' RUN_DIR=/tmp
+
+# Run a different parameter file.
+make run PARFILE=parameter_files/vacuum_kerr_192.par
+\end{lstlisting}
+
+A typical short run looks like:
+
+\begin{lstlisting}
+$ GR_NSTEPS=700 GR_HORIZON_EVERY=0 ./bin/vacuum_kerr parameter_files/vacuum_kerr.par
+ Grid: Nx=48  Nz=96
+ dx= 0.255  dy= 0.255  dz= 0.253
+ Excision radius r_excise= 1.000  (horizon at r_+= 1.600M; interior frozen)
+ step   700  t=  0.6252  max|H|(ext)=  1.2656E-02  rms|H|(ext)=  2.0211E-03
+   max|M|(ext)=  2.8728E-02  alpha(probe)=  0.910348
+    near-mask r_KS <   3.0000E+00  n=   192  max|H|=  1.9493E+00
+      max|M|=  1.4920E+00  worst r=  1.0227E+00
+\end{lstlisting}
+
+Notice the near-mask line. The \texttt{max|H|(ext)} and \texttt{near-mask
+max|H|} differ by a factor of 154, and the two numbers are about completely
+different things. Chapter~\ref{ch:diag} explains why both exist, and why the
+first one is structurally incapable of seeing the region that matters.
+
+\section{Repository map}
+
+\subsection{Core evolution path}
+
+These files, and only these, constitute the production solver:
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.63cm}>{\raggedright\arraybackslash}p{9.95cm}@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\endhead
+\path{helper/kinds\_mod.F90} & The single kind parameter. Eight lines. \\
+\path{init/param.F90} & All runtime parameters and their environment overrides. \\
+\path{init/grid.F90} & Grid coordinate arrays. \\
+\path{init/vars.F90} & The state vector layout: 24 indices and their meanings. \\
+\path{init/init\_data.F90} & Kerr--Schild initial data and the conformal connection. \\
+\path{helper/cartoon.F90} & The Cartoon method: interpolation and rotation. \\
+\path{helper/stencil.F90} & All finite differences, with excision-aware fallbacks. \\
+\path{helper/geometry.F90} & Conformal geometry: Ricci tensors, Laplacian, connections. \\
+\path{integrators/bssn\_rhs.F90} & The BSSN evolution equations. \\
+\path{integrators/ko\_diss.F90} & Kreiss--Oliger dissipation. \\
+\path{integrators/sommerfeld.F90} & Outer boundary condition. \\
+\path{helper/excision.F90} & The excision mask, ghost fill, and characteristic check. \\
+\path{helper/excision\_sat.F90} & Level-set characteristic SAT (available, off). \\
+\path{helper/constraints.F90} & Hamiltonian and momentum constraint evaluation. \\
+\path{integrators/time\_step.F90} & RK4, the algebraic projection, the time loop. \\
+\path{helper/horizon.F90} & Horizon location finder. \\
+\path{helper/output.F90} & HDF5 output. \\
+\path{drivers/vacuum\_kerr.F90} & The program: setup, time loop, diagnostics. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Not on the production path}
+
+Several substantial modules exist that are \emph{not} used by the production
+run. Knowing which is which saves a great deal of confusion:
+
+\begin{itemize}
+\item \path{helper/fd\_excision.F90}, \path{helper/fo\_*.F90},
+      \path{integrators/fo\_*.F90}, \path{init/fo\_*.F90} --- a
+      first-order-in-time ("FO") reduced formulation with a boundary SAT built
+      on \path{fo\_sbp.F90}. These are a parallel development track. The SBP
+      module does not currently satisfy the SBP property (see
+      Section~\ref{sec:sbp}), so this track is not usable.
+\item \path{helper/equilibrium\_1pluslog.F90},
+      \path{helper/eq\_schwarzschild\_data.F90} --- special equilibrium
+      data used only by tests.
+\item \path{helper/primitive\_recovery.F90} --- hydrodynamics recovery. Not
+      exercised by the vacuum problem, though the BSSN RHS does accept an
+      optional matter source \texttt{msrc}.
+\end{itemize}
+
+\subsection{Tests and diagnostics}
+
+\texttt{make check} runs the full gate. Separately there are diagnostic
+programs, each a standalone \texttt{program} linked against the same modules:
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{4.50cm}>{\raggedright\arraybackslash}p{9.08cm}@{}}
+\toprule
+\textbf{Target} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{test-cartoon} & Verifies the Cartoon reconstruction against known fields. \\
+\texttt{test-constraint-conv} & Hamiltonian-constraint convergence on exact data. \\
+\texttt{test-momentum-conv} & Momentum-constraint convergence; a real gate. \\
+\texttt{test-horizon-drift} & Validates the horizon finder against exact Kerr. \\
+\texttt{test-gamma-driver-rhs} & Checks the gauge RHS is stationary on KS data. \\
+\texttt{diagnose-ks-stationarity} & RHS residual on frozen Kerr--Schild. \\
+\texttt{diagnose-momentum-point} & Stored vs.\ analytic state, term by term. \\
+\texttt{diagnose-inner-boundary} & Fill perturbation-depth scan. \\
+\texttt{diagnose-ghost-accuracy} & Ghost fill vs.\ exact; derivative errors. \\
+\bottomrule
+\end{longtable}
+
+\chapter{The Physics}
+\label{ch:physics}
+
+\section{From ADM to BSSN}
+
+\subsection{ADM}
+
+The starting point is the Arnowitt--Deser--Misner decomposition of spacetime
+into a spatial metric $g_{ab}$, an extrinsic curvature $K_{ab}$, and a lapse
+$\alpha$ and shift $\beta^a$, with
+\begin{equation}
+\label{eq:adm-lapse}
+\dd_\perp \alpha = -\alpha^2 K,
+\end{equation}
+$\dd_\perp = \partial_t + \beta^a \nabla_a$ denoting the derivative along the
+normal direction to the slices.
+
+\subsection{The conformal split}
+
+BSSN writes the physical metric as
+\begin{equation}
+\label{eq:conformal}
+g_{ab} = e^{2\ph}\,\etr_{ab} = e^{4\ph}\hat{\gamma}_{ab},
+\end{equation}
+with $\ph$ the conformal factor and $\etr_{ab}$ the conformal metric. The
+lapse is split as $\alpha = e^{\ph} A$ (here $\hat{A}$, stored as
+\texttt{IALPHA} with $\texttt{conformal\_factor\_mode = 0}$, so $\ph =
+\frac{1}{12}\ln\det g$ and $\hat{A} = \alpha e^{-\ph}$), and the shift into
+$\hat{A}^a = \hat{g}^{ab}\beta_b$ plus a vector $\hat{\Gamma}^a$.
+
+$\ph$ evolution
+\begin{equation}
+\label{eq:ph}
+\partial_t\ph = -\tfrac{1}{6}\alpha K + \beta^a \partial_a\ph + \tfrac{1}{6}\beta^a\partial_a\beta^a,
+\end{equation}
+which is \texttt{rhs\_out(IPHI)} in \path{integrators/bssn\_rhs.F90}.
+
+$\etr$ evolution
+\begin{equation}
+\label{eq:gam}
+\partial_t \etr_{ab} = -2\alpha \At_{ab}
+  + \beta^c\partial_c\etr_{ab}
+  + \etr_{ac}\partial_b\beta^c + \etr_{bc}\partial_a\beta^c
+  - \tfrac{2}{3}\etr_{ab}\,\partial_c\beta^c,
+\end{equation}
+with $\At_{ab}$ the traceless part of the extrinsic curvature in conformal form,
+$\At_{ab} = e^{-4\ph}\left(K_{ab} - \tfrac{1}{3}K g_{ab}\right)$. Writing
+$X_{ab} = -\tilde{\nabla}_a\tilde{\nabla}_b\hat{A} + \alpha\tilde{R}_{ab}$ and
+stripping its trace, $\bar{X}_{ab} = X_{ab} - \tfrac{1}{3}\etr_{ab}\tr X$, the
+conformal extrinsic curvature obeys
+\begin{equation}
+\label{eq:atilde}
+\partial_t\At_{ab} = e^{-4\ph}\bar{X}_{ab}
+  + \alpha\left(K\At_{ab} - 2\At_{ac}\At^{c}{}_{b}\right)
+  + \beta^c\partial_c\At_{ab}
+  + \At_{ac}\partial_b\beta^c + \At_{bc}\partial_a\beta^c
+  - \tfrac{2}{3}\At_{ab}\,\partial_c\beta^c .
+\end{equation}
+
+$S^a_b = K^a_b - \tfrac{1}{3}K\delta^a_b$ is the trace-reversed extrinsic
+curvature. The code needs the derivative $\nabla_a\nabla_b\beta^c$, obtained
+from \texttt{S\%d2xy}, \texttt{S\%d2xz}, \texttt{S\%d2yz} assembled by
+\texttt{fill\_d2}.
+
+\begin{quote}\small
+\textbf{Algorithm: \texttt{compute\_rhs\_interior}}
+\begin{enumerate}
+\item For each evolved point $(i,k)$, set $\det\etr = 1$ and
+      $\etr^{-1ab}$ from $S$.
+\item Compute the conformal geometry:
+      $\etr^{-1ab}$, $\tilde{R}^a{}_{bc}$,
+      $\tilde{R}_{ab}$ (metric part), $\tilde{R}^\phi_{ab}$,
+      $\tilde{\Gamma}^a$, $\hat{A}^a$, $\tilde{\nabla}_a\tilde{\nabla}_b\hat{A}$.
+\item $\partial_t\ph$ from \eqref{eq:ph}.
+\item $\partial_t\etr_{ab}$ from \eqref{eq:gam}.
+\item $\partial_t K = -\etr^{-1ab}\tilde{\nabla}_a\tilde{\nabla}_b\hat{A}
+      + \alpha\left(\At_{ab}\At^{ab} + \tfrac{1}{3}K^2\right)
+      + \beta^a\partial_a K$.
+\item $X_{ab} = -\tilde{\nabla}_a\tilde{\nabla}_b\hat{A} + \alpha\tilde{R}_{ab}$,
+      strip the trace: $X_{ab} \to X_{ab} - \tfrac{1}{3}\etr_{ab}\tr X$, then
+      \eqref{eq:atilde}.
+\item $\partial_t\tilde{\Gamma}^a$ from
+      $\tilde{\Gamma}^a{}_{bc}\At^{bc} + \tfrac{2}{3}\etr^{ab}\hat{A}^c
+      \partial_b\partial_c\hat{A}^a$.
+\item Gauge: $\partial_t\hat{A}$, $\partial_t\beta^a$ per \eqref{eq:slice-log} and \eqref{eq:gd-legacy}.
+\end{enumerate}
+\end{quote}
+
+\section{Constraints}
+
+The code evaluates both, for diagnostics; \emph{neither is projected}.
+
+Hamiltonian, \path{constraints.F90}
+\begin{equation}
+\label{eq:H}
+\mathcal{H} = \etrT\tilde{R}_{ab}
+  + \tfrac{2}{3}K^2 - \At_{ab}\At^{ab},
+\qquad
+\tilde{R}_{ab} = \tilde{R}^{\gamma}_{ab} + \tilde{R}^{\phi}_{ab}.
+\end{equation}
+
+Momentum, \path{constraints.F90}, ADM form
+\begin{equation}
+\label{eq:M}
+\mathcal{M}^a = \nabla_b S^{ab},
+\qquad
+S^{ab} = e^{-4\ph}\left[\At^{ab} - \tfrac{2}{3}\etr^{ab}K\right].
+\end{equation}
+
+\gotcha
+The original code assembled \eqref{eq:M} as $\etrT\partial_b\At_{ab} -
+\frac{2}{3}K\partial_b\etr^{ab} - \ldots$ using the \emph{conformal}
+connection. That form is cited in the literature but is not equal to the ADM
+expression above unless $\det\etr = 1$ is imposed. Since the state drifts from
+$\det\etr = 1$, the two differ. Rewriting it in ADM form changed the measured
+momentum residual from a non-converging $\approx 1.1\times10^{-1}$ to a
+cleanly second-order $4.1\times10^{-2} \to 3.2\times10^{-2} \to 2.1\times10^{-2}
+\to 1.7\times10^{-2}$.
+
+The correction was made \emph{only} in the diagnostic routine. An A/B test that
+corrupts the evolved state deliberately confirmed the diagnostic was not on the
+evolution path, so no stability risk was incurred.
+
+\gotcha
+\texttt{test\_momentum\_conv} had no assertion in it. It printed numbers and
+passed unconditionally. A real gate requiring monotonically decreasing RMS was
+added, and verified to fail when a sign is flipped.
+
+\section{Gauge}
+
+\begin{align}
+\text{1+log:} \quad &\partial_t\hat{A}
+  = -2\alpha K + \beta^a\partial_a\hat{A},
+  \label{eq:slice-log}\\
+\text{maximal:} \quad &\partial_t\hat{A}
+  = -\alpha K + \beta^a\partial_a\hat{A},
+  \label{eq:slice-max}\\
+\text{frozen:} \quad &\partial_t\hat{A} = 0.
+  \label{eq:slice-frozen}
+\end{align}
+
+\begin{align}
+\text{legacy:} \quad
+&\partial_t\beta^a = \tfrac34 B^a, \label{eq:gd-legacy}\\
+&\partial_t B^a = \partial_t\tilde{\Gamma}^a - \eta B^a,
+  \label{eq:gd-legacy-d}\\
+\text{puncture:} \quad
+&\partial_t\beta^a = \tfrac34 B^a,\qquad
+  \partial_t B^a = -\eta\,(B^a - \Gamma^a), \quad
+  \Gamma^a = s\,\frac{2Mx^a}{r^3}, \label{eq:gd-puncture}\\
+\text{frozen:} \quad &\partial_t\beta^a = 0.
+  \label{eq:gd-frozen}
+\end{align}
+
+\gotcha
+In \eqref{eq:gd-puncture}, $\partial_t B^a$ has \emph{no} $\partial_t
+\tilde{\Gamma}^a$ term: in a $\Gamma$-driver the driver is driven purely toward
+the analytic profile. Feeding it the $\tilde{\Gamma}$ RHS as well --- which this
+code once did --- couples $B^a$ to a different variable and lets the shift
+drift instead of being anchored. The code comments record that fixing this
+alone made the run \emph{worse} in the legacy mode (inner-boundary failure at
+step 14055 instead of 18285), which is why the legacy mode is still available
+but the puncture mode is the default.
+
+\gotcha
+Setting the gauge to frozen (modes 2/2) is mandatory before measuring any
+discretisation residual. If the lapse or shift is evolving, their right-hand
+sides contaminate the measurement. Several early conclusions in this project
+were confounded this way before the control was added.
+
+\chapter{The Discretisation}
+\label{ch:disc}
+
+\section{The grid}
+
+\begin{lstlisting}
+real(dp), allocatable :: xg(:)   ! x(1) = 0, x(Nx) = xmax
+real(dp), allocatable :: zg(:)   ! z(1) = -zmax, z(Nz) = +zmax
+\end{lstlisting}
+
+Fortran indices run $1..N$, so $\mathrm{i}=1$ is the symmetry axis $x=0$ and
+$\mathrm{k}=1$ is $z=-z_{\max}$. In the production configuration
+$N_x = 48$, $N_z = 96$, $x_{\max} = z_{\max} = 12\,M$, giving
+$dx \approx 0.2553$, $dz \approx 0.2526$, and $dy = dx$.
+
+\gotcha
+The symmetry axis is $x=0$ and the $z$-axis is the spin axis. The code mirrors
+in $x$ via a rotation by $\pi$ in the $xy$-plane, which is the correct
+axisymmetry-about-$z$ operation. It is easy to misread the axis conventions
+from the variable names; $\texttt{valid\_x}$ treats $ii < 1$ as "past the
+symmetry axis" and synthesises it.
+
+\section{The Cartoon method in full}
+
+\subsection{What is stored}
+
+Only the half-plane $y = 0$, $x \geq 0$. Given a request for the value at
+$(X, Y, z_k)$, the code:
+\begin{enumerate}
+\item Reduces to the cylindrical radius
+      $\varpi = \sqrt{X^2 + Y^2}$ and the azimuth
+      $\theta = \arctan2(Y, X)$.
+\item Interpolates the stored row $u(\cdot, k, \cdot)$ radially onto $\varpi$.
+\item Rotates scalars (no-op), vectors (one rotation), and tensors (full
+      two-index rotation).
+\end{enumerate}
+
+\subsection{The radial interpolation}
+
+Quadratic, three-point Lagrange:
+\begin{lstlisting}
+function interp_radial(u, k, varpi) result(fvals)
+  j = floor(varpi / dx) + 1
+  if (j < 1) j = 1
+  if (j > Nx - 2) j = Nx - 2
+  x0 = xg(j); x1 = xg(j+1); x2 = xg(j+2)
+  L0 = (varpi - x1) * (varpi - x2) / ((x0 - x1) * (x0 - x2))
+  L1 = (varpi - x0) * (varpi - x2) / ((x1 - x0) * (x1 - x2))
+  L2 = (varpi - x0) * (varpi - x1) / ((x2 - x0) * (x2 - x1))
+  fvals = L0 * u(j, k, :) + L1 * u(j+1, k, :) + L2 * u(j+2, k, :)
+\end{lstlisting}
+
+\gotcha
+This is \textbf{second order}, and it is the accuracy ceiling for the entire
+$y$-direction. The $x$- and $z$-derivatives use fourth-order stencils; the
+$y$-derivatives cannot exceed second order. In a curvature calculation where
+$y$-second-derivatives enter on equal footing with $x$- and $z$-, this mixed
+order is the reason convergence studies in this code show the $y$ error
+falling more slowly than the others.
+
+\label{sec:cartoon}
+\subsection{Rotation}
+
+For a vector $V$ with components $(V_x, V_y)$,
+\begin{equation}
+V'_x = \cos\theta\, V_x - \sin\theta\, V_y,\qquad
+V'_y = \sin\theta\, V_x + \cos\theta\, V_y.
+\end{equation}
+For a symmetric tensor,
+\begin{align}
+T'_{xx} &= c^2T_{xx} - 2cs\,T_{xy} + s^2T_{yy}, \\
+T'_{xy} &= cs(T_{xx}-T_{yy}) + (c^2-s^2)T_{xy}, \\
+T'_{yy} &= s^2T_{xx} + 2cs\,T_{xy} + c^2T_{yy}, \\
+T'_{xz} &= cT_{xz} - sT_{yz},\qquad
+T'_{yz} = sT_{xz} + cT_{yz},\qquad T'_{zz} = T_{zz}.
+\end{align}
+
+The rotation is applied to $\gam$, $\At$, $\Gt$, $\beta$, and $B$. It is
+\emph{not} applied to $\ph$, $K$, or $\hat{A}$, which are scalars.
+
+\gotcha
+\texttt{get\_neighbor} takes $y_{\mathrm{val}} = 0$ as a sentinel meaning
+``plain index shift''. This is why $x$- and $z$-neighbours --- which do not need
+the $y$-direction at all --- still go through \texttt{get\_neighbor}: it is
+the single choke point through which every neighbour access passes, and having
+one choke point is what makes the excision mask easy to enforce consistently.
+
+\section{Finite differences and the fallback cascade}
+
+\label{sec:stencils}
+\subsection{Every stencil in the code}
+
+\begin{longtable}{@{}p{2.3cm}p{7.2cm}p{5.4cm}@{}}
+\toprule
+\textbf{Derivative} & \textbf{Stencil} & \textbf{Order} \\
+\midrule
+\endhead
+$\partial_x f$ & $\left[f_{i-2} - 8f_{i-1} + 8f_{i+1} - f_{i+2}\right]/12dx$ & 4th \\
+ & $\left[f_{i+1} - f_{i-1}\right]/2dx$ & 2nd, centred \\
+ & $\left[-3f_i + 4f_{i+1} - f_{i+2}\right]/2dx$ & 2nd, forward \\
+ & $\left[3f_i - 4f_{i-1} + f_{i-2}\right]/2dx$ & 2nd, backward \\
+\addlinespace
+$\partial^2_x f$ & $\left[-f_{i+2}+16f_{i+1}-30f_i+16f_{i-1}-f_{i-2}\right]/12dx^2$ & 4th \\
+ & $\left[f_{i+1} - 2f_i + f_{i-1}\right]/dx^2$ & 2nd, centred \\
+ & $\left[f_i - 2f_{i+1} + f_{i+2}\right]/dx^2$ & \textbf{1st}, forward \\
+ & $\left[f_i - 2f_{i-1} + f_{i-2}\right]/dx^2$ & \textbf{1st}, backward \\
+\addlinespace
+$\partial^2_{xz} f$ & $\left[f_{++} - f_{+-} - f_{-+} + f_{--}\right]/4\,dx\,dz$ & 2nd \\
+\addlinespace
+$\partial_y f$ & $\left[f(\varpi,\!+dy) - f(\varpi,\!-dy)\right]/2dy$ & 2nd \\
+$\partial^2_y f$ & $\left[f(\varpi,\!+dy) - 2f_i + f(\varpi,\!-dy)\right]/dy^2$ & 2nd \\
+\addlinespace
+$\partial^2_{xy} f$ & differencing $\partial_y$ in $x$ & 2nd \\
+\addlinespace
+Kreiss--Oliger & $\left[f_{-2}-4f_{-1}+6f_0-4f_{+1}+f_{+2}\right]$ & 2nd \\
+\bottomrule
+\end{longtable}
+
+\subsection{The fallback logic}
+
+For each derivative direction the code asks whether the required neighbours are
+usable, where \emph{usable} means ``in bounds and not \texttt{EXCISED}'':
+\begin{lstlisting}
+xp_ok  = valid_x(i,k,+1,mask)      ! mask == EXCISED -> unusable
+xm_ok  = valid_x(i,k,-1,mask)
+xp2_ok = valid_x2(i,k,+1,mask)     ! needs BOTH i+1 and i+2 usable
+zm2_ok = valid_z2(i,k,-1,mask)
+\end{lstlisting}
+It then takes the highest-order stencil all of whose neighbours are available,
+cascading down as necessary. The mixed $xz$, $xy$, $yz$ derivatives each test
+their own availability and have their own one-sided fallbacks.
+
+\gotcha
+The one-sided \emph{second} derivative $(f_i - 2f_{i+1} + f_{i+2})/dx^2$ is
+\textbf{first-order accurate}, not second-order. It is easy to assume symmetry
+with the one-sided first derivative $\frac{-3f+4f_1-f_2}{2dx}$, which genuinely is
+second-order. So near a boundary the code degrades to first order in
+second derivatives while remaining second order in first derivatives --- an
+inconsistency that limits local convergence rate.
+
+\gotcha
+\texttt{valid\_x} returns \emph{true} for $ii < 1$, on the grounds that
+\texttt{get\_neighbor} can synthesise the mirror point via the Cartoon
+rotation. An earlier version returned false, which silently forced a one-sided
+first-order stencil right on the axis. The current behaviour is correct.
+
+\subsection{The variable mask contract}
+
+\texttt{compute\_stencil(u, i, k, mask, S)} receives a mask with the
+contract
+\begin{lstlisting}
+mask(i,k) == EXCISED   ->  point is inside the excision region, unusable
+mask(i,k) == anything else -> usable (physical point or filled ghost)
+\end{lstlisting}
+This is why \texttt{excision\_status} is re-derived from
+\texttt{excision\_geom} at the top of every \texttt{extrapolate\_excised}
+call: carrying last step's classification forward would let a point that was
+filled last step be treated as reliable when it is not.
+
+\chapter{Boundaries}
+\label{ch:bcs}
+
+\section{Inner: excision}
+
+\subsection{The mask}
+
+A point is excised if its \textbf{Kerr radius} is below the cutoff:
+\begin{lstlisting}
+logical function is_excised(i,k)
+  is_excised = (kerr_radius_squared(xg(i), zg(k)) < r_excise**2)
+end function
+\end{lstlisting}
+with
+\begin{equation}
+r^2_{\mathrm{KS}} = \frac{1}{2}\left(\rho^2 - a^2
+  + \sqrt{(\rho^2-a^2)^2 + 4a^2z^2}\right),
+\qquad \rho^2 = x^2 + z^2 .
+\end{equation}
+In the production configuration $a = 0.8$, $M = 1$, so the outer horizon is
+at $r_+ = M + \sqrt{M^2 - a^2} = 1.6$ and the inner horizon at $r_- = 0.4$.
+The default $r_{\mathrm{excise}} = 1.0$ therefore sits between the two
+horizons --- inside the black hole but outside the Cauchy horizon, which is the
+standard and safe choice.
+
+\gotcha
+$r_{\mathrm{KS}} \neq \sqrt{x^2+z^2}$ whenever $a\neq 0$ and $z \neq 0$. The
+code base contained ten diagnostic filter sites that used the cylindrical
+radius where the mask uses the Kerr radius. Because the two disagree, the
+driver's reported ``exterior'' worst point could lie \emph{inside} the mask ---
+and at every resolution tested, it did ($r_{\mathrm{KS}} \approx 0.7$--$0.8$).
+This invalidated a substantial body of earlier conclusions; see
+Chapter~\ref{ch:findings}.
+
+\subsection{The ghost fill}
+
+Points inside the mask are never evolved. They are given values so that
+exterior stencils have something to read. The fill extrapolates the
+\textbf{perturbation from a frozen background}, not the field itself:
+
+\begin{lstlisting}
+! d1..d4 are (u - background) at 1,2,3,4 cells along a ray
+if (excision_order >= 4 .and. all four points usable) then
+  u(i,k,:) = b0 + 4.0_dp*d1 - 6.0_dp*d2 + 4.0_dp*d3 - d4   ! order 4
+if (excision_order >= 3 .and. first three usable)  then
+  u(i,k,:) = b0 + 3.0_dp*d1 - 3.0_dp*d2 + d3             ! order 3
+if (excision_order >= 2 .and. first two usable)    then
+  u(i,k,:) = b0 + 2.0_dp*d1 - d2                       ! order 2
+if (usable_point(status,i+si,k+sk))                 then
+  u(i,k,:) = b0 + d1                                   ! order 1
+\end{lstlisting}
+
+The background is set once from the initial data by
+\texttt{set\_excision\_background}.
+
+\gotcha
+Because the background is the exact Kerr--Schild solution and the true
+Kerr--Schild solution is \emph{stationary}, the perturbation $\delta = u -
+u_{\mathrm{KS}}$ is identically zero at $t=0$. Therefore \emph{every} order of
+extrapolation returns the exact answer, to machine precision. This was
+measured: the worst ghost-fill error anywhere is $4.4\times10^{-16}$.
+
+This has two consequences that took a while to appreciate. First, it explains
+why the fill order makes almost no difference at early times. Second, it
+means a static $t=0$ test of the fill is \emph{structurally blind} --- any
+perturbation-depth scan at $t=0$ that perturbs the background will measure the
+extrapolation of a non-zero field, which is a different question.
+
+\subsection{Onion-peeling and the frozen snapshot}
+
+The fill runs in sweeps, and each sweep gates every usability check on a
+\emph{frozen snapshot} of the mask taken before the sweep begins:
+\begin{lstlisting}
+status_snapshot = status          ! freeze BEFORE filling anything
+do k = 1,Nz
+  do i = 1,Nx
+    if (status_snapshot(i,k) /= EXCISED) cycle
+    call fill_one_point(u,status_snapshot,i,k,filled,order)
+    if (.not. filled) cycle
+    status(i,k) = GHOST
+\end{lstlisting}
+
+\gotcha
+Without the snapshot, a point whose best-aligned outward neighbour is not yet
+ready falls back, \emph{within the same sweep}, to a less well-aligned
+direction that chains through points filled moments earlier in that same raster
+pass. Each link in such a chain reapplies the $[4,-6,4,-1]$ extrapolation, whose
+$L_1$ norm is 15, so a chain a few links deep amplifies an $O(1)$ boundary
+value into $O(10^4)$ garbage. The snapshot forces genuine onion-peeling: a
+point only ever uses data resolved as of the end of the previous sweep.
+
+\subsection{Positivity enforcement}
+
+After filling, any ghost whose metric is not positive definite is blended back
+toward the background:
+\begin{lstlisting}
+do n = 1, 40
+  theta = 0.5_dp * theta
+  trial = (1.0_dp-theta)*gb + theta*g
+  if (metric_is_spd(trial)) exit
+end do
+\end{lstlisting}
+This is a safety net, not a physical model. It did not trigger in any run
+examined.
+
+\subsection{The characteristic SAT}
+
+\path{helper/excision\_sat.F90} implements a level-set boundary SAT. It is
+compiled and unit-tested, and enabled by \texttt{excision\_sat = true} in the
+parameter file. It is \emph{off} in production. Tests show it slightly damps
+the inner boundary (lower \texttt{max|H|}) but does not change survival, and the
+puncture gauge is not actually driving anything --- see the
+\texttt{KNOWN LIMITATION} note at the top of the Makefile.
+
+\section{Outer: Sommerfeld}
+
+On the outer rows and column the RHS is replaced by a first-order outgoing-wave
+condition applied to every one of the 24 variables:
+\begin{equation}
+\label{eq:sommerfeld}
+\partial_t f = -c\,\partial_r f - n\,\frac{f - f_0}{r},
+\end{equation}
+with $c = 1$ (in units where the wave speed is unity), $f_0$ the asymptotic
+flat-space value ($1$ for the diagonal metric components and $\hat{A}$, $0$
+otherwise), and $n$ the asymptotic falloff power.
+
+The legacy condition uses $n = 1$ for every field. Measurement showed that for
+exact Kerr--Schild data the true powers are far steeper:
+$\etr \to 1$ (no $1/r$ term at all), $\ph$ and $\hat{A}$ $\sim r^{-3}$, and $K$,
+$\At$, $\Gt$, $B \sim r^{-4}$. Setting \texttt{GR\_SOMMERFELD\_DECAY=1}
+switches to per-field powers.
+
+\gotcha
+The per-variable decay powers were tested and are \textbf{worse}: RMS
+constraint violation degrades by 8.5$\times$ when the correct powers are used.
+The $1/r$ term is not an asymptotic-correctness knob --- it acts as a damper,
+and a weaker damper lets more error in. This was a clean refutation of a
+plausible hypothesis.
+
+\gotcha
+A single-layer, all-field, first-order Sommerfeld condition is \emph{not} a
+characteristic boundary condition. It overwrites the RHS of all 24 variables
+in one layer regardless of which characteristics actually leave the domain.
+A proper treatment would impose conditions on the incoming characteristic
+fields only. The apparent second-order convergence in domain size $L$ that this
+condition exhibits is reflection, not accuracy.
+
+\section{Time integration}
+
+Classical RK4 with an algebraic projection after each stage:
+\begin{lstlisting}
+utmp = u + 0.5_dp*dt*k1
+call extrapolate_excised(utmp)
+call project_bssn_constraints(utmp, stepnum)
+... k2, k3, k4 likewise ...
+u = u + (dt/6.0_dp)*(k1 + 2.0_dp*k2 + 2.0_dp*k3 + k4)
+call project_bssn_constraints(u, stepnum)
+\end{lstlisting}
+Each stage applies, in order: the interior RHS, the excision SAT, Kreiss--Oliger
+dissipation, and the Sommerfeld boundary. Note that there is \emph{no}
+projection after stage 1 --- the state entering $k_1$ was projected at the end
+of the previous step.
+
+\subsection{The timestep}
+
+\begin{lstlisting}
+dt = cfl * min(dx, dz) / sqrt(2.0_dp)
+\end{lstlisting}
+with \texttt{cfl = 0.005}, so $dt/dx \approx 0.0035$ --- about 1.4\% of the
+classical RK4 advection stability limit. This is extraordinarily conservative
+and was verified \emph{not} to be the problem: the failure is not a
+time-stepping instability.
+
+\subsection{The algebraic projection}
+
+\begin{lstlisting}
+scale = det**(-1.0_dp/3.0_dp)
+u(i,k,IGXX) = scale*gxx;  ... (all six components)
+! then remove the trace of Atilde in the same loop
+\end{lstlisting}
+
+\gotcha
+The projector was the leading suspect for manufacturing its own constraint
+violation, since it rescales $\etr$ to $\det = 1$ four times per step. It was
+instrumented (\texttt{GR\_PROJ\_DIAG}) and measured. The correction is
+$\max|\det(\etr) - 1| \approx 10^{-5}$, growing only linearly, five orders of
+magnitude below the violation it would have to explain. \textbf{Falsified.}
+
+\chapter{Initial Data}
+\label{ch:id}
+
+Kerr--Schild, from \texttt{kerr\_schild\_point}:
+\begin{lstlisting}
+rho2 = x*x + y*y + z*z
+r2   = 0.5_dp*( (rho2 - a2) + sqrt((rho2 - a2)**2 + 4.0_dp*a2*z*z) )
+H    = M * r2 * sqrt(r2) / (r2*r2 + a2*z*z)
+l(1) = (r*x + bh_spin*y) / (r2 + a2)
+l(2) = (r*y - bh_spin*x) / (r2 + a2)
+l(3) = z / r
+gij  = I + 2.0_dp * H * outer(l, l)
+alpha = 1.0_dp / sqrt(1.0_dp + 2.0_dp*H)
+beta_lower = 2.0_dp * H * l
+\end{lstlisting}
+
+The conversion to BSSN variables:
+\begin{lstlisting}
+twoH = max(detg - 1.0_dp, 0.0_dp)
+phi  = log(max(detg,1.0e-300_dp)) / 12.0_dp     ! conformal_factor_mode 0
+gtij = exp(-4.0_dp*phi) * gij
+Ktr  = sum(gijinv*Kij)
+Atij = (Kij - (gij*Ktr)/3.0_dp) / exp(4.0_dp*phi)
+\end{lstlisting}
+
+The extrinsic curvature is obtained by central differences of the analytic
+metric with an internal step $h = 10^{-4}$, plus a Christoffel-symbol
+correction to $\partial_a\beta_b$.
+
+\subsection{The conformal connection}
+
+\texttt{compute\_conformal\_connections} fills \texttt{IGTX..IGTZ} from
+\begin{lstlisting}
+dginv(1,:,:) = (ginvxp - ginvxm) / (2.0_dp*dx)
+dginv(2,:,:) = (ginvyp - ginvym) / (2.0_dp*dy)
+dginv(3,:,:) = (ginvzp - ginvzm) / (2.0_dp*dz)
+Gt(1) = -(dginv(1,1,1) + dginv(2,1,2) + dginv(3,1,3))
+\end{lstlisting}
+that is, $\tilde{\Gamma}^a = -\partial_b \tilde{g}^{ab}$.
+
+\gotcha
+This is a \textbf{second-order} central-difference path, entirely separate
+from the fourth-order \texttt{compute\_stencil} that the curvature operator
+uses. So the state field feeding $\tilde{R}$'s $\tilde{\Gamma}\cdot\partial
+\tilde{\Gamma}$ term is two orders less accurate than its neighbours, by
+construction, and its loop bounds $i = 2..N_x-1$, $k = 2..N_z-1$ carry no
+excision-mask guard on the read range.
+
+This was the leading remaining suspect and has now been measured: the error is
+$9.07\times10^{-2} \to 3.05\times10^{-2} \to 7.68\times10^{-3}$ for
+$N_x = 48, 96, 192$, i.e. it \textbf{converges} at roughly second order and
+sits within the range spanned by its neighbours. It is lower-order than its
+surroundings, but it is not an outlier and does not explain a
+non-converging error.
+
+\chapter{Constraints and Diagnostics}
+\label{ch:diag}
+
+\section{The margin trap}
+
+This is the single most instructive defect found in the project, and it is
+worth dwelling on because it invalidated a large body of earlier work.
+
+The driver computes \texttt{max|H|(ext)} over points satisfying
+\begin{lstlisting}
+if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
+\end{lstlisting}
+with \texttt{diag\_margin} defaulting to $1.0$. That correctly excludes
+$r_{\mathrm{KS}} < 2.0$, the region in which the code is known to be
+inaccurate. But it means the reported number says nothing about
+$r_{\mathrm{excise}} < r_{\mathrm{KS}} < r_{\mathrm{excise}} + 1.0$.
+
+And that band is exactly where the constraint violation is largest. Sweeping
+the margin at $N_x = 48$, $t \approx 0.36$:
+
+\begin{center}
+\begin{tabular}{@{}lccr@{}}
+\toprule
+\texttt{diag\_margin} & monitors from & \texttt{max|H|} & \texttt{rms|H|} \\
+\midrule
+2.0 & $r_{\mathrm{KS}} = 3.0$ & $4.06\times10^{-3}$ & $3.51\times10^{-4}$ \\
+1.0 (default) & $2.0$ & $1.17\times10^{-2}$ & $7.10\times10^{-4}$ \\
+0.5 & $1.5$ & $1.53\times10^{-1}$ & $4.09\times10^{-3}$ \\
+0.2 & $1.2$ & $3.19\times10^{-1}$ & $1.09\times10^{-2}$ \\
+0.05 & $1.05$ & $5.25\times10^{-1}$ & $1.60\times10^{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A factor of 129 between the far field and one cell outside the mask. The
+default setting reports the small number and calls it the constraint.
+
+\gotcha
+For a long time this was interpreted as ``the initial data violate the
+constraint by $O(1)$ at $t=0$, and this slowly propagates outward.'' The
+$1.18$ figure that motivated that reading came from the driver's unfiltered
+$x = 0$ profile, which samples $r_{\mathrm{KS}} \approx 0.38$ --- deep inside
+the mask, on filled ghost points. It was an artifact of the radius bug. The
+qualitative conclusion (a steep near-mask gradient exists) survived; the
+specific numbers did not.
+
+\section{The near-mask band}
+
+The driver therefore now reports the band explicitly:
+\begin{lstlisting}
+! GR_NEAR_MASK_W, default 2.0, 0 disables
+if (nm_rr < r_excise .or. nm_rr >= r_excise + near_mask_w) cycle
+nm_npts = nm_npts + 1
+nm_Hmax = max(nm_Hmax, abs(Hgrid(i,k)))
+nm_Mmax = max(nm_Mmax, sqrt(Mgrid(i,k,1)**2 + Mgrid(i,k,2)**2 + Mgrid(i,k,3)**2))
+\end{lstlisting}
+
+This costs one extra pass over arrays that have already been computed --- no
+additional stencil work, no effect on the evolution. Typical output:
+
+\begin{lstlisting}
+ step 700  ...  max|H|(ext)= 1.2656E-02  rms|H|(ext)= 2.0211E-03  alpha(probe)= 0.910348
+    near-mask r_KS < 3.0000E+00  n= 192  max|H|= 1.9493E+00  max|M|= 1.4920E+00  worst r= 1.0227
+\end{lstlisting}
+
+The momentum residual deserves attention: $\texttt{max|M|}$ is $1.49$ inside
+the band against $2.87\times10^{-2}$ outside --- a factor of 52. Since the band
+is where the fill injects its error into the stencil, a large $\max|M|$ there
+is the signature of a fill/stencil inconsistency rather than a gauge problem.
+That is a useful discriminator between two failure families that are otherwise
+hard to tell apart.
+
+\section{The diagnostic programs}
+
+\subsection{diagnose-ghost-accuracy}
+
+The most capable instrument in the project. It reports, for any resolution:
+
+\begin{enumerate}
+\item \textbf{Ghost fill error} vs.\ exact Kerr--Schild, binned by depth inside
+      the mask. Result: $4.4\times10^{-16}$ everywhere.
+\item \textbf{max|H| per radial bin} outward from the mask, so the spatial
+      structure of the error is visible.
+\item \textbf{Per-derivative errors} against high-order central differences of
+      the exact analytic field, for $\etr_{xx}$ and $\ph$, in $x$, $y$ and $z$.
+\item \textbf{Decomposition} $H = \tilde{R} + \tfrac23 K^2 - \At^2$, split
+      further into $\tilde{R}^\gamma$ and $\tilde{R}^\phi$. Since the $K$ and
+      $\At$ terms are pointwise algebraic and carry no discretisation error,
+      this localises the problem to $\tilde{R}$ immediately.
+\item \textbf{$\Gamma$-tilde accuracy} against the same formula evaluated on
+      the exact analytic metric.
+\item \textbf{A replica of the driver's own $t=0$ scan}, so the two can be
+      cross-checked digit for digit.
+\end{enumerate}
+
+\subsection{diagnose-momentum-point}
+
+Prints the stored BSSN state beside the analytic state built independently at
+the same coordinate, component by component, plus the seven additive pieces of
+the momentum constraint at a chosen point and at a same-radius control away
+from the axis. Agreement to $10^{-16}$ in the data stage is the precondition
+for blaming the derivatives instead.
+
+\subsection{diagnose-inner-boundary}
+
+Perturbs the background and measures how the perturbation propagates into the
+exterior as a function of fill depth. Shows it bounded and saturating.
+
+\subsection{A methodological warning}
+
+\gotcha
+Every number in this project that was measured with a diagnostic operating on
+the wrong set of points had to be retracted. So did two numbers that were
+produced by bugs in the diagnostic itself. Specifically:
+\begin{itemize}
+\item A second-derivative reference built as $(f(+h) - f(0))/h^2$ --- a forward
+      difference scaling as $f'/h$ --- reported a spurious
+      $\lvert \partial_y^2\rvert$ error of $\sim 10^{3}$ that looked exactly
+      like the smoking gun. The correct central difference gives $\sim10^{-2}$
+      and converges normally.
+\item A diagnostic that called \texttt{set\_kerr\_schild\_id} but not
+      \texttt{compute\_conformal\_connections} left $\Gt$ identically zero, so
+      every Hamiltonian it reported was computed with a term of the curvature
+      silently dropped. Adding the call moved the innermost-cell $\max|H|$ at
+      $N_x = 96$ from $4.93\times10^{-1}$ to $1.14\times10^{-1}$.
+\end{itemize}
+
+The general lesson, which cost real time: when a measurement contradicts an
+expectation, suspect the instrument before believing the result, and prefer
+two independent instruments that agree over one instrument that agrees with
+your prior.
+
+\chapter{Build and Test}
+\label{ch:build}
+
+\section{The parity gate}
+
+\begin{lstlisting}
+check: check-parity $(TARGET) test
+
+check-parity:
+	@missing=0; \
+	srcs=' $(SOURCES) '; \
+	for f in $$(grep -ho '[a-z_]*/[a-z_]*\.F90' Makefile | sort -u); do \
+	  case "$$f" in drivers/*|helper/test_*|helper/diagnose_*|init/test_*|helper/probe_*) continue;; esac; \
+	  case "$$srcs" in \
+	    *" $$f "*) ;; \
+	    *) echo "check-parity: $$f is built by a test but missing from SOURCES"; missing=1;; \
+	  esac; \
+	done; \
+	...
+\end{lstlisting}
+
+This is a genuinely good idea and worth copying. It scans the Makefile for
+every source file any test target compiles, and asserts that each also appears
+in \texttt{SOURCES} --- the list the production binary is built from. Without
+it, a test can pass against a copy of the physics that production does not
+actually use, and you would never know.
+
+\section{Sources must be listed in dependency order}
+
+\begin{lstlisting}
+SOURCES := \
+	helper/kinds_mod.F90 \
+	helper/fo_sbp.F90 \
+	...
+	init/param.F90 \
+	init/grid.F90 \
+	init/vars.F90 \
+	...
+	drivers/vacuum_kerr.F90
+\end{lstlisting}
+
+gfortran will not resolve module dependencies automatically across a single
+invocation, so this list must be topologically ordered. This is a maintenance
+burden; add new modules before the files that \texttt{use} them.
+
+\gotcha
+The Makefile notes that GNU make predefines \texttt{FC = f77}, so a plain
+\texttt{FC ?= gfortran} never takes effect and every recipe silently builds
+with \texttt{f77}. The fix is
+\begin{lstlisting}
+ifeq ($(origin FC),default)
+FC      := gfortran
+endif
+\end{lstlisting}
+so that an explicit \texttt{make FC=...} still wins. This is a classic and a
+good reminder to check what your build system already defines.
+
+\section{Environment overrides}
+
+Parameters can be overridden at runtime without editing files, which is what
+makes A/B experiments cheap and reproducible:
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Variable} & \textbf{Effect} \\
+\midrule
+\texttt{GR\_NSTEPS} & Number of steps. \\
+\texttt{GR\_DIAG\_MARGIN} & Width of the excluded near-mask band. \\
+\texttt{GR\_NEAR\_MASK\_W} & Width of the reported near-mask band; 0 disables. \\
+\texttt{GR\_SLICING\_MODE} & 0 = 1+log, 1 = maximal, 2 = frozen. \\
+\texttt{GR\_GAMMA\_DRIVER\_MODE} & 0 = legacy, 1 = puncture, 2 = frozen, 3 = advective. \\
+\texttt{GR\_EXCISION\_ORDER} & 1--4; the ghost extrapolation order. \\
+\texttt{GR\_EXCISION\_SAT} & Enable the level-set characteristic SAT. \\
+\texttt{GR\_KO\_EPS} & Kreiss--Oliger strength. \\
+\texttt{GR\_GAUGE\_ETA} & $\Gamma$-driver damping. \\
+\texttt{GR\_REFRESH\_BG} & Re-anchor the excision background every step. \\
+\texttt{GR\_SOMMERFELD\_DECAY} & Per-field asymptotic decay powers. \\
+\texttt{GR\_PROJ\_DIAG} & Report the algebraic projection correction. \\
+\texttt{GR\_HZ\_EVERY} & Horizon-find interval; 0 disables. \\
+\texttt{GR\_HZ\_ABORT} & Abort when the horizon drifts. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{A Tour of Every File}
+\label{ch:tour}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.46cm}>{\raggedright\arraybackslash}p{10.12cm}@{}}
+\toprule
+\textbf{File} & \textbf{What it does and why} \\
+\midrule
+\endhead
+\path{helper/kinds\_mod.F90} & \texttt{dp = selected\_real\_kind(15,307)}. One place to change precision. \\
+\path{init/param.F90} & Every runtime parameter with a default, a parser, and an environment override. \\
+\path{init/grid.F90} & Builds \texttt{xg} and \texttt{zg}. Fortran 1-based; $x$ starts at 0, $z$ is centred. \\
+\path{init/vars.F90} & The 24 state indices, plus \texttt{ICONFMET}/\texttt{IATILDE} component tables for looping over symmetric tensors, and \texttt{is\_tensor\_var}/\texttt{is\_vector\_var} for the Cartoon rotation. \\
+\path{init/init\_data.F90} & Kerr--Schild point data, conversion to BSSN, and the conformal connection. \\
+\path{init/stencils.F90} & Precomputed finite-difference weights used by the SAT and equilibrium modules. \\
+\path{init/fd\_weights.F90} & FD\_RADIUS and weight tables. \\
+\path{helper/cartoon.F90} & \texttt{get\_neighbor}, radial interpolation, vector and tensor rotation. \\
+\path{helper/stencil.F90} & The stencil engine: every derivative, every fallback, the excision-aware validity tests. \\
+\path{helper/geometry.F90} & \texttt{compute\_conformal\_geometry}: $\etr$, $\etr^{-1}$, Christoffels, $\tilde{R}^\gamma_{ab}$, $\tilde{R}^\phi_{ab}$, $\tilde{\nabla}_a\tilde{\nabla}_b\hat{A}$, $\hat{A}^a$. \\
+\path{integrators/bssn\_rhs.F90} & The evolution equations. Pure functions of the stencil and geometry; no state mutation. \\
+\path{integrators/ko\_diss.F90} & Kreiss--Oliger, applied in all three directions, skipping points inside $\sqrt{x^2+z^2} < r_{\mathrm{excise}}$. \\
+\path{integrators/sommerfeld.F90} & Outer boundary condition, with the per-variable decay probe. \\
+\path{helper/excision.F90} & Mask geometry, frozen background, the onion-peeling fill, positivity enforcement, the incoming-characteristic check, and \texttt{kerr\_radius\_squared} for external use. \\
+\path{helper/excision\_sat.F90} & Level-set characteristic SAT. Compiled and tested; off in production. \\
+\path{helper/constraints.F90} & Hamiltonian and momentum, both with optional term decompositions for diagnosis. \\
+\path{integrators/time\_step.F90} & \texttt{rk4\_step} and \texttt{project\_bssn\_constraints}. \\
+\path{helper/horizon.F90} & Locates the horizon from the state and reports its drift. \\
+\path{helper/output.F90} & HDF5 snapshots and diagnostics. \\
+\path{drivers/vacuum\_kerr.F90} & Setup, time loop, all reporting, horizon tracking, abort logic. \\
+\bottomrule
+\end{longtable}
+
+\subsection{The first-order track}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.97cm}>{\raggedright\arraybackslash}p{9.60cm}@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\endhead
+\path{helper/fo\_sbp.F90} & SBP operator for the first-order formulation. \\
+\path{helper/fo\_sat.F90} & Simultaneous approximation term. \\
+\path{helper/fo\_constraints.F90} & First-order constraint operators. \\
+\path{helper/fo\_constraint\_damping.F90} & Constraint damping. \\
+\path{helper/fo\_curved\_sat.F90} & SAT on a curved (non-constant-coefficient) boundary. \\
+\path{helper/fo\_normal\_system.F90} & Reduction of the SAT to a normal system. \\
+\path{helper/fd\_excision.F90} & Finite-difference-level excision helpers. \\
+\path{init/fo\_vars.F90}, \path{init/fo\_complete\_vars.F90} & Reduced and full state layouts. \\
+\path{integrators/fo\_rhs.F90}, \path{fo\_complete\_rhs.F90} & Reduced RHS operators. \\
+\bottomrule
+\end{longtable}
+
+\section{SBP-SAT: why it is not finished}
+
+\label{sec:sbp}
+
+For a well-posed hyperbolic boundary treatment one wants a simultaneous
+approximation term built on a discretisation satisfying the summation-by-parts
+property. The existing \texttt{fo\_sbp} module does not: it was machine-checked
+against the SBP diagonal-dominance test and the maximum eigenvalue of
+$hD + D^\top h$ came out at $+1.685$, where the property requires it to be
+non-positive. That is a genuine failure of the property, not a tolerance
+issue.
+
+Making this production-ready is a from-scratch build, not a hardening job: a
+valid SBP operator, the principal symbol of the production system, and the
+SAT on a curved Kerr-radius boundary, for 24 fields. This is a multi-week
+project and has deliberately not been started.
+
+\chapter{Findings}
+\label{ch:findings}
+
+This chapter records the investigation of the long-time failure, including the
+mistakes. It is long because the mistakes are as instructive as the results.
+
+\section{The failure}
+
+In the production configuration the run aborts at $t \approx 5.63$
+(step 6331, live gauge) when the conformal metric loses positive definiteness:
+\begin{lstlisting}
+Conformal metric failure det= -1.067321E+11 components= ...
+Invalid state at step 7536 i=7 k=48 x= 1.53191 z= -0.12632
+\end{lstlisting}
+This is not a blow-up in the dynamics; it is the projection's positivity check
+catching a state that has drifted far from a Lorentzian metric.
+
+\section{What was established}
+
+\subsection{Negative results, all measured}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{4.50cm}>{\raggedright\arraybackslash}p{9.00cm}@{}}
+\toprule
+\textbf{Hypothesis} & \textbf{Result} \\
+\midrule
+\endhead
+Frozen gauge & Falsified. Exact stationary Kerr--Schild gauge still drifts and fails (rate 4.1$\times10^{-2}$/t vs 6.8$\times10^{-2}$/t). \\
+Outer boundary dominant & Resolution-dependent. Real and dominant at $dx\approx0.10$; vanishes at the production $dx\approx0.25$. Enlarging the domain 12$M \to 18$M at fixed $dx$ extends survival 39\% but relocates the failure to the inner boundary. \\
+$1/r$ Sommerfeld falloff & Refuted. Correct per-field powers make the constraint \textbf{8.5$\times$ worse}. \\
+Cartoon $y$-derivative & Measured; scalar and vector exact, tensor $1.3\times10^{-2}$ at $x = dx$. Only 1--2\% of the ring error. \\
+Algebraic projection & Falsified. $\max|\det\etr - 1| \approx 10^{-5}$. \\
+Ghost fill & Exact to $4.4\times10^{-16}$. \\
+$\Gt$ on the second-order path & Converges at $\sim 2$nd order; not an outlier. \\
+Fill order & Mitigates, does not fix (see below). \\
+Stale background & Null, bit-identical. \\
+Excision order & Mitigates only. \\
+Momentum constraint form & Was genuinely wrong; fixed, and proven not to be on the evolution path. \\
+\bottomrule
+\end{longtable}
+
+\subsection{The live picture}
+
+The constraint violation is real, large, and confined to the first one or two
+cells outside the mask. Over physical points only, $\max|H|$ is
+$7.77\times10^{-1}$, $1.42\times10^{-1}$, $6.21\times10^{-2}$ at
+$N_x = 48, 96, 192$ --- decreasing, but at observed orders $\sim 2.4$ then
+$\sim 1.2$, and the worst point sits at a different physical location each
+time, so the apparent non-convergence may itself be an artifact of comparing
+maxima at different points.
+
+Every individual derivative quantity examined converges at roughly second
+order. The assembled $H$ exceeds its inputs by a factor of 5--8, consistent
+with the curvature contraction's $1/\gamma^2$ and $\tilde{\Gamma}\cdot
+\partial\tilde{\Gamma}$ terms. The mechanism is therefore \emph{not} localised
+to a single defective field.
+
+\section{Excision order: a trade-off, not a win}
+
+Raising \texttt{excision\_order} reduces the near-mask violation, but not
+monotonically in run lifetime:
+
+\begin{center}
+\begin{tabular}{@{}lccr@{}}
+\toprule
+\texttt{excision\_order} & live fail step & live fail $t$ & near-mask $\max|H|$ \\
+\midrule
+2 & 6331 & 5.63 & \textbf{1.289} \\
+3 & \textbf{6848} & \textbf{6.07} & 1.949 \\
+4 & 4364 & 3.84 & 2.068 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Order 3 is the production default: it gains 8\% in lifetime and improves all
+three exterior metrics. Order 4 improves the constraint further but costs
+31\% of survival --- a more accurate fill that destabilises. Note the near-mask
+column runs \emph{opposite} to the margin-based column used earlier to justify
+order 4; the ordering of the three settings depends on which radial band is
+measured, and that is recorded rather than smoothed over.
+
+The honest summary is that \texttt{excision\_order} is a mitigation worth about
+a factor of two, and that even the best setting leaves the near-mask error near
+$1.1$ against a far-field level of $\sim10^{-3}$. No setting of this knob fixes
+the problem.
+
+\section{How this investigation went wrong, repeatedly}
+
+Worth recording in full, because the failure mode is common and expensive.
+
+\begin{enumerate}
+\item \textbf{Generalising from one regime.} The outer-boundary conclusion was
+      drawn at $dx \approx 0.10$ and asserted for the code; at the production
+      $dx \approx 0.25$ the effect is absent. Every earlier conclusion had
+      been drawn at $t \approx 0.5$, while the run dies at $t \approx 5.6$.
+\item \textbf{Trusting a diagnostic's default threshold.} \texttt{max|H|(ext)}
+      with the default margin could not see the region that mattered. Every
+      ``null result'' measured that way had to be re-examined.
+\item \textbf{Bugs in the instrument producing confident nonsense.} Twice, as
+      detailed in Section~\ref{ch:diag}.
+\item \textbf{A wrong radius in a filter.} Ten sites. This made a garbage
+      maximum look like a physical result and made the ``non-convergence'' of
+      $\max|H|$ an artifact.
+\item \textbf{Asserting strict dominance from a single metric.} Order 3 was
+      recommended as strictly better than order 2 on the strength of one
+      radial band; a second band reversed the near-mask ordering.
+
+The through-line is that every conclusion rested on a measurement whose
+fitness for purpose had not been verified. The single most useful discipline
+would have been, before interpreting any diagnostic, to confirm it is measuring
+the quantity you think it is --- by cross-checking against a second,
+independently written instrument.
+\end{enumerate}
+
+\chapter{Writing Your Own}
+\label{ch:extend}
+
+\section{Where to start}
+
+If you are writing a new code in this style, do it in this order. Each step is
+independently testable, and each has a natural test that will catch you if you
+get it wrong.
+
+\begin{enumerate}
+\item \textbf{Kerr--Schild initial data and the BSSN conversion.} Verify the
+      stored state against an independently computed analytic state,
+      component by component. Expect agreement to round-off. If it does not,
+      your conversion is wrong and everything downstream will be too.
+\item \textbf{The stencil engine on a uniform grid with no mask.} Write a test
+      that differentiates a manufactured smooth function and confirms the
+      observed order matches the nominal order. Do this for every derivative,
+      including the mixed ones. You will find your mixed-derivative stencils
+      are wrong more often than you expect.
+\item \textbf{Cartoon.} Differentiate a manufactured axisymmetric function,
+      including a tensor field, and measure the order. Expect second order in
+      $y$, and expect it to be worse than $x$ and $z$ because of the radial
+      interpolation.
+\item \textbf{Conformal geometry.} Compute $\tilde{R}_{ab}$ two ways: once via
+      the connection-function form used here, and once from Christoffel symbols
+      directly, on a random metric. They must agree to round-off. Getting the
+      index order of \texttt{Chr\_low} wrong is easy and produces a result that
+      is wrong by $\sim 10\%$ without looking obviously wrong.
+\item \textbf{Constraints on exact data.} Compute $\mathcal{H}$ and
+      $\mathcal{M}^a$ on exact Kerr--Schild and confirm convergence under
+      refinement. The continuum values are zero, so any non-convergence is
+      entirely your error. This is the single most valuable test in the
+      project and it should come before any evolution work.
+\item \textbf{Excision.} Only then add the mask. Confirm that a frozen-gauge
+      configuration stays stationary. If it does not, the problem is
+      somewhere in your fill or stencil fallback, and you can localise it by
+      the bin-by-radius diagnostic described in Section~\ref{ch:diag}.
+\item \textbf{Evolution.} Turn the gauge on. Change one thing at a time, and
+      after every change re-run the frozen-gauge stationarity check.
+\end{enumerate}
+
+\section{Design lessons worth stealing}
+
+\begin{description}
+\item[Keep one copy of the physics.] Every reduced or alternate operator should
+      call the same point-level routine rather than reimplementing it. The
+      codebase does this deliberately: \texttt{compute\_rhs\_point} exists
+      precisely so that no second, subtly different BSSN system can grow.
+\item[Gate production against tests.] The \texttt{check-parity} target is a
+      good pattern: it verifies that what the tests exercise is what production
+      builds.
+\item[Make diagnostics opt-in and inert by default.] Every probe in this
+      codebase is behind an environment variable, and the default path is
+      verified bit-identical with the probe enabled. A diagnostic that changes
+      the answer is worse than no diagnostic.
+\item[Write the regression gate, then verify the gate fails.] Several gates
+      here had to be deliberately broken to confirm they would catch a
+      regression.
+\item[Keep a findings document and date it.] \path{baseline/} in this
+      repository records each investigation, including the retractions.
+\item[Restate the baseline whenever a diagnostic changes.] Numbers of record
+      are only meaningful relative to the exact code that produced them.
+\end{description}
+
+\section{Where the physics is genuinely unfinished}
+
+In rough order of value:
+
+\begin{enumerate}
+\item \textbf{The near-mask error.} This is the actual bug. It is an $O(1)$
+      Hamiltonian violation in the first two cells outside the mask, present in
+      the initial discretisation, not caused by the projection, the fill, the
+      connection, or the gauge. It is what kills the run.
+\item \textbf{A real characteristic boundary treatment.} The outer Sommerfeld
+      condition is not characteristic and not accurate; the second-order
+      convergence it appears to exhibit is reflection.
+\item \textbf{SBP--SAT.} Blocked on a genuinely invalid SBP operator.
+\item \textbf{An active puncture gauge.} The \texttt{KNOWN LIMITATION} note
+      is accurate: the puncture gauge does not currently drive anything, and
+      the horizon drifts.
+\end{enumerate}
+
+\chapter{Deriving BSSN, and Why It Exists}
+\label{ch:derive}
+
+This chapter fills in the reasoning that is usually skipped. If you want to
+write your own code you will eventually want a variable you have not seen
+before, and the only way to know whether it is necessary is to understand what
+problem each addition solves.
+
+\section{The failure of ADM in practice}
+
+The ADM system, written on the spatial metric and extrinsic curvature, is a
+first-order-in-time hyperbolic system whose evolution is
+\emph{constraint preserving in the continuum}. That is, if you start on a
+surface satisfying the Hamiltonian and momentum constraints, the exact
+continuum evolution keeps you on that surface.
+
+The qualification --- \emph{in the continuum} --- is the entire problem. In
+discrete form the constraints are violated at the truncation error of whatever
+difference operator you used, the errors grow, they feed back through the
+equations, and the run eventually fails. This is the constraint-violation /
+constraint-error feedback mechanism, and it is why naive ADM codes have a
+reputation for blowing up.
+
+\section{What the constraint propagation mechanism needs}
+
+For a formulation to damp constraint violations rather than amplify them you
+need, in rough order of importance:
+
+\begin{enumerate}
+\item \textbf{A semigroup estimate that propagates the constraint violation
+      away.} A violation of size $\epsilon$ should lead to a violation of
+      size $\epsilon + O(\Delta t^3)$ --- growing at the local truncation rate,
+      not exponentially.
+\item \textbf{Constraint terms of the right size in the evolution equations.}
+      The constraint itself should appear in the equations, so that the same
+      mechanism that produces a violation also produces a restoring force.
+\item \textbf{Coupling between adjacent constraint-violation components.} A
+      violation at one point should not be able to grow without limit; the
+      diffusion part of the system must dominate at long wavelengths.
+\item \textbf{A parameter family that can be dialled.} This is the single most
+      practical of the four, and the reason the theory is parameterised:
+      different schemes are stable over different ranges of the parameter, and
+      the existence of \emph{some} stable regime is what matters.
+\end{enumerate}
+
+ADM fails the second condition badly: the constraints do not appear in the
+evolution equations at all, so nothing generates a restoring force. Violations
+grow at the full truncation rate and eventually destroy the metric.
+
+\section{Where each BSSN piece comes from}
+
+\begin{longtable}{@{}p{3.4cm}p{12.2cm}@{}}
+\toprule
+\textbf{Addition} & \textbf{The problem it solves} \\
+\midrule
+\endhead
+Conformal factor $\ph$ and conformal metric $\etr_{ab}$ &
+Divides the metric into a well-scaled part and a scalar. The bulk of the
+field content goes into $\etr$ near unity, so the finite-difference stencils
+see a well-conditioned, slowly varying function rather than a metric that
+varies strongly. The conformal factor absorbs the rest. This is the single
+most important structural change, and it is why BSSN tolerates black holes at
+all. \\
+
+Traceless extrinsic curvature $\At_{ab}$ &
+Makes the dynamical degree of freedom trace-free, which is what allows the
+constraint to appear in the evolution equation for $\At$. The trace is carried
+separately as $K$, which satisfies a simple, stable equation. \\
+
+Connection $\Gt^a$ &
+Encodes the conformal connection as an evolved variable rather than a quantity
+recomputed from first derivatives. Differentiating a connection introduces
+third derivatives; evolving it introduces none. This is a
+discretisation-driven design decision, not a mathematical one, and it is the
+clearest example in the codebase of a variable that exists because of
+finite differences. \\
+
+Driver $B^a$ &
+Provides the memory needed to integrate the second-order shift equation
+$\ddot\beta^a = \tfrac34\partial_a B^a$ without effectively making the system
+third order in the differentiation. The price is that $B^a$ must be evolved
+too, and the whole family of $\Gamma$-driver and $B$-driver gauges is a choice
+of how to close that system. \\
+
+Shift split $\hat{A}^a$ &
+The difference between the contravariant and covariant shift is a vector whose
+magnitude is comparable to the radius. Carrying $\hat{A}^a$ instead of
+$\beta^a$ means the evolved quantity is $O(1)$ everywhere rather than growing
+with radius, which matters for a code that must resolve both the near-hole and
+far-field regions on one grid. \\
+\bottomrule
+\end{longtable}
+
+\gotcha
+Each of these is a \emph{derived} quantity in the continuum, so it is tempting
+to think of them as convenient reformulations. They are not: they are extra
+evolution equations with their own truncation errors, their own stability
+constraints, and their own consistency requirements. Any code that adds a
+variable must add a test that the variable's analytic value is actually
+preserved. In this codebase, \texttt{compute\_conformal\_connections} is that
+test for $\Gt$, and it lives in the production initial-data path because the
+variable is genuinely evolved.
+
+\section{Why the code writes $\tilde{R}$ in connection form}
+
+The Ricci tensor of the conformal metric appears in the $K$ and $\At$
+equations. It can be computed from Christoffel symbols directly, or in the
+``connection-function'' form the code uses, in which the second derivatives
+appear only through the Laplacian:
+\begin{align}
+\tilde{R}^\gamma_{ab} = \;& -\tfrac{1}{2}\etr^{cd}\nabla_c\nabla_d\etr_{ab}
+  + \tfrac{1}{2}\left(\etr_{ac}\partial_b\etr^{cd}
+      + \etr_{bc}\partial_a\etr^{cd}\right) \notag\\
+  & + \tfrac{1}{2}\left(\Gt^c{}_{ab}\partial_c\etr_{cd}
+      + \Gt^c{}_{bd}\partial_c\etr_{ac}\right)
+  - \etr^{ce}\etr^{df}\left(\Gt^c{}_{ae}\Gt^f{}_{bd}
+      + \cdots\right).
+\end{align}
+
+\gotcha
+There is an index-order trap here that the code comments specifically warn
+about, and it is worth spelling out because it is invisible in the output.
+The lowered-index Christoffel-like object is stored symmetric in its
+\emph{last two} slots:
+\begin{lstlisting}
+Chr_low(k,i,j) = Gam^k_{ij}      ! symmetric in i,j -- NOT in k,i
+\end{lstlisting}
+A naive contraction \texttt{Chr\_low(:,i,j)} silently computes a different
+tensor. It agrees with the correct answer only when $\Gamma^{\mathrm{low}}_{kij}$ happens to be
+symmetric under a first-slot swap, which is not true in general. The code
+comments record that the correct version was verified against a direct
+from-Christoffels computation on a generic metric to machine precision, while
+the naive version is wrong at the $\sim 10\%$ level. A $10\%$ error in an
+interior quantity is the kind of thing that survives review for months.
+
+\chapter{A Worked Example: the Cartoon Method}
+\label{ch:worked}
+
+The Cartoon method is the piece most newcomers find hardest, so here it is
+derived from scratch, implemented, and validated --- the sequence you should
+follow when adding it to your own code.
+
+\section{The problem}
+
+You have solved a 2D problem on the half-plane $y=0$, $x \geq 0$, storing
+$u(x, y=0, z)$ for each of 24 fields. Your equations, however, are genuinely
+three-dimensional: they contain $\partial_y$ and $\partial_y^2$. You need the
+field off the plane.
+
+\section{Step 1: establish the symmetry correctly}
+
+For axisymmetry about the $z$-axis, the isometry is
+$(x, y, z) \mapsto (x\cos\theta - y\sin\theta,\ x\sin\theta + y\cos\theta,\ z)$.
+A solution satisfies
+\begin{equation}
+u(x, y, z) = u(x\cos\theta - y\sin\theta,\ x\sin\theta + y\cos\theta, z).
+\end{equation}
+For $\theta = \pi$ this maps $(x,y)\mapsto(-x,-y)$, so the stored half-plane
+$x\geq 0$ determines the whole plane. This is why the code mirrors in $x$
+using a \emph{rotation by $\pi$} and not a reflection: a reflection in $x$
+alone is not an axisymmetry of this problem.
+
+\gotcha
+It is easy to write the mirror as a reflection and get a plausible-looking
+answer, because for \emph{scalar} fields the two agree on the $y=0$ slice.
+They diverge as soon as you rotate a vector or tensor. Test the tensor case.
+
+\section{Step 2: reduce to radius and interpolate}
+
+Write the target point as
+\begin{equation}
+X = \varpi\cos\theta, \qquad Y = \varpi\sin\theta,
+\qquad \varpi = \sqrt{X^2+Y^2}, \quad \theta = \arctan2(Y,X).
+\end{equation}
+Then
+\begin{equation}
+u(X, Y, z) = u(\varpi, 0, z)
+\end{equation}
+and $u(\varpi, 0, z)$ is, by construction, the function you stored. So the
+problem reduces to one-dimensional interpolation along $x$ at fixed $z$.
+
+Quadratic Lagrange on the three points bracketing $\varpi$:
+\begin{equation}
+u(\varpi,0,z) = \sum_{m=0}^{2} L_m(\varpi)\, u(x_m, z), \qquad
+L_m(\varpi) = \prod_{n\neq m}\frac{\varpi - x_n}{x_m - x_n}.
+\end{equation}
+
+\gotcha
+The bracketing index needs clamping. The code does
+\texttt{j = floor(varpi/dx) + 1}, then clamps to $[1, N_x-2]$. Without the
+clamp, a stencil reaching past the outer boundary indexes out of bounds, and
+depending on how your compiler treats that you get either a crash or a
+plausible wrong answer. Clamp every bracketing index in every interpolator.
+
+\section{Step 3: rotate by rank}
+
+Scalars are unchanged. Vectors transform as $V' = R V$. Rank-2 symmetric
+tensors transform as $T' = R T R^\top$, which expands to the six formulas in
+Section~\ref{sec:cartoon} --- or, more safely, you can implement the matrix
+product and let the compiler expand it.
+
+\gotcha
+Implement the rotation as a matrix product for \emph{tensors} rather than
+writing out the six terms by hand. Hand-expanded index algebra is exactly
+where the $\sim 10\%$ errors of Section~\ref{ch:derive} come from. If you do
+write them out, then test them against the matrix form on random inputs.
+
+\section{Step 4: validate, in this order}
+
+\begin{enumerate}
+\item \textbf{Scalar, first derivative.} Take $f(x) = x^3$ at $z=0$.
+      Compare $f(\varpi\cos\theta, \varpi\sin\theta)$ against
+      $f(\varpi) = \varpi^3$. Should agree to round-off --- this checks only
+      the interpolation and the rotation of a scalar.
+\item \textbf{Scalar, second derivative.} Take $f = e^{-r^2}$ with
+      $r^2 = x^2+y^2$. Then $\partial_y^2 f = (4y^2-2)e^{-r^2}$, computable
+      analytically. Refine $dx$ and confirm \textbf{second} order.
+\item \textbf{Vector.} Take a vector field with a known covariant/rotating
+      behaviour and check the rotation in isolation by evaluating at
+      $\varpi = x_i$ so the interpolation is exact and only the rotation acts.
+\item \textbf{Tensor.} Same, with a symmetric tensor, against the matrix form.
+\item \textbf{Mixed.} Finally check $\partial^2/\partial x\partial y$, which
+      is where the code uses a fallback and where errors hide.
+\end{enumerate}
+
+\chapter{Debugging Numerical Relativity Code}
+\label{ch:debug}
+
+This chapter is about method rather than mathematics, and it is included
+because the investigation recorded in Chapter~\ref{ch:findings} went wrong
+more often because of how it was measured than because of what it measured.
+
+\section{Rule 1: verify the instrument before interpreting it}
+
+Before you believe any diagnostic number, confirm that the diagnostic is
+computing the quantity you think. The cheapest way is to make it computable
+two different ways and check they agree.
+
+In this project, the decisive technique was building a byte-for-byte replica of
+the production diagnostic inside a separate program and comparing the numbers.
+They agreed to every digit --- which is what allowed the real bug (a filter
+using the wrong radius) to be found and localised in one step.
+
+\gotcha
+If a standalone instrument and the production code disagree, the disagreement
+is a bug report about one of them. Do not average, do not pick the one whose
+answer you prefer, and do not assume the production path is the correct one ---
+in this case it was not.
+
+\section{Rule 2: cross-check against an independent truth}
+
+Exact Kerr--Schild data gives you an independent truth for the data stage: you
+can build the BSSN state analytically at any coordinate and compare. Agreement
+to round-off localises the problem to the derivatives. Disagreement localises
+it to the conversion. This single test divides a large search space in two.
+
+Likewise, exact vacuum data gives $\mathcal{H} = 0$ and $\mathcal{M}^a = 0$
+identically, so any constraint residual is entirely discretisation error and
+must converge under refinement. A constraint that does not converge is telling
+you about a defect, not about physics.
+
+\section{Rule 3: check the order of accuracy you claim}
+
+Measure convergence before believing accuracy. The expected order for each
+stencil is in the table in Section~\ref{sec:stencils}; if the measured order is
+lower, you have found something.
+
+Concretely, in this code: the one-sided second derivative is first order while
+the one-sided first derivative is second, so a boundary-adjacent point sees
+mixed orders; the Cartoon $y$-derivatives are second order while $x$ and $z$
+are fourth; and $\Gt$ is computed by a second-order path while its
+neighbours use fourth order. All three are real, all three are invisible
+without an explicit convergence test, and only the third was ever measured.
+
+\gotcha
+When you refine, ask whether you are comparing the same physical quantity. In
+this project the ``same'' metric --- $\max|H|$ over a radial band --- selected
+different physical points at each resolution, because the band is defined in
+units of $dx$. An apparent non-convergence can be entirely an artifact of that.
+
+\section{Rule 4: know which knobs are inert}
+
+Before an A/B test, confirm the knob is connected. A null result is only
+evidence if the switch demonstrably changes something.
+
+Two examples from this project. A background-refresh switch produced
+\emph{bit-identical} output, which was the correct and useful result --- but
+only because bit-identity was checked, rather than ``the numbers look the
+same''. And a projection diagnostic initially reported all zeros, because the
+field it was differentiating had never been initialised in the diagnostic's
+own copy of the state; that was an instrument bug, not a physics result.
+
+\gotcha
+Establish the positive control first: make the switch do something obviously
+different, confirm the diagnostic shows it, then turn it off and confirm the
+diagnostic goes quiet. Only then is a null meaningful.
+
+\section{Rule 5: gates must be able to fail}
+
+A test that prints numbers and has no assertion always passes, and will pass
+forever while the code is broken. This project had one such test
+(\texttt{test\_momentum\_conv}). The fix is not just to add an assertion but to
+\emph{demonstrate that the assertion fails}, by deliberately breaking the physics it
+checks.
+
+The same applies to the parity gate: it exists to catch tests that validate
+code production does not build. Break the \texttt{SOURCES} list deliberately
+and confirm it complains.
+
+\section{Rule 6: keep a dated findings log, including retractions}
+
+Every investigation in this project produced a markdown file under
+\texttt{baseline/}, dated, and stating what was measured --- including the
+measurements that turned out to be wrong. Several findings had to be retracted.
+
+The retractions are the valuable part. A project that deletes its mistakes
+leaves behind a set of confident claims with no indication of which were
+shaky, and the next person repeats the work. Writing ``this was wrong, and
+here is why the measurement was invalid'' is worth more than the original
+conclusion was.
+
+\section{Rule 7: restate the baseline whenever anything moves}
+
+Numbers of record are meaningful only relative to the exact code that produced
+them. When a diagnostic changes what it measures, or a parameter default
+changes, the baseline must be re-measured and the old value annotated --- not
+quietly replaced.
+
+In this project the baseline was restated twice: once when the diagnostic
+radius was corrected, and once when \texttt{excision\_order} changed. Both times
+the previous value is recorded in the commit message and the findings document.
+
+\chapter{Where the Numbers Come From}
+\label{ch:numbers}
+
+Every quantitative claim in this document, and where it was measured.
+
+\section{The baseline of record}
+
+Production configuration, $N_x = 48$, $N_z = 96$, live gauge,
+\texttt{excision\_order = 3}, 700 steps:
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\texttt{max|H|(ext)} & $1.2656\times10^{-2}$ \\
+\texttt{rms|H|(ext)} & $2.0211\times10^{-3}$ \\
+\texttt{max|M|(ext)} & $2.8728\times10^{-2}$ \\
+\texttt{alpha(probe)} & $0.910348$ \\
+near-mask \texttt{max|H|} & $1.9493\times10^{+0}$ \\
+near-mask \texttt{max|M|} & $1.4920\times10^{+0}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Lifetimes}
+
+\begin{center}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Configuration & fail step & fail $t$ & fail $r_{\mathrm{KS}}$ \\
+\midrule
+12$M$, $N_x{=}48$, frozen & 7536 & 6.73 & 1.315 \\
+18$M$, $N_x{=}72$, frozen & 10495 & 9.34 & 1.015 \\
+\midrule
+order 2, live & 6331 & 5.63 & --- \\
+order 3, live & 6848 & 6.07 & --- \\
+order 4, live & 4364 & 3.84 & --- \\
+order 2, frozen & 7536 & 6.70 & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The frozen order-2 entry reproduces a previously recorded value exactly, which
+is what validates the measurement harness.
+
+\section{Near-mask measurements}
+
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Quantity & value & note \\
+\midrule
+Ghost fill error (worst anywhere) & $4.44\times10^{-16}$ & machine precision \\
+Projection $\max|\det\etr - 1|$ & $9.8\times10^{-6}$ $\to$ $2.3\times10^{-5}$ & 400 steps \\
+$\Gt$ error at $dr/dx < 1$ & $9.07\times10^{-2}$ $\to$ $7.68\times10^{-3}$ & $N_x$ 48, 96, 192 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Driver worst-point locations, corrected filter}
+
+\begin{center}
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+$N_x$ & driver \texttt{max|H|} & replica & worst $r_{\mathrm{KS}}$ & status \\
+\midrule
+48  & $8.2028\times10^{-1}$ & same & 0.8255 & \textsc{ghost} \\
+96  & $1.8057\times10^{+0}$ & same & 0.8125 & \textsc{ghost} \\
+192 & $5.0928\times10^{-1}$ & same & 0.7092 & \textsc{ghost} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every reported worst point was inside the excision region. After the fix, the
+same scan reports $1.86\times10^{-2}$ at $r_{\mathrm{KS}} = 2.158$.
+
+\appendix
+\chapter{Traps, Collected}
+\label{app:traps}
+
+Every one of these cost real time in this project.
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.86cm}>{\raggedright\arraybackslash}p{12.54cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Trap} \\
+\midrule
+\endhead
+1 & Kerr radius $\neq$ cylindrical radius. Use \texttt{kerr\_radius\_squared}
+     for anything that must agree with the mask. \\
+2 & A diagnostic that excludes a band is blind in that band. State what it
+     covers, and report the excluded region separately. \\
+3 & One-sided second derivatives $(f_i - 2f_{i+1} + f_{i+2})/h^2$ are
+     \emph{first}-order accurate. \\
+4 & Extrapolate the perturbation from a background, not the field. Extrapolating
+     the field amplifies its own truncation error. \\
+5 & Freeze the mask snapshot at the start of each fill sweep, or chains within
+     a sweep amplify by $15^n$. \\
+6 & \texttt{get\_neighbor} treats $y_{\mathrm{val}} = 0$ as a sentinel for a
+     plain index shift. \\
+7 & \texttt{Chr\_low} is symmetric in its \emph{last} two slots. Contracting
+     against the first silently computes the wrong tensor --- wrong by
+     $\sim 10\%$ and not otherwise suspicious. \\
+8 & Never freeze only one of lapse/shift while measuring discretisation
+     residuals. \\
+9 & A forward difference is not a second derivative. It scales as $f'/h$ and
+     will produce spectacular, entirely fictional results. \\
+10 & A test with no assertion always passes. \\
+11 & \texttt{FC ?= gfortran} never fires in make; \texttt{FC} is predefined. \\
+12 & Fortran is case-insensitive: \texttt{Q}/\texttt{q} and
+      \texttt{Gam}/\texttt{gam} collisions cause repeated compile failures. \\
+13 & Fortran I/O is line-buffered when connected to a terminal but
+      block-buffered when redirected. Use \texttt{stdbuf -oL} for long runs. \\
+14 & A test that honours its argument versus one that is hard-wired to a
+      resolution will silently waste a run. \\
+15 & \texttt{make check} failing for a pre-existing reason trains you to
+      ignore it. \\
+16 & Distances in cells versus in $M$ are not interchangeable near a mask; a
+      bin labelled ``$\mathrm{dr}/\mathrm{d}x$'' is a different set of points
+      at every resolution. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Environment Overrides and Reproduction}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{4.84cm}>{\raggedright\arraybackslash}p{8.65cm}@{}}
+\toprule
+\textbf{Command} & \textbf{What it reproduces} \\
+\midrule
+\endhead
+\texttt{make check} & The gate: parity, production build, full test suite. \\
+\texttt{make run} & The production configuration. \\
+\path{./bin/diagnose\_ghost\_accuracy parameter\_files/vacuum\_kerr.par} &
+Ghost-fill accuracy, derivative errors, $H$ decomposition, $\Gt$ accuracy. \\
+\path{GR\_DIAG\_MARGIN=0.05 ./bin/vacuum\_kerr \ldots} & The margin sweep. \\
+\path{GR\_NEAR\_MASK\_W=0 ./bin/vacuum\_kerr \ldots} & Silences the
+near-mask line, to confirm it is inert. \\
+\texttt{GR\_SLICING\_MODE=2 GR\_GAMMA\_DRIVER\_MODE=2 \ldots} & Frozen
+Kerr--Schild gauge; the stationary control. \\
+\path{GR\_PROJ\_DIAG=1 ./bin/vacuum\_kerr \ldots} & Projection correction
+report. \\
+\texttt{GR\_EXCISION\_ORDER=$n$ \ldots} & The order sweep. \\
+\texttt{GR\_SOMMERFELD\_DECAY=1 \ldots} & Per-field asymptotic powers. \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Environment.}
+gfortran with \texttt{-fcheck=all -fbacktrace} for the test builds;
+\texttt{h5fc} for HDF5; a TeX distribution for this document. The
+verification commands used throughout are \texttt{make check} for the suite and
+the 700-step run for the baseline of record:
+\begin{lstlisting}
+GR_HORIZON_EVERY=0 GR_HZ_ABORT=0 GR_NSTEPS=700 \
+  ./bin/vacuum_kerr parameter_files/vacuum_kerr.par
+\end{lstlisting}
+
+\end{document}
