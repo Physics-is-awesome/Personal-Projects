@@ -2,9 +2,9 @@ module timestep_mod
   use kinds_mod, only: dp
   use vars_mod, only: NVARS, IGXX, IGXY, IGXZ, IGYY, IGYZ, IGZZ, &
                       IAXX, IAXY, IAXZ, IAYY, IAYZ, IAZZ, IALPHA
-  use params_mod, only: Nx, Nz, dx
+  use params_mod, only: Nx, Nz, dx, r_excise
   use grid_mod, only: xg, zg
-  use excision_mod, only: is_excised, extrapolate_excised
+  use excision_mod, only: is_excised, extrapolate_excised, kerr_radius_squared
   use bssn_rhs_mod, only: compute_rhs_interior
   use dissipation_mod, only: add_ko_dissipation
   use sommerfeld_mod, only: add_sommerfeld_bc
@@ -15,7 +15,39 @@ module timestep_mod
   public :: rk4_step
   real(dp), parameter :: lapse_floor = 1.0e-6_dp
 
+  !---------------------------------------------------------------------------
+  ! DIAGNOSTIC: projection correction magnitude.
+  !
+  ! project_bssn_constraints rescales gtilde to det=1 and removes tr(Atilde)
+  ! at every RK stage (four times per step).  If the interior RHS drives
+  ! det(gtilde) away from 1 near the mask, the projector makes a large
+  ! correction which then feeds the next stage -- a candidate mechanism for
+  ! a self-sustaining constraint violation.
+  !
+  ! Setting GR_PROJ_DIAG=k>0 reports, on call 1 and then every k-th call:
+  !   - max |det(gtilde) - 1| and its location (before the rescale)
+  !   - max |scale - 1| actually applied
+  !   - max |tr(Atilde)| removed
+  ! each binned by Kerr-Schild radius relative to r_excise.  Unset (default)
+  ! the accumulator is skipped entirely and behaviour is unchanged.
+  !---------------------------------------------------------------------------
+  integer, save :: proj_call = 0
+  integer, save :: proj_every = -1
+  logical, save :: proj_init = .false.
+
 contains
+
+  subroutine proj_read_env()
+    character(len=64) :: buf
+    integer :: ios, iv
+    if (proj_init) return
+    proj_init = .true.
+    call get_environment_variable("GR_PROJ_DIAG", buf, status=ios)
+    if (ios == 0) then
+      read(buf,*) iv
+      proj_every = iv
+    end if
+  end subroutine proj_read_env
 
   subroutine rk4_step(u, dt, stepnum)
     real(dp), intent(inout) :: u(:,:,:)
@@ -77,6 +109,25 @@ contains
     real(dp) :: gxx, gxy, gxz, gyy, gyz, gzz, det, scale
     real(dp) :: ginv(3,3), A(3,3), trace_A
 
+    ! projection-diagnostic accumulators
+    integer, parameter :: NBIN = 5
+    real(dp) :: blo(NBIN), bhi(NBIN), bdet(NBIN), bsc(NBIN), btr(NBIN)
+    integer :: bcnt(NBIN), nb, bi, cbin, wi, wk
+    real(dp) :: rr, gdet, wi_r
+    character(len=16) :: his
+    logical :: report
+
+    call proj_read_env()
+    proj_call = proj_call + 1
+    report = (proj_every > 0)
+    if (report) report = (proj_call == 1 .or. mod(proj_call - 1, proj_every) == 0)
+    blo = [ r_excise,        r_excise + 0.5_dp, r_excise + 1.0_dp, &
+            r_excise + 2.0_dp, r_excise + 4.0_dp ]
+    bhi = [ r_excise + 0.5_dp, r_excise + 1.0_dp, r_excise + 2.0_dp, &
+            r_excise + 4.0_dp, 1.0e30_dp ]
+    bdet = 0.0_dp; bsc = 0.0_dp; btr = 0.0_dp; bcnt = 0
+    gdet = -1.0_dp; wi = 0; wk = 0; wi_r = -1.0_dp
+
     do k = 1, Nz
       do i = 1, Nx
         if (is_excised(i,k)) cycle
@@ -98,6 +149,22 @@ contains
         end if
 
         scale = det**(-1.0_dp/3.0_dp)
+        if (report) then
+          rr = sqrt(kerr_radius_squared(xg(i), zg(k)))
+          bi = 0
+          do nb = 1, NBIN
+            if (rr >= blo(nb) .and. rr < bhi(nb)) bi = nb
+          end do
+          if (bi > 0) then
+            cbin = bi
+            bcnt(bi) = bcnt(bi) + 1
+            bdet(bi) = max(bdet(bi), abs(det - 1.0_dp))
+            bsc(bi)  = max(bsc(bi),  abs(scale - 1.0_dp))
+          end if
+          if (abs(det - 1.0_dp) > gdet) then
+            gdet = abs(det - 1.0_dp); wi = i; wk = k; wi_r = rr
+          end if
+        end if
         u(i,k,IGXX) = scale*gxx; u(i,k,IGXY) = scale*gxy
         u(i,k,IGXZ) = scale*gxz; u(i,k,IGYY) = scale*gyy
         u(i,k,IGYZ) = scale*gyz; u(i,k,IGZZ) = scale*gzz
@@ -115,6 +182,7 @@ contains
         A(2,1) = A(1,2); A(2,2) = u(i,k,IAYY); A(2,3) = u(i,k,IAYZ)
         A(3,1) = A(1,3); A(3,2) = A(2,3); A(3,3) = u(i,k,IAZZ)
         trace_A = sum(ginv*A)
+        if (report .and. cbin > 0) btr(cbin) = max(btr(cbin), abs(trace_A))
         A = A - (trace_A/3.0_dp) * reshape([ &
           u(i,k,IGXX), u(i,k,IGXY), u(i,k,IGXZ), &
           u(i,k,IGXY), u(i,k,IGYY), u(i,k,IGYZ), &
@@ -123,6 +191,23 @@ contains
         u(i,k,IAYY) = A(2,2); u(i,k,IAYZ) = A(2,3); u(i,k,IAZZ) = A(3,3)
       end do
     end do
+
+    if (report) then
+      write(*,'(A,I0,A,ES12.4,A,I0,A,I0,A,F8.4)') &
+        'PROJ call ', proj_call, '  worst |det-1| = ', gdet, &
+        '  at i= ', wi, ' k= ', wk, ' r_KS = ', wi_r
+      do nb = 1, NBIN
+        if (bcnt(nb) == 0) cycle
+        if (bhi(nb) > 1.0e29_dp) then
+          write(his,'(A)') '      infinity'
+        else
+          write(his,'(F6.2)') bhi(nb)
+        end if
+        write(*,'(A,F6.2,A,A,A,I5,A,ES11.3,A,ES11.3,A,ES11.3)') &
+          'PROJ   r_KS in [', blo(nb), ',', his, ')  n=', bcnt(nb), &
+          '  |det-1|=', bdet(nb), '  |scale-1|=', bsc(nb), '  |trA|=', btr(nb)
+      end do
+    end if
   end subroutine project_bssn_constraints
 
   subroutine invalid_state(reason, i, k, stepnum)

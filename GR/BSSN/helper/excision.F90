@@ -42,6 +42,7 @@ module excision_mod
   public :: get_excision_background_point
   public :: excision_characteristic_check
   public :: excision_reset_geometry
+  public :: kerr_radius_squared
 
   !---------------------------------------------------------------------------
   ! Shared excision state.
