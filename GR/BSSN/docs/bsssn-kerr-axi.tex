@@ -930,6 +930,30 @@ is the signature of a fill/stencil inconsistency rather than a gauge problem.
 That is a useful discriminator between two failure families that are otherwise
 hard to tell apart.
 
+\gotcha
+At longer times the near-mask momentum residual does something nothing else
+in this project does: at $N_x = 48$ it develops \emph{isolated spikes reaching
+$1.2\times10^{8}$} at individual grid points, alternating with moderate values
+of order $10^{2}$, while the exterior residual sits at $5\times10^{-2}$. At
+$N_x = 96$ the spikes do not occur and the near-mask value stays below
+$2.9\times10^{1}$. This is the most violent single behaviour measured in the
+project that is not the conformal-determinant failure itself.
+
+It is worth being precise about what that does and does not show. The run
+aborts on a non-positive conformal determinant, \emph{not} on the momentum
+residual, so the spikes are a symptom of a severely ill-conditioned near-mask
+region rather than a demonstrated cause of the abort. They may be an
+indicator. But they are a genuine resolution effect --- halving $dx$ removes
+them --- and they are the strongest evidence yet that something is badly wrong
+immediately outside the mask.
+
+Comparing the two resolutions at equal physical time also shows that refinement
+is \emph{not} monotonically improving the exterior constraints: it is $3.7\times$
+worse in $\mathrm{rms}|H|$ at $t = 0.22$, better through the middle of the run,
+and worse again by $t = 4.44$. There is therefore no power law relating
+resolution to accuracy over this range, no resolution budget can be fitted, and
+``just refine it'' is not a supported remedy.
+
 \section{The diagnostic programs}
 
 \subsection{diagnose-ghost-accuracy}
