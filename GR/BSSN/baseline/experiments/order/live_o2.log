@@ -1,0 +1,361 @@
+ Reading parameter file: parameter_files/vacuum_kerr.par
+ === GR BSSNOK (vacuum, Cartoon axisymmetric) - Milestone 1 ===
+ Grid: Nx=48  Nz=96
+ dx= 0.255  dy= 0.255  dz= 0.253
+ BH mass M= 1.000   spin a= 0.800
+ Excision radius r_excise= 1.000  (horizon at r_+= 1.600M; interior frozen)
+
+ Initial max inner characteristic speed=  3.4127E-01  incoming lapse-gauge points=32
+ t=0 Hamiltonian constraint (exterior): max|H| =   1.8601E-02   rms|H| =   1.2227E-03
+ worst point: i=10 k=48  r_KS=  2.1583  H= -1.8601E-02
+  H at a few sample radii along the axis (x=0):
+   z=-11.4947   H=  5.5457E-03
+   z= -8.7158   H= -2.4511E-05
+   z= -5.9368   H= -1.4603E-04
+   z= -3.1579   H= -2.0794E-03
+   z= -0.3789   H=  1.1764E+00
+   z=  2.4000   H= -5.3650E-03
+   z=  5.1789   H= -2.6926E-04
+   z=  7.9579   H= -3.7669E-05
+   z= 10.7368   H= -9.0461E-06
+ Lapse alpha(x=0, outside excision) at t=0:   0.923257  at z=-11.4947
+
+ Time step dt =  0.00089
+  Slicing: 1+log
+  Shift: legacy Gamma-driver (not a stationary puncture gauge)
+  Evolving vacuum Kerr data with excision...
+ WARNING step 100: inner boundary has incoming lapse-gauge modes; max speed=  2.9507E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 100  max|alpha|=  6.579E-01 @(3,55)  max|phi|=  9.123E-02 @(6,48)  max|K|=  1.459E+00 @(6,49
+)
+ step   100  t=  0.0893  max|H|(ext)=  1.5661E-02  rms|H|(ext)=  8.1416E-04  max|M|(ext)=  2.4614E-02  alpha(probe)=  0.920869
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 200: inner boundary has incoming lapse-gauge modes; max speed=  2.5646E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 200  max|alpha|=  6.099E-01 @(3,55)  max|phi|=  9.433E-02 @(6,48)  max|K|=  1.386E+00 @(6,49
+)
+ step   200  t=  0.1786  max|H|(ext)=  1.1347E-02  rms|H|(ext)=  9.5745E-04  max|M|(ext)=  2.4060E-02  alpha(probe)=  0.918508
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 300: inner boundary has incoming lapse-gauge modes; max speed=  2.2434E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 300  max|alpha|=  5.671E-01 @(3,55)  max|phi|=  9.912E-02 @(6,48)  max|K|=  1.305E+00 @(6,49
+)
+ step   300  t=  0.2680  max|H|(ext)=  1.0599E-02  rms|H|(ext)=  1.7957E-03  max|M|(ext)=  2.3041E-02  alpha(probe)=  0.916288
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 400: inner boundary has incoming lapse-gauge modes; max speed=  1.9778E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 400  max|alpha|=  5.289E-01 @(3,55)  max|phi|=  1.052E-01 @(6,48)  max|K|=  1.228E+00 @(6,49
+)
+ step   400  t=  0.3573  max|H|(ext)=  1.5622E-02  rms|H|(ext)=  2.4481E-03  max|M|(ext)=  2.3846E-02  alpha(probe)=  0.914342
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 500: inner boundary has incoming lapse-gauge modes; max speed=  1.7604E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 500  max|alpha|=  4.948E-01 @(3,55)  max|phi|=  1.122E-01 @(6,48)  max|K|=  1.158E+00 @(6,49
+)
+ step   500  t=  0.4466  max|H|(ext)=  1.6603E-02  rms|H|(ext)=  2.5806E-03  max|M|(ext)=  2.7516E-02  alpha(probe)=  0.912740
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 600: inner boundary has incoming lapse-gauge modes; max speed=  1.5851E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 600  max|alpha|=  4.641E-01 @(3,55)  max|phi|=  1.201E-01 @(6,48)  max|K|=  1.096E+00 @(6,48
+)
+ step   600  t=  0.5359  max|H|(ext)=  1.4960E-02  rms|H|(ext)=  2.3493E-03  max|M|(ext)=  3.1621E-02  alpha(probe)=  0.911446
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 700: inner boundary has incoming lapse-gauge modes; max speed=  1.4471E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 700  max|alpha|=  4.366E-01 @(3,55)  max|phi|=  1.287E-01 @(6,48)  max|K|=  1.042E+00 @(6,48
+)
+ step   700  t=  0.6252  max|H|(ext)=  1.9825E-02  rms|H|(ext)=  2.0813E-03  max|M|(ext)=  3.6121E-02  alpha(probe)=  0.910348
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 800: inner boundary has incoming lapse-gauge modes; max speed=  1.3419E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 800  max|alpha|=  4.119E-01 @(3,55)  max|phi|=  1.378E-01 @(6,48)  max|K|=  9.961E-01 @(6,48
+)
+ step   800  t=  0.7146  max|H|(ext)=  2.3717E-02  rms|H|(ext)=  2.0054E-03  max|M|(ext)=  4.0995E-02  alpha(probe)=  0.909313
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 900: inner boundary has incoming lapse-gauge modes; max speed=  1.2658E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 900  max|alpha|=  3.896E-01 @(3,55)  max|phi|=  1.475E-01 @(6,48)  max|K|=  9.573E-01 @(6,48
+)
+ step   900  t=  0.8039  max|H|(ext)=  2.7039E-02  rms|H|(ext)=  2.1732E-03  max|M|(ext)=  4.6137E-02  alpha(probe)=  0.908253
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 1000: inner boundary has incoming lapse-gauge modes; max speed=  1.2157E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1000  max|alpha|=  3.696E-01 @(3,55)  max|phi|=  1.576E-01 @(6,48)  max|K|=  9.257E-01 @(6,48
+)
+ step  1000  t=  0.8932  max|H|(ext)=  3.0149E-02  rms|H|(ext)=  2.4508E-03  max|M|(ext)=  5.1308E-02  alpha(probe)=  0.907141
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 1100: inner boundary has incoming lapse-gauge modes; max speed=  1.1886E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1100  max|alpha|=  3.515E-01 @(3,55)  max|phi|=  1.681E-01 @(6,48)  max|K|=  9.009E-01 @(6,48
+)
+ step  1100  t=  0.9825  max|H|(ext)=  4.0649E-02  rms|H|(ext)=  2.6876E-03  max|M|(ext)=  5.6199E-02  alpha(probe)=  0.905992
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1200: inner boundary has incoming lapse-gauge modes; max speed=  1.2828E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1200  max|alpha|=  3.350E-01 @(3,55)  max|phi|=  1.791E-01 @(6,48)  max|K|=  8.828E-01 @(6,48
+)
+ step  1200  t=  1.0718  max|H|(ext)=  5.1934E-02  rms|H|(ext)=  2.8620E-03  max|M|(ext)=  6.0545E-02  alpha(probe)=  0.904834
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1300: inner boundary has incoming lapse-gauge modes; max speed=  1.3865E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1300  max|alpha|=  3.200E-01 @(3,55)  max|phi|=  1.904E-01 @(6,48)  max|K|=  8.712E-01 @(6,48
+)
+ step  1300  t=  1.1611  max|H|(ext)=  6.2203E-02  rms|H|(ext)=  3.0278E-03  max|M|(ext)=  6.4203E-02  alpha(probe)=  0.903681
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1400: inner boundary has incoming lapse-gauge modes; max speed=  1.4749E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1400  max|alpha|=  3.063E-01 @(3,55)  max|phi|=  2.022E-01 @(6,48)  max|K|=  8.657E-01 @(6,48
+)
+ step  1400  t=  1.2505  max|H|(ext)=  7.1696E-02  rms|H|(ext)=  3.2287E-03  max|M|(ext)=  6.7185E-02  alpha(probe)=  0.902527
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1500: inner boundary has incoming lapse-gauge modes; max speed=  1.5427E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1500  max|alpha|=  2.938E-01 @(3,55)  max|phi|=  2.144E-01 @(6,48)  max|K|=  8.660E-01 @(6,48
+)
+ step  1500  t=  1.3398  max|H|(ext)=  8.0879E-02  rms|H|(ext)=  3.4834E-03  max|M|(ext)=  6.9621E-02  alpha(probe)=  0.901361
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1600: inner boundary has incoming lapse-gauge modes; max speed=  1.5857E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1600  max|alpha|=  2.824E-01 @(3,55)  max|phi|=  2.270E-01 @(6,48)  max|K|=  8.717E-01 @(6,48
+)
+ step  1600  t=  1.4291  max|H|(ext)=  8.9902E-02  rms|H|(ext)=  3.7823E-03  max|M|(ext)=  7.1703E-02  alpha(probe)=  0.900175
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1700: inner boundary has incoming lapse-gauge modes; max speed=  1.6006E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1700  max|alpha|=  2.719E-01 @(3,55)  max|phi|=  2.399E-01 @(6,48)  max|K|=  8.823E-01 @(6,48
+)
+ step  1700  t=  1.5184  max|H|(ext)=  9.8434E-02  rms|H|(ext)=  4.0910E-03  max|M|(ext)=  7.3617E-02  alpha(probe)=  0.898972
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1800: inner boundary has incoming lapse-gauge modes; max speed=  1.5856E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1800  max|alpha|=  2.623E-01 @(3,55)  max|phi|=  2.530E-01 @(6,48)  max|K|=  8.971E-01 @(6,48
+)
+ step  1800  t=  1.6077  max|H|(ext)=  1.0584E-01  rms|H|(ext)=  4.3734E-03  max|M|(ext)=  7.5497E-02  alpha(probe)=  0.897758
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 1900: inner boundary has incoming lapse-gauge modes; max speed=  1.5407E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 1900  max|alpha|=  2.534E-01 @(3,55)  max|phi|=  2.663E-01 @(6,48)  max|K|=  9.156E-01 @(6,48
+)
+ step  1900  t=  1.6971  max|H|(ext)=  1.1149E-01  rms|H|(ext)=  4.6021E-03  max|M|(ext)=  7.7393E-02  alpha(probe)=  0.896537
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2000: inner boundary has incoming lapse-gauge modes; max speed=  1.4677E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2000  max|alpha|=  2.452E-01 @(3,55)  max|phi|=  2.797E-01 @(6,48)  max|K|=  9.367E-01 @(6,48
+)
+ step  2000  t=  1.7864  max|H|(ext)=  1.1495E-01  rms|H|(ext)=  4.7602E-03  max|M|(ext)=  7.9271E-02  alpha(probe)=  0.895308
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2100: inner boundary has incoming lapse-gauge modes; max speed=  1.3705E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2100  max|alpha|=  2.376E-01 @(3,55)  max|phi|=  2.930E-01 @(6,48)  max|K|=  9.598E-01 @(6,48
+)
+ step  2100  t=  1.8757  max|H|(ext)=  1.1613E-01  rms|H|(ext)=  4.8437E-03  max|M|(ext)=  8.1022E-02  alpha(probe)=  0.894068
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2200: inner boundary has incoming lapse-gauge modes; max speed=  1.3113E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2200  max|alpha|=  2.305E-01 @(3,55)  max|phi|=  3.061E-01 @(6,48)  max|K|=  9.840E-01 @(6,48
+)
+ step  2200  t=  1.9650  max|H|(ext)=  1.1515E-01  rms|H|(ext)=  4.8603E-03  max|M|(ext)=  8.2503E-02  alpha(probe)=  0.892814
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2300: inner boundary has incoming lapse-gauge modes; max speed=  1.2962E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2300  max|alpha|=  2.239E-01 @(3,55)  max|phi|=  3.190E-01 @(6,48)  max|K|=  1.008E+00 @(6,48
+)
+ step  2300  t=  2.0543  max|H|(ext)=  1.1234E-01  rms|H|(ext)=  4.8242E-03  max|M|(ext)=  8.3569E-02  alpha(probe)=  0.891547
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2400: inner boundary has incoming lapse-gauge modes; max speed=  1.2756E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2400  max|alpha|=  2.177E-01 @(3,55)  max|phi|=  3.317E-01 @(6,48)  max|K|=  1.032E+00 @(6,48
+)
+ step  2400  t=  2.1437  max|H|(ext)=  1.0810E-01  rms|H|(ext)=  4.7517E-03  max|M|(ext)=  8.4113E-02  alpha(probe)=  0.890269
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2500: inner boundary has incoming lapse-gauge modes; max speed=  1.2506E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2500  max|alpha|=  2.119E-01 @(3,55)  max|phi|=  3.440E-01 @(6,48)  max|K|=  1.055E+00 @(6,48
+)
+ step  2500  t=  2.2330  max|H|(ext)=  1.0282E-01  rms|H|(ext)=  4.6566E-03  max|M|(ext)=  8.4095E-02  alpha(probe)=  0.888981
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2600: inner boundary has incoming lapse-gauge modes; max speed=  1.2268E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2600  max|alpha|=  2.064E-01 @(3,55)  max|phi|=  3.560E-01 @(6,48)  max|K|=  1.081E+00 @(6,48
+)
+ step  2600  t=  2.3223  max|H|(ext)=  9.6864E-02  rms|H|(ext)=  4.5475E-03  max|M|(ext)=  8.3551E-02  alpha(probe)=  0.887686
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2700: inner boundary has incoming lapse-gauge modes; max speed=  1.2285E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2700  max|alpha|=  2.012E-01 @(3,55)  max|phi|=  3.678E-01 @(6,48)  max|K|=  1.110E+00 @(6,48
+)
+ step  2700  t=  2.4116  max|H|(ext)=  9.0511E-02  rms|H|(ext)=  4.4287E-03  max|M|(ext)=  8.2586E-02  alpha(probe)=  0.886380
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2800: inner boundary has incoming lapse-gauge modes; max speed=  1.2427E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2800  max|alpha|=  1.964E-01 @(3,55)  max|phi|=  3.794E-01 @(6,48)  max|K|=  1.141E+00 @(6,48
+)
+ step  2800  t=  2.5009  max|H|(ext)=  8.4007E-02  rms|H|(ext)=  4.3027E-03  max|M|(ext)=  8.1354E-02  alpha(probe)=  0.885063
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 2900: inner boundary has incoming lapse-gauge modes; max speed=  1.2502E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 2900  max|alpha|=  1.918E-01 @(3,55)  max|phi|=  3.910E-01 @(6,48)  max|K|=  1.175E+00 @(6,48
+)
+ step  2900  t=  2.5902  max|H|(ext)=  7.7547E-02  rms|H|(ext)=  4.1723E-03  max|M|(ext)=  8.0038E-02  alpha(probe)=  0.883736
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 3000: inner boundary has incoming lapse-gauge modes; max speed=  1.2510E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3000  max|alpha|=  1.874E-01 @(3,55)  max|phi|=  4.027E-01 @(6,48)  max|K|=  1.212E+00 @(6,48
+)
+ step  3000  t=  2.6796  max|H|(ext)=  7.1279E-02  rms|H|(ext)=  4.0412E-03  max|M|(ext)=  7.8823E-02  alpha(probe)=  0.882398
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 3100: inner boundary has incoming lapse-gauge modes; max speed=  1.2454E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3100  max|alpha|=  1.833E-01 @(3,55)  max|phi|=  4.144E-01 @(6,48)  max|K|=  1.252E+00 @(6,48
+)
+ step  3100  t=  2.7689  max|H|(ext)=  6.5298E-02  rms|H|(ext)=  3.9136E-03  max|M|(ext)=  7.7879E-02  alpha(probe)=  0.881052
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 3200: inner boundary has incoming lapse-gauge modes; max speed=  1.2340E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3200  max|alpha|=  1.795E-01 @(3,55)  max|phi|=  4.264E-01 @(6,48)  max|K|=  1.296E+00 @(6,48
+)
+ step  3200  t=  2.8582  max|H|(ext)=  5.9658E-02  rms|H|(ext)=  3.7934E-03  max|M|(ext)=  7.7348E-02  alpha(probe)=  0.879697
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 3300: inner boundary has incoming lapse-gauge modes; max speed=  1.2178E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3300  max|alpha|=  1.758E-01 @(3,55)  max|phi|=  4.387E-01 @(6,48)  max|K|=  1.343E+00 @(6,48
+)
+ step  3300  t=  2.9475  max|H|(ext)=  5.4388E-02  rms|H|(ext)=  3.6830E-03  max|M|(ext)=  7.7332E-02  alpha(probe)=  0.878334
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 3400: inner boundary has incoming lapse-gauge modes; max speed=  1.1979E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3400  max|alpha|=  1.724E-01 @(3,55)  max|phi|=  4.512E-01 @(6,48)  max|K|=  1.394E+00 @(6,48
+)
+ step  3400  t=  3.0368  max|H|(ext)=  4.9508E-02  rms|H|(ext)=  3.5841E-03  max|M|(ext)=  7.7893E-02  alpha(probe)=  0.876962
+    (worst point beyond margin at r=  2.0242  vs r_excise+margin=  2.0000
+ WARNING step 3500: inner boundary has incoming lapse-gauge modes; max speed=  1.1755E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3500  max|alpha|=  1.692E-01 @(3,55)  max|phi|=  4.641E-01 @(6,48)  max|K|=  1.449E+00 @(6,48
+)
+ step  3500  t=  3.1262  max|H|(ext)=  4.5131E-02  rms|H|(ext)=  3.4973E-03  max|M|(ext)=  7.9059E-02  alpha(probe)=  0.875581
+    (worst point beyond margin at r=  2.4283  vs r_excise+margin=  2.0000
+ WARNING step 3600: inner boundary has incoming lapse-gauge modes; max speed=  1.1517E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3600  max|alpha|=  1.662E-01 @(3,55)  max|phi|=  4.772E-01 @(6,48)  max|K|=  1.506E+00 @(6,48
+)
+ step  3600  t=  3.2155  max|H|(ext)=  4.2137E-02  rms|H|(ext)=  3.4235E-03  max|M|(ext)=  8.0827E-02  alpha(probe)=  0.874191
+    (worst point beyond margin at r=  2.4283  vs r_excise+margin=  2.0000
+ WARNING step 3700: inner boundary has incoming lapse-gauge modes; max speed=  1.1276E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3700  max|alpha|=  1.634E-01 @(3,55)  max|phi|=  4.905E-01 @(6,48)  max|K|=  1.567E+00 @(6,48
+)
+ step  3700  t=  3.3048  max|H|(ext)=  3.9772E-02  rms|H|(ext)=  3.3639E-03  max|M|(ext)=  8.3175E-02  alpha(probe)=  0.872794
+    (worst point beyond margin at r=  2.6954  vs r_excise+margin=  2.0000
+ WARNING step 3800: inner boundary has incoming lapse-gauge modes; max speed=  1.1041E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3800  max|alpha|=  1.608E-01 @(3,55)  max|phi|=  5.040E-01 @(6,48)  max|K|=  1.630E+00 @(6,48
+)
+ step  3800  t=  3.3941  max|H|(ext)=  3.8308E-02  rms|H|(ext)=  3.3192E-03  max|M|(ext)=  8.6065E-02  alpha(probe)=  0.871389
+    (worst point beyond margin at r=  2.6954  vs r_excise+margin=  2.0000
+ WARNING step 3900: inner boundary has incoming lapse-gauge modes; max speed=  1.0820E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 3900  max|alpha|=  1.584E-01 @(3,55)  max|phi|=  5.177E-01 @(6,48)  max|K|=  1.695E+00 @(6,48
+)
+ step  3900  t=  3.4834  max|H|(ext)=  3.6673E-02  rms|H|(ext)=  3.2896E-03  max|M|(ext)=  8.9457E-02  alpha(probe)=  0.869978
+    (worst point beyond margin at r=  2.6954  vs r_excise+margin=  2.0000
+ WARNING step 4000: inner boundary has incoming lapse-gauge modes; max speed=  1.0616E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4000  max|alpha|=  1.562E-01 @(3,55)  max|phi|=  5.314E-01 @(6,48)  max|K|=  1.762E+00 @(6,48
+)
+ step  4000  t=  3.5728  max|H|(ext)=  3.6196E-02  rms|H|(ext)=  3.2744E-03  max|M|(ext)=  9.3309E-02  alpha(probe)=  0.868559
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 4100: inner boundary has incoming lapse-gauge modes; max speed=  1.0433E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4100  max|alpha|=  1.541E-01 @(3,55)  max|phi|=  5.452E-01 @(6,48)  max|K|=  1.829E+00 @(6,48
+)
+ step  4100  t=  3.6621  max|H|(ext)=  3.7395E-02  rms|H|(ext)=  3.2722E-03  max|M|(ext)=  9.7580E-02  alpha(probe)=  0.867133
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 4200: inner boundary has incoming lapse-gauge modes; max speed=  1.0272E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4200  max|alpha|=  1.523E-01 @(3,55)  max|phi|=  5.592E-01 @(6,48)  max|K|=  1.898E+00 @(6,48
+)
+ step  4200  t=  3.7514  max|H|(ext)=  3.8598E-02  rms|H|(ext)=  3.2814E-03  max|M|(ext)=  1.0223E-01  alpha(probe)=  0.865701
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 4300: inner boundary has incoming lapse-gauge modes; max speed=  1.0133E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4300  max|alpha|=  1.505E-01 @(3,55)  max|phi|=  5.733E-01 @(6,48)  max|K|=  1.967E+00 @(6,48
+)
+ step  4300  t=  3.8407  max|H|(ext)=  3.9807E-02  rms|H|(ext)=  3.3010E-03  max|M|(ext)=  1.0723E-01  alpha(probe)=  0.864262
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 4400: inner boundary has incoming lapse-gauge modes; max speed=  1.0014E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4400  max|alpha|=  1.490E-01 @(3,55)  max|phi|=  5.877E-01 @(6,48)  max|K|=  2.036E+00 @(6,48
+)
+ step  4400  t=  3.9300  max|H|(ext)=  4.1021E-02  rms|H|(ext)=  3.3296E-03  max|M|(ext)=  1.1255E-01  alpha(probe)=  0.862817
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 4500: inner boundary has incoming lapse-gauge modes; max speed=  9.9136E-02 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4500  max|alpha|=  1.475E-01 @(3,42)  max|phi|=  6.025E-01 @(6,48)  max|K|=  2.108E+00 @(6,48
+)
+ step  4500  t=  4.0193  max|H|(ext)=  4.4595E-02  rms|H|(ext)=  3.3658E-03  max|M|(ext)=  1.1815E-01  alpha(probe)=  0.861367
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 4600: inner boundary has incoming lapse-gauge modes; max speed=  9.8282E-02 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4600  max|alpha|=  1.463E-01 @(3,42)  max|phi|=  6.178E-01 @(6,48)  max|K|=  2.180E+00 @(6,48
+)
+ step  4600  t=  4.1087  max|H|(ext)=  4.7925E-02  rms|H|(ext)=  3.4078E-03  max|M|(ext)=  1.2404E-01  alpha(probe)=  0.859912
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 4700: inner boundary has incoming lapse-gauge modes; max speed=  9.7552E-02 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4700  max|alpha|=  1.451E-01 @(3,42)  max|phi|=  6.335E-01 @(6,48)  max|K|=  2.255E+00 @(6,48
+)
+ step  4700  t=  4.1980  max|H|(ext)=  5.0774E-02  rms|H|(ext)=  3.4538E-03  max|M|(ext)=  1.3018E-01  alpha(probe)=  0.858451
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 4800: inner boundary has incoming lapse-gauge modes; max speed=  9.9255E-02 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4800  max|alpha|=  1.441E-01 @(3,42)  max|phi|=  6.496E-01 @(6,48)  max|K|=  2.332E+00 @(6,48
+)
+ step  4800  t=  4.2873  max|H|(ext)=  5.3115E-02  rms|H|(ext)=  3.5022E-03  max|M|(ext)=  1.3657E-01  alpha(probe)=  0.856986
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 4900: inner boundary has incoming lapse-gauge modes; max speed=  1.0115E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 4900  max|alpha|=  1.431E-01 @(3,42)  max|phi|=  6.662E-01 @(6,48)  max|K|=  2.411E+00 @(6,48
+)
+ step  4900  t=  4.3766  max|H|(ext)=  5.4926E-02  rms|H|(ext)=  3.5520E-03  max|M|(ext)=  1.4317E-01  alpha(probe)=  0.855516
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 5000: inner boundary has incoming lapse-gauge modes; max speed=  1.0294E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 5000  max|alpha|=  1.423E-01 @(3,42)  max|phi|=  6.834E-01 @(6,48)  max|K|=  2.492E+00 @(6,48
+)
+ step  5000  t=  4.4659  max|H|(ext)=  5.6181E-02  rms|H|(ext)=  3.6026E-03  max|M|(ext)=  1.4994E-01  alpha(probe)=  0.854042
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 5100: inner boundary has incoming lapse-gauge modes; max speed=  1.0469E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 5100  max|alpha|=  1.416E-01 @(3,42)  max|phi|=  7.010E-01 @(6,48)  max|K|=  2.575E+00 @(6,48
+)
+ step  5100  t=  4.5553  max|H|(ext)=  5.6847E-02  rms|H|(ext)=  3.6531E-03  max|M|(ext)=  1.5680E-01  alpha(probe)=  0.852564
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 5200: inner boundary has incoming lapse-gauge modes; max speed=  1.0667E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 5200  max|alpha|=  1.410E-01 @(3,42)  max|phi|=  7.193E-01 @(6,48)  max|K|=  2.661E+00 @(6,48
+)
+ step  5200  t=  4.6446  max|H|(ext)=  5.6876E-02  rms|H|(ext)=  3.7025E-03  max|M|(ext)=  1.6366E-01  alpha(probe)=  0.851083
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 5300: inner boundary has incoming lapse-gauge modes; max speed=  1.0950E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 5300  max|alpha|=  1.405E-01 @(3,42)  max|phi|=  7.382E-01 @(6,48)  max|K|=  2.749E+00 @(6,48
+)
+ step  5300  t=  4.7339  max|H|(ext)=  5.6205E-02  rms|H|(ext)=  3.7492E-03  max|M|(ext)=  1.7042E-01  alpha(probe)=  0.849598
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 5400: inner boundary has incoming lapse-gauge modes; max speed=  1.1421E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 5400  max|alpha|=  1.402E-01 @(3,42)  max|phi|=  7.580E-01 @(6,48)  max|K|=  2.841E+00 @(6,48
+)
+ step  5400  t=  4.8232  max|H|(ext)=  5.4735E-02  rms|H|(ext)=  3.7917E-03  max|M|(ext)=  1.7694E-01  alpha(probe)=  0.848111
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+ WARNING step 5500: inner boundary has incoming lapse-gauge modes; max speed=  1.2256E-01 points=32
+ [ring r in (r_excise, r_excise+3dx)] step 5500  max|alpha|=  1.398E-01 @(3,42)  max|phi|=  7.794E-01 @(6,48)  max|K|=  2.941E+00 @(6,48
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+ERROR STOP non-positive or non-finite conformal determinant
+
+Error termination. Backtrace:
+#0  0x76c5a5823e59 in ???
+#1  0x76c5a5824a71 in ???
+#2  0x76c5a582610b in ???
+#3  0x57a9c4f0b3eb in ???
+#4  0x57a9c4f0c51f in ???
+#5  0x57a9c4f0ea7d in ???
+#6  0x57a9c4f15d75 in ???
+#7  0x57a9c4ed1ade in ???
+#8  0x76c5a542a1c9 in __libc_start_call_main
+	at ../sysdeps/nptl/libc_start_call_main.h:58
+#9  0x76c5a542a28a in __libc_start_main_impl
+	at ../csu/libc-start.c:360
+#10  0x57a9c4ed1b14 in ???
+#11  0xffffffffffffffff in ???
+)
+ step  5500  t=  4.9125  max|H|(ext)=  5.4160E-02  rms|H|(ext)=  3.8282E-03  max|M|(ext)=  1.8311E-01  alpha(probe)=  0.846621
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 5600: inner boundary has incoming lapse-gauge modes; max speed=  1.3752E-01 points=30
+ [ring r in (r_excise, r_excise+3dx)] step 5600  max|alpha|=  1.396E-01 @(3,42)  max|phi|=  8.032E-01 @(6,48)  max|K|=  3.056E+00 @(6,48
+)
+ step  5600  t=  5.0019  max|H|(ext)=  5.5321E-02  rms|H|(ext)=  3.8576E-03  max|M|(ext)=  1.8889E-01  alpha(probe)=  0.845129
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 5700: inner boundary has incoming lapse-gauge modes; max speed=  1.6433E-01 points=30
+ [ring r in (r_excise, r_excise+3dx)] step 5700  max|alpha|=  1.395E-01 @(3,42)  max|phi|=  8.314E-01 @(6,48)  max|K|=  3.198E+00 @(6,48
+)
+ step  5700  t=  5.0912  max|H|(ext)=  5.6474E-02  rms|H|(ext)=  3.8792E-03  max|M|(ext)=  1.9439E-01  alpha(probe)=  0.843635
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 5800: inner boundary has incoming lapse-gauge modes; max speed=  2.1061E-01 points=30
+ [ring r in (r_excise, r_excise+3dx)] step 5800  max|alpha|=  1.395E-01 @(3,42)  max|phi|=  8.675E-01 @(6,48)  max|K|=  3.391E+00 @(6,48
+)
+ step  5800  t=  5.1805  max|H|(ext)=  5.7617E-02  rms|H|(ext)=  3.8932E-03  max|M|(ext)=  2.0022E-01  alpha(probe)=  0.842139
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 5900: inner boundary has incoming lapse-gauge modes; max speed=  2.7209E-01 points=28
+ [ring r in (r_excise, r_excise+3dx)] step 5900  max|alpha|=  1.395E-01 @(3,42)  max|phi|=  9.168E-01 @(6,48)  max|K|=  3.675E+00 @(6,48
+)
+ step  5900  t=  5.2698  max|H|(ext)=  5.8751E-02  rms|H|(ext)=  3.9030E-03  max|M|(ext)=  2.0828E-01  alpha(probe)=  0.840643
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 6000: inner boundary has incoming lapse-gauge modes; max speed=  1.9718E-01 points=26
+ [ring r in (r_excise, r_excise+3dx)] step 6000  max|alpha|=  1.397E-01 @(3,42)  max|phi|=  9.729E-01 @(6,48)  max|K|=  4.032E+00 @(6,49
+)
+ step  6000  t=  5.3591  max|H|(ext)=  5.9875E-02  rms|H|(ext)=  3.9215E-03  max|M|(ext)=  2.1923E-01  alpha(probe)=  0.839145
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 6100: inner boundary has incoming lapse-gauge modes; max speed=  9.4152E-02 points=26
+ [ring r in (r_excise, r_excise+3dx)] step 6100  max|alpha|=  1.399E-01 @(3,42)  max|phi|=  9.691E-01 @(6,49)  max|K|=  7.888E+00 @(6,47
+)
+ step  6100  t=  5.4484  max|H|(ext)=  6.0991E-02  rms|H|(ext)=  3.9814E-03  max|M|(ext)=  2.1299E-01  alpha(probe)=  0.837647
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 6200: inner boundary has incoming lapse-gauge modes; max speed=  9.4352E-02 points=22
+ [ring r in (r_excise, r_excise+3dx)] step 6200  max|alpha|=  1.402E-01 @(3,42)  max|phi|=  8.705E-01 @(6,49)  max|K|=  7.207E+00 @(6,47
+)
+ step  6200  t=  5.5378  max|H|(ext)=  6.2096E-02  rms|H|(ext)=  4.2101E-03  max|M|(ext)=  1.8719E-01  alpha(probe)=  0.836149
+    (worst point beyond margin at r= 16.2424  vs r_excise+margin=  2.0000
+ WARNING step 6300: inner boundary has incoming lapse-gauge modes; max speed=  1.7836E-01 points=22
+ [ring r in (r_excise, r_excise+3dx)] step 6300  max|alpha|=  1.405E-01 @(3,55)  max|phi|=  8.041E-01 @(6,48)  max|K|=  6.882E+00 @(6,47
+)
+ step  6300  t=  5.6271  max|H|(ext)=  8.6439E-02  rms|H|(ext)=  4.5214E-03  max|M|(ext)=  1.6160E-01  alpha(probe)=  0.834651
+    (worst point beyond margin at r=  2.1583  vs r_excise+margin=  2.0000
+Conformal metric failure det= -2.657127E-01 components=   4.420311E+01   6.116609E+00  -3.463020E+01   2.074161E+00  -5.833608E+00   2.800931E+01
+Invalid state at step 6331 i=6 k=47 x=   1.27660 z=  -0.37895

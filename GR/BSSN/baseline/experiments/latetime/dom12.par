@@ -1,0 +1,38 @@
+# ==========================================================
+# params.par — run-time parameter file for the BSSNOK/Cartoon
+# Vacuum kerr
+# ==========================================================
+
+# --- Grid ---
+nx   = 48        # points in x in [0, xmax], x(1) = 0
+nz   = 96        # points in z in [-zmax, zmax]
+xmax = 12.0      # in units of M
+zmax = 12.0
+
+# --- Black hole (Kerr-Schild) ---
+bh_mass     = 1.0
+bh_spin     = 0.8   ! a, with 0 <= |a| < bh_mass
+bh_center_x = 0.0
+bh_center_z = 0.0
+
+# --- Star ---
+star_center_x = 0.0
+star_center_z = 0.0
+
+# --- Gauge ---
+gauge_eta = 2.0      # Gamma-driver damping, ~ 2/M
+
+# --- Time evolution ---
+cfl       = 0.005    # resolves the fastest 1+log/gauge characteristic
+nsteps    = 1000000
+out_every = 1000000
+hz_every = 100
+ko_eps    = 0.2   #0.2 is what it was   # Kreiss-Oliger dissipation strength, typical 0.1-0.5
+r_excise  = 1.0      # keep the excision boundary well inside the Kerr horizon
+excision_order = 2   # bounded inner-boundary extension
+excision_sat = false # guarded until exact BSSN characteristic data are available.
+                    # NOTE: the test-verified SAT does damp the inner boundary
+                    # slightly (lower max|H| than the off case), but the run
+                    # still dies because the puncture gauge is not actually
+                    # driving anything - see the Gamma-driver notes in
+                    # integrators/bssn_rhs.F90 and init/init_data.F90.

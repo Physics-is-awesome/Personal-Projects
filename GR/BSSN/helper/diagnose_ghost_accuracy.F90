@@ -54,7 +54,7 @@ program diagnose_ghost_accuracy
   use deriv_stencils_mod, only: init_deriv_stencils
   use constraints_mod, only: hamiltonian_constraint
   use stencil_mod, only: compute_stencil, stencil_t
-  use geometry_mod, only: compute_conformal_geometry, conformal_geometry_t
+  use geometry_mod, only: compute_conformal_geometry, conformal_geometry_t, sym3_inverse
 
   implicit none
 
@@ -179,6 +179,25 @@ program diagnose_ghost_accuracy
   write(*,'(A)') '   field.  Fields checked: gtilde_xx and phi.'
   call derivative_errors(u)
   write(*,'(A)') '========================================================================'
+  write(*,'(A)') ' PART 5 -- Gamma-tilde: the one state field never validly measured.'
+  write(*,'(A)') '   compute_conformal_connections builds IGTX..IGTZ as'
+  write(*,'(A)') '       Gt(k) = -( dx gt^{k1} + dy gt^{k2} + dz gt^{k3} )'
+  write(*,'(A)') '   from SECOND-order central differences taken with get_neighbor, and'
+  write(*,'(A)') '   loops i=2..Nx-1, k=2..Nz-1 with no excision-mask guard on its read'
+  write(*,'(A)') '   range.  Meanwhile the curvature operator that consumes it uses the'
+  write(*,'(A)') '   FOURTH-order compute_stencil.  So the field feeding Rt term3 is two'
+  write(*,'(A)') '   orders less accurate than its neighbours by construction.'
+  write(*,'(A)') '   Here the same formula is evaluated on the EXACT analytic conformal'
+  write(*,'(A)') '   metric, and both the value and its x/z derivatives are compared.'
+  call gamma_tilde_errors(u)
+  write(*,'(A)') '========================================================================'
+  write(*,'(A)') ' PART 6 -- replicate the DRIVER t=0 filter exactly.'
+  write(*,'(A)') '   The driver selects points with sqrt(x^2+z^2) >= r_excise+margin,'
+  write(*,'(A)') '   i.e. the CYLINDRICAL radius rho.  The excision mask itself uses'
+  write(*,'(A)') '   the KERR radius r_KS.  These disagree for z != 0, so the driver'
+  write(*,'(A)') '   can report points that are inside the excision region.'
+  call driver_filter_replica(u, Hval)
+  write(*,'(A)') '========================================================================'
   write(*,'(A)') '========================================================================'
   write(*,'(A)') ' If the fill is the cause, EXACT-ANALYTIC must reduce |H| at the'
   write(*,'(A)') ' innermost physical points toward the dx^2 truncation level.'
@@ -187,6 +206,115 @@ program diagnose_ghost_accuracy
   write(*,'(A)') '========================================================================'
 
 contains
+
+  ! Compare the STORED Gamma-tilde against the same quantity evaluated on the
+  ! exact analytic conformal metric, using the production formula
+  !     Gamma^k = -( dx gt^{k1} + dy gt^{k2} + dz gt^{k3} )
+  ! Only the value is compared: differentiating the analytic Gamma twice more
+  ! would mean differentiating an already-differenced quantity, which is
+  ! numerically hopeless and not needed.  If this error converges, Gamma-tilde
+  ! is not the near-mask culprit; if it does not, it is.
+  subroutine gamma_tilde_errors(st)
+    real(dp), intent(in) :: st(:,:,:)
+    integer, parameter :: NBG = 6
+    real(dp) :: ev(NBG)
+    integer :: cN(NBG), ii, kk, ib, m
+    real(dp), parameter :: hh = 1.0e-4_dp
+    real(dp) :: drr, rrr, d
+    real(dp) :: gi0(3,3), gixp(3,3), gixm(3,3)
+    real(dp) :: giyp(3,3), giym(3,3), gizp(3,3), gizm(3,3)
+
+    ev = 0.0_dp; cN = 0
+
+    do kk = 3, Nz-2
+       do ii = 2, Nx-2
+          rrr = rks_of(xg(ii), zg(kk))
+          drr = rrr - r_excise
+          if (drr < 0.0_dp .or. drr > real(NBG,dp)*dx) cycle
+          ib = int(drr/dx) + 1
+          if (ib < 1) ib = 1
+          if (ib > NBG) ib = NBG
+          cN(ib) = cN(ib) + 1
+
+          call analytic_gtinv(xg(ii),        0.0_dp, zg(kk),       gi0)
+          call analytic_gtinv(xg(ii)+hh,     0.0_dp, zg(kk),       gixp)
+          call analytic_gtinv(xg(ii)-hh,     0.0_dp, zg(kk),       gixm)
+          call analytic_gtinv(xg(ii),         hh,    zg(kk),       giyp)
+          call analytic_gtinv(xg(ii),        -hh,    zg(kk),       giym)
+          call analytic_gtinv(xg(ii),         0.0_dp, zg(kk)+hh,   gizp)
+          call analytic_gtinv(xg(ii),         0.0_dp, zg(kk)-hh,   gizm)
+
+          do m = 1, 3
+             d = -( (gixp(m,1)-gixm(m,1)) &
+                 + (giyp(m,2)-giym(m,2)) &
+                 + (gizp(m,3)-gizm(m,3)) ) / (2.0_dp*hh)
+             ev(ib) = max(ev(ib), abs(st(ii,kk,14+m) - d))
+          end do
+       end do
+    end do
+
+    write(*,'(A)') ' dr/dx    n      |Gamma-tilde err|   (worst of 3 components)'
+    do ib = 1, NBG
+       if (cN(ib) == 0) cycle
+       write(*,'(3X,F5.1,2X,I4,3X,ES14.5)') real(ib-1,dp), cN(ib), ev(ib)
+    end do
+  end subroutine gamma_tilde_errors
+
+  ! Analytic inverse of the conformal metric at (x,y,z).
+  subroutine analytic_gtinv(xq, yq, zq, giout)
+    real(dp), intent(in)  :: xq, yq, zq
+    real(dp), intent(out) :: giout(3,3)
+    real(dp) :: stt(NVARS), g(3,3), detq
+    call ks_bssn_state(xq, yq, zq, stt)
+    g(1,1) = stt(IGXX); g(1,2) = stt(IGXY); g(1,3) = stt(IGXZ)
+    g(2,1) = stt(IGXY); g(2,2) = stt(IGYY); g(2,3) = stt(IGYZ)
+    g(3,1) = stt(IGXZ); g(3,2) = stt(IGYZ); g(3,3) = stt(IGZZ)
+    call sym3_inverse(g, giout, detq)
+  end subroutine analytic_gtinv
+
+  ! Replica of the driver's t=0 max|H| scan selection rule, retained so the
+  ! diagnostic's selection can be compared against the driver's directly.
+  subroutine driver_filter_replica(st, Hout)
+    real(dp), intent(in) :: st(:,:,:)
+    real(dp), intent(inout) :: Hout(:,:)
+    real(dp) :: dmargin, best, rho, rk, rsum, rsum2
+    integer :: ii, kk, bi, bk, nb_in, n_out
+    character(len=64) :: buf
+    integer :: ios
+
+    dmargin = 1.0_dp
+    buf = ''
+    call get_environment_variable("GR_DIAG_MARGIN", buf, status=ios)
+    if (ios == 0) read(buf,*) dmargin
+
+    call hamiltonian_constraint(st, Hout, ihmin, ihmax, khmin, khmax)
+
+    best = -1.0_dp; bi = 0; bk = 0
+    nb_in = 0; n_out = 0; rsum = 0.0_dp; rsum2 = 0.0_dp; n_out = 0
+    do kk = khmin, khmax
+       do ii = ihmin, ihmax
+          rho = sqrt(xg(ii)**2 + zg(kk)**2)
+          rk  = rks_of(xg(ii), zg(kk))
+          if (rho < r_excise + dmargin) cycle
+          n_out = n_out + 1
+          if (rk < r_excise) nb_in = nb_in + 1       ! selected but EXCISED
+          rsum = rsum + abs(Hout(ii,kk))
+          rsum2 = rsum2 + Hout(ii,kk)**2
+          if (abs(Hout(ii,kk)) > best) then
+             best = abs(Hout(ii,kk)); bi = ii; bk = kk
+          end if
+       end do
+    end do
+
+    write(*,'(A,F8.4,A,I0,A,I0,A,F8.4,A,F8.4,A,I0)') &
+         ' margin=', dmargin, '  worst i=', bi, ' k=', bk, '  rho=', sqrt(xg(bi)**2+zg(bk)**2), &
+         '  r_KS=', rks_of(xg(bi), zg(bk)), '  status=', excision_status(bi,bk)
+    write(*,'(A,ES12.4)') ' driver-style max|H| = ', best
+    write(*,'(A,I0,A,I0,A,F8.4)') ' selected points=', n_out, ' of which inside r_excise: ', nb_in, &
+         '   (fraction ', real(nb_in,dp)/real(max(n_out,1),dp), ')'
+    write(*,'(A,ES12.4,A,ES12.4)') ' mean |H| over selected = ', &
+         rsum/real(max(n_out,1),dp), '   rms|H| = ', sqrt(rsum2/real(max(n_out,1),dp))
+  end subroutine driver_filter_replica
 
   ! Compare every derivative the curvature operator consumes against a high-order
   ! central difference of the exact analytic field at the same point.

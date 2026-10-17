@@ -29,7 +29,7 @@ out_every = 100
 hz_every = 100
 ko_eps    = 0.2   #0.2 is what it was   # Kreiss-Oliger dissipation strength, typical 0.1-0.5
 r_excise  = 1.0      # keep the excision boundary well inside the Kerr horizon
-excision_order = 2   # bounded inner-boundary extension
+excision_order = 3   # bounded inner-boundary extension (see baseline/EXCISION_ORDER_DECISION.md)
 excision_sat = false # guarded until exact BSSN characteristic data are available.
                     # NOTE: the test-verified SAT does damp the inner boundary
                     # slightly (lower max|H| than the off case), but the run

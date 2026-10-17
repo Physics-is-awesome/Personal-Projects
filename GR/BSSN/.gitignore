@@ -1,0 +1,10 @@
+# Build artifacts
+bin/
+build/
+*.mod
+
+# Run output
+output/
+*.h5
+*.hdf5
+horizon.png

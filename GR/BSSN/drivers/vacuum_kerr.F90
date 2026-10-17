@@ -11,7 +11,7 @@ program main
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use timestep_mod, only: rk4_step
   use excision_mod, only: extrapolate_excised, is_excised, set_excision_background, &
-                          excision_characteristic_check
+                          excision_characteristic_check, kerr_radius_squared
   use output_mod, only: output_init, output_write_snapshot, &
     output_write_diagnostics, output_finalize, OUT_NHZ
   use deriv_stencils_mod
@@ -28,6 +28,9 @@ program main
   real(dp) :: dt, t
   integer :: axis_k, i, k
   real(dp) :: diag_margin
+  real(dp) :: near_mask_w
+  integer  :: nm_npts, nm_i, nm_k
+  real(dp) :: nm_Hmax, nm_Mmax, nm_rr
   real(dp) :: r_horizon
   real(dp) :: char_speed
   integer :: n_char_bad
@@ -70,6 +73,23 @@ program main
   diag_margin = 1.0_dp
   call get_environment_variable("GR_DIAG_MARGIN", buf, status=envstat)
   if (envstat == 0) read(buf,*) diag_margin
+
+  ! ---------------------------------------------------------------------
+  ! Near-mask diagnostic band.
+  !
+  ! diag_margin deliberately excludes r_excise < r_KS < r_excise+diag_margin
+  ! from the exterior statistics, so that a growing error localised in the
+  ! first cells outside the mask is invisible in max|H|(ext).  Measurement
+  ! (baseline/DRIVER_FILTER_BUG.md) shows that band carries the largest
+  ! constraint violation in the whole domain, by ~2 orders of magnitude at
+  ! the production resolution, while max|H|(ext) stays small.
+  !
+  ! This band reports max|H| and max|M| over r_excise < r_KS < r_excise+w
+  ! explicitly.  Set GR_NEAR_MASK_W=0 to silence it.
+  ! ---------------------------------------------------------------------
+  near_mask_w = 2.0_dp
+  call get_environment_variable("GR_NEAR_MASK_W", buf, status=envstat)
+  if (envstat == 0) read(buf,*) near_mask_w
 
 
 
@@ -140,7 +160,7 @@ program main
   Hmax = 0.0_dp; Hrms = 0.0_dp; npts = 0
   do k = kmin, kmax
     do i = imin, imax
-      if (sqrt(xg(i)**2 + zg(k)**2) < r_excise + diag_margin) cycle
+      if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
       Hmax = max(Hmax, abs(Hgrid(i,k)))
       Hrms = Hrms + Hgrid(i,k)**2
       npts = npts + 1
@@ -155,7 +175,7 @@ program main
     ii = -1; kk0 = -1
     do k = kmin, kmax
       do i = imin, imax
-        if (sqrt(xg(i)**2 + zg(k)**2) < r_excise + diag_margin) cycle
+        if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
         if (ii < 0) then
           ii = i; kk0 = k
         else if (abs(Hgrid(i,k)) >= abs(Hgrid(ii,kk0))) then
@@ -164,9 +184,9 @@ program main
       end do
     end do
     if (ii > 0) then
-      rr = sqrt(xg(ii)**2 + zg(kk0)**2)
+      rr = sqrt(kerr_radius_squared(xg(ii), zg(kk0)))
       print '(A,I0,A,I0,A,F8.4,A,ES12.4)', " worst point: i=", ii, " k=", kk0, &
-        "  varpi~r=", rr, "  H=", Hgrid(ii,kk0)
+        "  r_KS=", rr, "  H=", Hgrid(ii,kk0)
     end if
     print *, " H at a few sample radii along the axis (x=0):"
     do kk0 = kmin, kmax, max(1,(kmax-kmin)/8)
@@ -179,7 +199,7 @@ program main
   ! interior).
   axis_k = 1
   do k = kmin, kmax
-    if (sqrt(xg(1)**2 + zg(k)**2) >= r_excise + 1.0_dp) then
+    if (sqrt(kerr_radius_squared(xg(1), zg(k))) >= r_excise + 1.0_dp) then
       axis_k = k
       exit
     end if
@@ -258,7 +278,7 @@ program main
           bmax = -1.0_dp; Gmax = -1.0_dp; bI = -1; bK = -1; GI = -1; GK = -1
           do kk0 = 1, Nz
             do ii = 1, Nx
-              rr = sqrt(xg(ii)**2 + zg(kk0)**2)
+              rr = sqrt(kerr_radius_squared(xg(ii), zg(kk0)))
               if (rr < r_excise .or. rr > r_excise + 3.0_dp*max(dx,dz)) cycle
               if (abs(u(ii,kk0,IBETAX)) > bmax) then
                 bmax = abs(u(ii,kk0,IBETAX)); bI = ii; bK = kk0
@@ -288,7 +308,7 @@ program main
       ai=-1; ak=-1; pI=-1; pK=-1; kI=-1; kK=-1
       do kk0 = 1, Nz
         do ii = 1, Nx
-          rr = sqrt(xg(ii)**2 + zg(kk0)**2)
+          rr = sqrt(kerr_radius_squared(xg(ii), zg(kk0)))
           if (rr < ring_lo .or. rr > ring_hi) cycle
           if (abs(u(ii,kk0,IALPHA)) > amax .or. u(ii,kk0,IALPHA) /= u(ii,kk0,IALPHA)) then
             amax = abs(u(ii,kk0,IALPHA)); ai = ii; ak = kk0
@@ -345,7 +365,7 @@ program main
       Hmax = 0.0_dp; Hrms = 0.0_dp; npts = 0
       do k = kmin, kmax
         do i = imin, imax
-          if (sqrt(xg(i)**2 + zg(k)**2) < r_excise + diag_margin) cycle
+          if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
           Hmax = max(Hmax, abs(Hgrid(i,k)))
           Hrms = Hrms + Hgrid(i,k)**2
           npts = npts + 1
@@ -361,7 +381,7 @@ program main
       Mmax = 0.0_dp
       do k = kmin, kmax
         do i = imin, imax
-          if (sqrt(xg(i)**2 + zg(k)**2) < r_excise + diag_margin) cycle
+          if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
           Mmax = max(Mmax, sqrt(Mgrid(i,k,1)**2 + Mgrid(i,k,2)**2 + Mgrid(i,k,3)**2))
         end do
       end do
@@ -369,6 +389,30 @@ program main
       print '(A,I5,A,F8.4,A,ES12.4,A,ES12.4,A,ES12.4,A,F10.6)', &
         " step ", n, "  t=", t, "  max|H|(ext)=", Hmax, "  rms|H|(ext)=", Hrms, &
         "  max|M|(ext)=", Mmax, "  alpha(probe)=", u(1,axis_k,IALPHA)
+
+      ! Near-mask band: r_excise < r_KS < r_excise + near_mask_w.  This is the
+      ! region the exterior statistics above are blind to by construction.
+      if (near_mask_w > 0.0_dp) then
+        nm_Hmax = 0.0_dp; nm_Mmax = 0.0_dp; nm_npts = 0; nm_i = -1; nm_k = -1
+        do k = kmin, kmax
+          do i = imin, imax
+            nm_rr = sqrt(kerr_radius_squared(xg(i), zg(k)))
+            if (nm_rr < r_excise .or. nm_rr >= r_excise + near_mask_w) cycle
+            nm_npts = nm_npts + 1
+            if (abs(Hgrid(i,k)) > nm_Hmax) then
+              nm_Hmax = abs(Hgrid(i,k)); nm_i = i; nm_k = k
+            end if
+            nm_Mmax = max(nm_Mmax, &
+                 sqrt(Mgrid(i,k,1)**2 + Mgrid(i,k,2)**2 + Mgrid(i,k,3)**2))
+          end do
+        end do
+        if (nm_npts > 0) then
+          write(*,'(A,ES12.4,A,I6,A,ES12.4,A,ES12.4,A,ES12.4)') &
+            "    near-mask r_KS < ", r_excise + near_mask_w, "  n=", nm_npts, &
+            "  max|H|=", nm_Hmax, "  max|M|=", nm_Mmax, "  worst r=", &
+            sqrt(kerr_radius_squared(xg(nm_i), zg(nm_k)))
+        end if
+      end if
 
       call output_write_diagnostics(n, t, dt, Nx, Nz, u, Hmax, Hrms, horizon_vals=hz_vals)
       call output_write_snapshot(n, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
@@ -379,14 +423,14 @@ program main
         bval = 0.0_dp; bi = -1; bk = -1
         do k = kmin, kmax
           do i = imin, imax
-            if (sqrt(xg(i)**2 + zg(k)**2) < r_excise + diag_margin) cycle
+            if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
             if (abs(Hgrid(i,k)) > bval) then
               bval = abs(Hgrid(i,k)); bi = i; bk = k
             end if
           end do
         end do
         if (bi > 0) then
-          rr = sqrt(xg(bi)**2 + zg(bk)**2)
+          rr = sqrt(kerr_radius_squared(xg(bi), zg(bk)))
           print '(A,F8.4,A,F8.4)', "    (worst point beyond margin at r=", rr, &
             "  vs r_excise+margin=", r_excise + diag_margin
         end if

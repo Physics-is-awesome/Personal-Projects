@@ -1,0 +1,192 @@
+ Reading parameter file: /tmp/t12.par
+ === GR BSSNOK (vacuum, Cartoon axisymmetric) - Milestone 1 ===
+ Grid: Nx=48  Nz=96
+ dx= 0.255  dy= 0.255  dz= 0.253
+ BH mass M= 1.000   spin a= 0.800
+ Excision radius r_excise= 1.000  (horizon at r_+= 1.600M; interior frozen)
+
+ Initial max inner characteristic speed= -5.0659E-01  incoming lapse-gauge points=0
+ t=0 Hamiltonian constraint (exterior): max|H| =   3.6850E-02   rms|H| =   1.5700E-03
+ worst point: i=9 k=49  varpi~r=  2.0465  H= -3.6850E-02
+  H at a few sample radii along the axis (x=0):
+   z=-11.4947   H=  5.5457E-03
+   z= -8.7158   H= -2.4511E-05
+   z= -5.9368   H= -1.4603E-04
+   z= -3.1579   H= -2.0794E-03
+   z= -0.3789   H=  1.1764E+00
+   z=  2.4000   H= -5.3650E-03
+   z=  5.1789   H= -2.6926E-04
+   z=  7.9579   H= -3.7669E-05
+   z= 10.7368   H= -9.0461E-06
+ Lapse alpha(x=0, outside excision) at t=0:   0.923257  at z=-11.4947
+
+ Time step dt =  0.00089
+ Evolving vacuum Kerr-Schild data with frozen lapse and shift (diagnostic control)...
+ [ring r in (r_excise, r_excise+3dx)] step 200  max|alpha|=  7.118E-01 @(3,42)  max|phi|=  1.103E-01 @(5,48)  max|K|=  2.852E+00 @(5,49
+)
+ step   200  t=  0.1786  max|H|(ext)=  4.3601E-02  rms|H|(ext)=  1.2814E-03  max|M|(ext)=  2.9719E-02  alpha(probe)=  0.923256
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 400  max|alpha|=  7.118E-01 @(3,42)  max|phi|=  1.095E-01 @(5,48)  max|K|=  2.786E+00 @(5,49
+)
+ step   400  t=  0.3573  max|H|(ext)=  8.6853E-02  rms|H|(ext)=  2.0947E-03  max|M|(ext)=  3.1597E-02  alpha(probe)=  0.923256
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 600  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.093E-01 @(5,48)  max|K|=  2.743E+00 @(5,49
+)
+ step   600  t=  0.5359  max|H|(ext)=  1.7437E-01  rms|H|(ext)=  4.1566E-03  max|M|(ext)=  3.7982E-02  alpha(probe)=  0.923255
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 800  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.092E-01 @(5,48)  max|K|=  2.718E+00 @(5,49
+)
+ step   800  t=  0.7146  max|H|(ext)=  3.0592E-01  rms|H|(ext)=  7.5373E-03  max|M|(ext)=  5.2086E-02  alpha(probe)=  0.923254
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 1000  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.089E-01 @(5,48)  max|K|=  2.704E+00 @(5,49
+)
+ step  1000  t=  0.8932  max|H|(ext)=  4.7372E-01  rms|H|(ext)=  1.2206E-02  max|M|(ext)=  6.1998E-02  alpha(probe)=  0.923253
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 1200  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.084E-01 @(5,48)  max|K|=  2.693E+00 @(5,49
+)
+ step  1200  t=  1.0718  max|H|(ext)=  6.6586E-01  rms|H|(ext)=  1.8096E-02  max|M|(ext)=  7.1863E-02  alpha(probe)=  0.923252
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 1400  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.077E-01 @(5,48)  max|K|=  2.681E+00 @(5,49
+)
+ step  1400  t=  1.2505  max|H|(ext)=  8.7156E-01  rms|H|(ext)=  2.5177E-02  max|M|(ext)=  8.5653E-02  alpha(probe)=  0.923251
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 1600  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.070E-01 @(5,48)  max|K|=  2.669E+00 @(5,49
+)
+ step  1600  t=  1.4291  max|H|(ext)=  1.0835E+00  rms|H|(ext)=  3.3451E-02  max|M|(ext)=  9.5956E-02  alpha(probe)=  0.923250
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 1800  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.062E-01 @(5,48)  max|K|=  2.659E+00 @(5,49
+)
+ step  1800  t=  1.6077  max|H|(ext)=  1.2971E+00  rms|H|(ext)=  4.2922E-02  max|M|(ext)=  1.0739E-01  alpha(probe)=  0.923250
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 2000  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.053E-01 @(5,48)  max|K|=  2.652E+00 @(5,49
+)
+ step  2000  t=  1.7864  max|H|(ext)=  1.5101E+00  rms|H|(ext)=  5.3591E-02  max|M|(ext)=  1.2529E-01  alpha(probe)=  0.923249
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 2200  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.044E-01 @(5,48)  max|K|=  2.651E+00 @(5,49
+)
+ step  2200  t=  1.9650  max|H|(ext)=  1.7221E+00  rms|H|(ext)=  6.5459E-02  max|M|(ext)=  1.4266E-01  alpha(probe)=  0.923248
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 2400  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.032E-01 @(5,48)  max|K|=  2.655E+00 @(5,49
+)
+ step  2400  t=  2.1437  max|H|(ext)=  1.9345E+00  rms|H|(ext)=  7.8534E-02  max|M|(ext)=  1.5360E-01  alpha(probe)=  0.923248
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 2600  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.018E-01 @(5,48)  max|K|=  2.666E+00 @(5,49
+)
+ step  2600  t=  2.3223  max|H|(ext)=  2.1496E+00  rms|H|(ext)=  9.2841E-02  max|M|(ext)=  1.6060E-01  alpha(probe)=  0.923247
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 2800  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  1.002E-01 @(5,48)  max|K|=  2.685E+00 @(5,49
+)
+ step  2800  t=  2.5009  max|H|(ext)=  2.3689E+00  rms|H|(ext)=  1.0840E-01  max|M|(ext)=  1.6889E-01  alpha(probe)=  0.923246
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 3000  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  9.898E-02 @(5,47)  max|K|=  2.712E+00 @(5,49
+)
+ step  3000  t=  2.6796  max|H|(ext)=  2.5910E+00  rms|H|(ext)=  1.2518E-01  max|M|(ext)=  1.8024E-01  alpha(probe)=  0.923246
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 3200  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  9.921E-02 @(5,47)  max|K|=  2.746E+00 @(5,49
+)
+ step  3200  t=  2.8582  max|H|(ext)=  2.8112E+00  rms|H|(ext)=  1.4305E-01  max|M|(ext)=  1.9206E-01  alpha(probe)=  0.923245
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 3400  max|alpha|=  7.117E-01 @(3,42)  max|phi|=  9.932E-02 @(5,47)  max|K|=  2.787E+00 @(5,49
+)
+ step  3400  t=  3.0368  max|H|(ext)=  3.0219E+00  rms|H|(ext)=  1.6179E-01  max|M|(ext)=  2.0124E-01  alpha(probe)=  0.923245
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 3600  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.931E-02 @(5,47)  max|K|=  2.835E+00 @(5,49
+)
+ step  3600  t=  3.2155  max|H|(ext)=  3.2134E+00  rms|H|(ext)=  1.8112E-01  max|M|(ext)=  2.0698E-01  alpha(probe)=  0.923244
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 3800  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.917E-02 @(5,47)  max|K|=  2.891E+00 @(5,49
+)
+ step  3800  t=  3.3941  max|H|(ext)=  3.3752E+00  rms|H|(ext)=  2.0074E-01  max|M|(ext)=  2.1013E-01  alpha(probe)=  0.923244
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 4000  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.890E-02 @(5,47)  max|K|=  2.955E+00 @(5,49
+)
+ step  4000  t=  3.5728  max|H|(ext)=  3.5582E+00  rms|H|(ext)=  2.2040E-01  max|M|(ext)=  2.1156E-01  alpha(probe)=  0.923243
+    (worst point beyond margin at r=  2.3013  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 4200  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.849E-02 @(5,47)  max|K|=  3.029E+00 @(5,49
+)
+ step  4200  t=  3.7514  max|H|(ext)=  3.7172E+00  rms|H|(ext)=  2.3985E-01  max|M|(ext)=  2.1178E-01  alpha(probe)=  0.923243
+    (worst point beyond margin at r=  2.3013  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 4400  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.796E-02 @(5,47)  max|K|=  3.114E+00 @(5,49
+)
+ step  4400  t=  3.9300  max|H|(ext)=  3.8435E+00  rms|H|(ext)=  2.5896E-01  max|M|(ext)=  2.1135E-01  alpha(probe)=  0.923242
+    (worst point beyond margin at r=  2.3013  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 4600  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.728E-02 @(5,47)  max|K|=  3.215E+00 @(5,49
+)
+ step  4600  t=  4.1087  max|H|(ext)=  3.9322E+00  rms|H|(ext)=  2.7765E-01  max|M|(ext)=  2.1120E-01  alpha(probe)=  0.923242
+    (worst point beyond margin at r=  2.3013  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 4800  max|alpha|=  7.116E-01 @(3,42)  max|phi|=  9.644E-02 @(5,47)  max|K|=  3.333E+00 @(5,49
+)
+ step  4800  t=  4.2873  max|H|(ext)=  4.0541E+00  rms|H|(ext)=  2.9594E-01  max|M|(ext)=  2.1230E-01  alpha(probe)=  0.923241
+    (worst point beyond margin at r=  2.5563  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 5000  max|alpha|=  7.116E-01 @(3,55)  max|phi|=  9.540E-02 @(5,47)  max|K|=  3.474E+00 @(5,49
+)
+ step  5000  t=  4.4659  max|H|(ext)=  4.1411E+00  rms|H|(ext)=  3.1388E-01  max|M|(ext)=  2.1507E-01  alpha(probe)=  0.923241
+    (worst point beyond margin at r=  2.5563  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 5200  max|alpha|=  7.116E-01 @(3,55)  max|phi|=  9.414E-02 @(5,47)  max|K|=  3.643E+00 @(5,49
+)
+ step  5200  t=  4.6446  max|H|(ext)=  4.3272E+00  rms|H|(ext)=  3.3152E-01  max|M|(ext)=  2.1900E-01  alpha(probe)=  0.923240
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 5400  max|alpha|=  7.116E-01 @(3,55)  max|phi|=  9.385E-02 @(6,46)  max|K|=  3.847E+00 @(5,49
+)
+ step  5400  t=  4.8232  max|H|(ext)=  4.6008E+00  rms|H|(ext)=  3.4891E-01  max|M|(ext)=  2.2301E-01  alpha(probe)=  0.923240
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 5600  max|alpha|=  7.116E-01 @(3,55)  max|phi|=  9.496E-02 @(6,46)  max|K|=  4.095E+00 @(5,49
+)
+ step  5600  t=  5.0019  max|H|(ext)=  4.8740E+00  rms|H|(ext)=  3.6607E-01  max|M|(ext)=  2.2610E-01  alpha(probe)=  0.923240
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 5800  max|alpha|=  7.116E-01 @(3,55)  max|phi|=  9.612E-02 @(6,46)  max|K|=  4.401E+00 @(5,49
+)
+ step  5800  t=  5.1805  max|H|(ext)=  5.1464E+00  rms|H|(ext)=  3.8302E-01  max|M|(ext)=  2.2785E-01  alpha(probe)=  0.923239
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 6000  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  9.735E-02 @(6,46)  max|K|=  4.783E+00 @(5,48
+)
+ step  6000  t=  5.3591  max|H|(ext)=  5.4184E+00  rms|H|(ext)=  3.9978E-01  max|M|(ext)=  2.2890E-01  alpha(probe)=  0.923239
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 6200  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  9.866E-02 @(6,46)  max|K|=  5.268E+00 @(5,48
+)
+ step  6200  t=  5.5378  max|H|(ext)=  5.6915E+00  rms|H|(ext)=  4.1641E-01  max|M|(ext)=  2.3223E-01  alpha(probe)=  0.923238
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 6400  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  1.001E-01 @(6,46)  max|K|=  5.901E+00 @(5,48
+)
+ step  6400  t=  5.7164  max|H|(ext)=  5.9686E+00  rms|H|(ext)=  4.3308E-01  max|M|(ext)=  2.4645E-01  alpha(probe)=  0.923238
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 6600  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  1.016E-01 @(6,46)  max|K|=  6.754E+00 @(5,48
+)
+ step  6600  t=  5.8950  max|H|(ext)=  6.2540E+00  rms|H|(ext)=  4.5022E-01  max|M|(ext)=  2.9073E-01  alpha(probe)=  0.923238
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 6800  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  1.032E-01 @(6,46)  max|K|=  7.959E+00 @(5,48
+)
+ step  6800  t=  6.0737  max|H|(ext)=  6.5523E+00  rms|H|(ext)=  4.6879E-01  max|M|(ext)=  3.9682E-01  alpha(probe)=  0.923237
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+ERROR STOP non-positive or non-finite conformal determinant
+
+Error termination. Backtrace:
+#0  0x781696e23e59 in ???
+#1  0x781696e24a71 in ???
+#2  0x781696e2610b in ???
+#3  0x5ffa5edee3fb in ???
+#4  0x5ffa5edef016 in ???
+#5  0x5ffa5edeff8d in ???
+#6  0x5ffa5edf80b1 in ???
+#7  0x5ffa5edb4ade in ???
+#8  0x781696a2a1c9 in __libc_start_call_main
+	at ../sysdeps/nptl/libc_start_call_main.h:58
+#9  0x781696a2a28a in __libc_start_main_impl
+	at ../csu/libc-start.c:360
+#10  0x5ffa5edb4b14 in ???
+#11  0xffffffffffffffff in ???
+ [ring r in (r_excise, r_excise+3dx)] step 7000  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  1.050E-01 @(6,46)  max|K|=  9.820E+00 @(5,48
+)
+ step  7000  t=  6.2523  max|H|(ext)=  6.8678E+00  rms|H|(ext)=  4.9091E-01  max|M|(ext)=  6.0950E-01  alpha(probe)=  0.923237
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 7200  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  1.236E-01 @(5,48)  max|K|=  1.311E+01 @(5,48
+)
+ step  7200  t=  6.4310  max|H|(ext)=  7.2041E+00  rms|H|(ext)=  5.2169E-01  max|M|(ext)=  1.0489E+00  alpha(probe)=  0.923237
+    (worst point beyond margin at r=  2.0682  vs r_excise+margin=  2.0000
+ [ring r in (r_excise, r_excise+3dx)] step 7400  max|alpha|=  7.115E-01 @(3,55)  max|phi|=  1.901E-01 @(5,49)  max|K|=  1.566E+01 @(5,49
+)
+ step  7400  t=  6.6096  max|H|(ext)=  9.0052E+00  rms|H|(ext)=  5.7473E-01  max|M|(ext)=  1.7355E+00  alpha(probe)=  0.923236
+    (worst point beyond margin at r=  2.0465  vs r_excise+margin=  2.0000
+Conformal metric failure det= -1.067321E+11 components=   1.324387E+05   5.953106E+04   3.064515E+04   3.086501E+04  -4.185608E+03   8.546101E+04
+Invalid state at step 7536 i=7 k=48 x=   1.53191 z=  -0.12632

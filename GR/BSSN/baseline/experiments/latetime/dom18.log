@@ -1,0 +1,43 @@
+ Reading parameter file: baseline/experiments/latetime/dom18.par
+ === GR BSSNOK (vacuum, Cartoon axisymmetric) - Milestone 1 ===
+ Grid: Nx=72  Nz=144
+ dx= 0.254  dy= 0.254  dz= 0.252
+ BH mass M= 1.000   spin a= 0.800
+ Excision radius r_excise= 1.000  (horizon at r_+= 1.600M; interior frozen)
+
+ Initial max inner characteristic speed= -5.0748E-01  incoming lapse-gauge points=0
+ t=0 Hamiltonian constraint (exterior): max|H| =   3.8038E-02   rms|H| =   9.2392E-04
+ worst point: i=9 k=73  varpi~r=  2.0321  H= -3.8038E-02
+  H at a few sample radii along the axis (x=0):
+   z=-17.4965   H=  2.5618E-03
+   z=-13.2168   H= -3.2725E-06
+   z= -8.9371   H= -2.1523E-05
+   z= -4.6573   H= -4.2363E-04
+   z= -0.3776   H=  1.1755E+00
+   z=  3.9021   H= -8.9335E-04
+   z=  8.1818   H= -3.2692E-05
+   z= 12.4615   H= -4.3553E-06
+   z= 16.7413   H= -1.0311E-06
+ Lapse alpha(x=0, outside excision) at t=0:   0.947423  at z=-17.4965
+
+ Time step dt =  0.00089
+ Evolving vacuum Kerr-Schild data with frozen lapse and shift (diagnostic control)...
+Conformal metric failure det= -1.969536E+03 components=   2.315709E+02  -7.832897E+01  -1.452082E+02   1.162786E+02   2.519106E+01   9.733491E+01
+Invalid state at step 10495 i=5 k=70 x=   1.01408 z=  -0.62937
+ERROR STOP non-positive or non-finite conformal determinant
+
+Error termination. Backtrace:
+#0  0x7c34ba223e59 in ???
+#1  0x7c34ba224a71 in ???
+#2  0x7c34ba22610b in ???
+#3  0x61f3bc63e3fb in ???
+#4  0x61f3bc63f016 in ???
+#5  0x61f3bc640aa5 in ???
+#6  0x61f3bc6480b1 in ???
+#7  0x61f3bc604ade in ???
+#8  0x7c34b9e2a1c9 in __libc_start_call_main
+	at ../sysdeps/nptl/libc_start_call_main.h:58
+#9  0x7c34b9e2a28a in __libc_start_main_impl
+	at ../csu/libc-start.c:360
+#10  0x61f3bc604b14 in ???
+#11  0xffffffffffffffff in ???

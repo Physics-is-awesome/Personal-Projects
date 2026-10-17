@@ -323,3 +323,11 @@ bin/diagnose_inner_boundary: $(SOURCES_NO_DRIVER) helper/diagnose_inner_boundary
 
 diagnose-inner-boundary: bin/diagnose_inner_boundary
 	./bin/diagnose_inner_boundary parameter_files/vacuum_kerr.par
+
+# Build-only: ghost-fill accuracy vs exact Kerr-Schild (MARGIN_FINDINGS follow-up).
+bin/diagnose_ghost_accuracy: $(SOURCES_NO_DRIVER) helper/diagnose_ghost_accuracy.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_ghost_accuracy.F90 -o bin/diagnose_ghost_accuracy $(LDLIBS)
+
+diagnose-ghost-accuracy: bin/diagnose_ghost_accuracy
+	./bin/diagnose_ghost_accuracy parameter_files/vacuum_kerr.par
