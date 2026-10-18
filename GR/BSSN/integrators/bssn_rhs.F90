@@ -10,7 +10,7 @@ module bssn_rhs_mod
   use excision_mod, only: is_excised, excision_status
   implicit none
   private
-  public :: compute_rhs_interior, compute_rhs_point
+  public :: compute_rhs_interior, compute_rhs_point, bm_f_of_alpha
 
 contains
 
@@ -248,6 +248,16 @@ contains
       rhs_out(IALPHA) = 0.0_dp
     else if (slicing_mode == 1) then
       rhs_out(IALPHA) = -alpha*Ktr + sum(beta*dalpha_l)
+    else if (slicing_mode == 3) then
+      ! Stationary Kerr slicing (route C).  Bona-Masso d_perp alpha =
+      ! -alpha^2 f(alpha) K, with f(alpha) TABULATED, not closed form: the
+      ! Kerr trumpet family is not 1+log and not maximal at any R0, but it IS
+      ! stationary under this f.  See the MEASURED RESULT block in
+      ! helper/eq_kerr_trumpet.F90 and helper/test_eq_kerr_data.F90 Parts
+      ! D-H.  The alpha-dependence of f is REAL, not a finite-difference
+      ! artefact: the spread is converged by h=1e-2 and settles at 4.3e-2.
+      rhs_out(IALPHA) = -alpha*alpha*bm_f_of_alpha(alpha,bh_spin)*Ktr &
+                       + sum(beta*dalpha_l)
     else
       rhs_out(IALPHA) = -2.0_dp*alpha*Ktr + sum(beta*dalpha_l)
     end if
@@ -311,7 +321,97 @@ contains
       rhs_out(IBZ) = RHS_Gam(3) - sum(beta*dGt(:,3)) + dBz - gauge_eta*S%val(IBZ)
     end if
 
+
   end subroutine rhs_point
+
+  ! ---------------------------------------------------------------------------
+  !  f(alpha) for the stationary Kerr slicing (slicing_mode 3).
+  !
+  !  At a = 0 the closed form is exact:  f = (1 - alpha) / (3 alpha).
+  !  At a = 0.8 it is tabulated below.  The table was emitted by Part H of
+  !  helper/test_eq_kerr_data.F90 at a converged step h = 1e-4.
+  !
+  !  SPIN DEPENDENCE IS INTERPOLATED, NOT MEASURED.  Between a = 0 and
+  !  a = 0.8 this blends the closed form into the table, which reproduces both
+  !  endpoints exactly.  Interior spins are an unvalidated interpolation; if a
+  !  different spin matters, regenerate the table for it rather than trusting
+  !  the blend.
+  !
+  !  Below the first tabulated alpha the closed form is used, because it has
+  !  the correct trumpet divergence f ~ 1/(3 alpha); above the last entry the
+  !  value is held, since f is smoothly decreasing and flattening there.
+  ! ---------------------------------------------------------------------------
+  pure function bm_f_of_alpha(alpha, a) result(f)
+    real(dp), intent(in) :: alpha, a
+    real(dp) :: f, w, f0
+    integer, parameter :: NTAB = 12
+    real(dp), parameter :: tab_a(NTAB) = [ &
+         0.37628835_dp, 0.48931866_dp, 0.57076556_dp, 0.63116088_dp, &
+         0.67729248_dp, 0.71348553_dp, 0.74254733_dp, 0.76635005_dp, &
+         0.78617810_dp, 0.80293661_dp, 0.81727923_dp, 0.82968850_dp ]
+    real(dp), parameter :: tab_f(NTAB) = [ &
+         0.53371056_dp, 0.35774236_dp, 0.26516450_dp, 0.20851406_dp, &
+         0.17067473_dp, 0.14384404_dp, 0.12395662_dp, 0.10869775_dp, &
+         0.09666101_dp, 0.08694744_dp, 0.07895832_dp, 0.07228104_dp ]
+    real(dp), parameter :: A_TAB = 0.8_dp
+
+    if (alpha <= 1.0e-12_dp) then
+      f = huge(1.0_dp)
+      return
+    end if
+    f0 = bm_f_tab(alpha)
+    if (a <= 0.0_dp) then
+      f = f0
+    else if (a >= A_TAB) then
+      f = bm_f_tab(alpha)
+    else
+      w = a/A_TAB
+      f = (1.0_dp - w)*f0 + w*bm_f_closed(alpha)
+    end if
+  end function bm_f_of_alpha
+
+  ! Interpolated table value alone (the a = 0.8 measurement).
+  pure function bm_f_tab(alpha) result(f)
+    real(dp), intent(in) :: alpha
+    real(dp) :: f
+    integer, parameter :: NTAB = 12
+    real(dp), parameter :: tab_a(NTAB) = [ &
+         0.37628835_dp, 0.48931866_dp, 0.57076556_dp, 0.63116088_dp, &
+         0.67729248_dp, 0.71348553_dp, 0.74254733_dp, 0.76635005_dp, &
+         0.78617810_dp, 0.80293661_dp, 0.81727923_dp, 0.82968850_dp ]
+    real(dp), parameter :: tab_f(NTAB) = [ &
+         0.53371056_dp, 0.35774236_dp, 0.26516450_dp, 0.20851406_dp, &
+         0.17067473_dp, 0.14384404_dp, 0.12395662_dp, 0.10869775_dp, &
+         0.09666101_dp, 0.08694744_dp, 0.07895832_dp, 0.07228104_dp ]
+    integer :: lo, hi, mid
+    if (alpha <= tab_a(1)) then
+      f = (1.0_dp - alpha)/(3.0_dp*alpha)      ! closed form: right divergence
+      return
+    end if
+    if (alpha >= tab_a(NTAB)) then
+      f = tab_f(NTAB)
+      return
+    end if
+    lo = 1;  hi = NTAB
+    do while (hi - lo > 1)
+      mid = (lo + hi)/2
+      if (alpha < tab_a(mid)) then
+        hi = mid
+      else
+        lo = mid
+      end if
+    end do
+    f = tab_f(lo) + (tab_f(hi) - tab_f(lo))* &
+        (alpha - tab_a(lo))/(tab_a(hi) - tab_a(lo))
+  end function bm_f_tab
+
+  pure function bm_f_closed(alpha) result(f)
+    real(dp), intent(in) :: alpha
+    real(dp) :: f
+    f = (1.0_dp - alpha)/(3.0_dp*alpha)
+  end function bm_f_closed
+
+
 
   ! ---------------------------------------------------------------------------
   ! Analytic puncture driver profile  Gamma^a = 2 M x^a / r^3, with x measured

@@ -43,6 +43,13 @@ program main
   integer :: hz_every, hz_unit, hz_ierr, hz_nl, hz_last_step
   real(dp) :: hz_vals(OUT_NHZ)   ! found, area, m_irr, J, m_H, r_min, r_max -> output_mod
   real(dp) :: hz_ref = 0.0_dp, hz_drift_tol = 0.0_dp, drift
+  ! Gauge-invariant stationarity guard.  The horizon COORDINATE position r_min
+  ! is a poor stationarity measure here: under refinement r_min diverges while
+  ! area / M_irr / J converge (see the resolution evidence in the Makefile).  So
+  ! r_min drift is reported but does not abort; the abort keys on the
+  ! invariants, which are the quantities a stationary vacuum BH must conserve.
+  real(dp) :: inv_ref_mirr = 0.0_dp, inv_ref_area = 0.0_dp
+  real(dp) :: dmirr = 0.0_dp, darea = 0.0_dp, inv_tol = 0.05_dp
   logical :: hz_abort_drift = .true.
   ! DIAGNOSTIC PROBE (default off).  The excision fill is
   !   u = background + one-sided-polynomial extrapolation of (u - background)
@@ -508,23 +515,32 @@ contains
     ! letting the user find out 18000 steps later.
     if (hz_ref <= 0.0_dp) then
       hz_ref = hz%hmin
+      inv_ref_mirr = hz%m_irr
+      inv_ref_area = hz%area
     else
       drift = hz_ref - hz%hmin
       if (drift > hz_drift_tol) then
         print '(A,I0,A,ES10.4,A,ES10.4,A,ES10.4,A,ES10.4,A)', &
-          " [horizon] step ", step, ": DRIFT r_min ", hz_ref, " -> ", hz%hmin, &
+          " [horizon] step ", step, ": r_min moved ", hz_ref, " -> ", hz%hmin, &
           "  (d=", drift, ', rate=', drift/max(tnow,1.0e-12_dp), '/t)'
-        print '(A)', "   -> stationary solution is NOT stationary: check the gauge (1+log puncture lapse/shift) first."
+        print '(A)', "   NOTE: coordinate drift of the horizon position is not by"
+        print '(A)', "   itself a failure; compare the invariants below."
+        hz_drift_tol = 2.0_dp*drift      ! escalate to the next doubling
+      end if
+      dmirr = abs(hz%m_irr  - inv_ref_mirr )/max(abs(inv_ref_mirr ),1.0e-30_dp)
+      darea = abs(hz%area  - inv_ref_area )/max(abs(inv_ref_area ),1.0e-30_dp)
+      if (dmirr > inv_tol .or. darea > inv_tol) then
+        print '(A,I0,A,ES10.4,A,ES10.4,A,ES10.4,A,ES10.4,A)', &
+          " [horizon] step ", step, ": INVARIANT DRIFT  dM_irr/M_irr=", dmirr, &
+          "  dA/A=", darea, "  (limit ", inv_tol, ")"
+        print '(A)', "   -> the evolved black hole is NOT stationary. The"
+        print '(A)', "   spacetime itself is changing, which is a genuine failure."
         if (hz_abort_drift) then
           print '(A,I0,A,I0,A)', " ABORT at step ", step, " (of ", nsteps, &
             " requested)."
-          print '(A)', " The horizon is migrating into the excision region, so"
-          print '(A)', " this run cannot produce valid physics; continuing only"
-          print '(A)', " ends in a non-positive conformal determinant ~1.8e4"
-          print '(A)', " steps later. Set GR_HZ_ABORT=0 to override."
-          error stop 'horizon drift: the gauge is not stationary'
+          print '(A)', " Set GR_HZ_ABORT=0 to run past this and collect output."
+          error stop 'horizon invariants drift: evolution is not stationary'
         end if
-        hz_drift_tol = 2.0_dp*drift      ! escalate to the next doubling
       end if
     end if
 

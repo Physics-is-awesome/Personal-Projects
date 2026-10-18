@@ -4,8 +4,14 @@
 # ==========================================================
 
 # --- Grid ---
-nx   = 48        # points in x in [0, xmax], x(1) = 0
-nz   = 96        # points in z in [-zmax, zmax]
+# Resolution: 48x96 is UNDER-RESOLVED for this problem.  At that resolution the
+# apparent-horizon invariants are off by ~15% from exact Kerr and they depend
+# strongly on r_excise (29% spread); at 96x192 they are within ~1-2% and the
+# r_excise spread drops to 1.8%.  See the resolution evidence in the Makefile.
+# Cost: 4x the points and 2x the step count for the same physical time.
+# Override with GR_NX=48 GR_NZ=96 for a quick smoke run.
+nx   = 96        # points in x in [0, xmax], x(1) = 0
+nz   = 192       # points in z in [-zmax, zmax]
 xmax = 12.0      # in units of M
 zmax = 12.0
 

@@ -5,6 +5,39 @@ module cartoon_mod
   use vars_mod, only: NVARS, IGXX, IGXY, IGXZ, IGYY, IGYZ, IGZZ, &
                        IAXX, IAXY, IAXZ, IAYY, IAYZ, IAZZ, &
                        IGTX, IGTY, IGTZ, IBETAX, IBETAY, IBETAZ, IBX, IBY, IBZ
+  !! Axisymmetric "cartoon" reconstruction: synthesize the full 3-D field at
+  !! (X, Y, z) from the stored y=0, x>=0 half-plane by (a) interpolating in
+  !! varpi = sqrt(X^2+Y^2) with a 3-point Lagrange polynomial and (b) rotating
+  !! the vector/tensor components from the principal frame.
+  !!
+  !! MEASURED ACCURACY -- read helper/test_stencil_derivs.F90 (decompose,
+  !! recon_range) before changing anything here.  Two results, both with
+  !! hand-checkable controls:
+  !!
+  !! (1) THIS MODULE IS NOT THE PROBLEM.  Putting the ANALYTIC off-plane values
+  !!     into the same central difference the stencil uses reproduces the
+  !!     stencil's y-derivative error to ~1%:
+  !!        ghost_dy_err  1.77e-4 / 2.66e-4 / 3.17e-4 / 3.93e-4
+  !!        analyticCD_err 1.80e-4 / 2.66e-4 / 3.17e-4 / 3.93e-4
+  !!     so the error is the O(dy^2) truncation of the 2-point difference in
+  !!     stencil.F90 (d1y = (yp-ym)/(2 dy)), NOT anything the reconstruction
+  !!     does.  The per-ghost interpolation error is only ~1e-7 -- four orders
+  !!     below the derivative error it feeds.
+  !!
+  !! (2) The reconstruction would support a HIGHER-ORDER y stencil.  Its error
+  !!     grows as y^2 and stays tiny well past what a 4th-order stencil needs:
+  !!        y/dx =  1   2   4
+  !!        odd  (T_xy)  5e-9  3e-8  1e-7
+  !!        even (T_xx) 4e-7  1e-6  3e-6
+  !!     At y/dx = 2 the reconstruction contributes ~1e-5 to a y-derivative,
+  !!     versus the 3e-4 the present 2nd-order difference contributes.  A 4th-
+  !!     order y stencil is therefore available, worth roughly 30x, and would
+  !!     then be reconstruction-limited rather than difference-limited.
+  !!
+  !! DO NOT read (2) as "the y path is why the momentum constraint does not
+  !! converge".  A 2nd-order truncation error converges under refinement; it
+  !! sets a floor, it cannot produce a plateau.  See the momentum-constraint
+  !! note in the Makefile.
   implicit none
   private
   public :: get_neighbor

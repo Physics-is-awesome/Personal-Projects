@@ -66,8 +66,15 @@ program test_k_from_gauge
   real(dp) :: wr
   real(dp) :: dgam(3,3,3)         ! dgam(a,b,dir)
   real(dp) :: divb, e4phi, r, kex, ktrg, ktrs, ws, Lbg
+  ! Per-term decomposition of the Lie derivative, to localise the plateau:
+  !   T1_ab = beta^m d_m gamma_ab   (metric advection)
+  !   T2_ab = gamma_bm d_a beta^m    (index shift a)
+  !   T3_ab = gamma_am d_b beta^m    (index shift b)
+  real(dp) :: serr(6,3), stot(6), T1, T2, T3, Lt
+  logical :: zero_dy_beta, zero_dy_gamma
+  character(len=64) :: mode_label
   real(dp) :: trmax, trrms, kmax, kerr, npt, tol
-  integer :: i, k, a, b, c, m, d, dir
+  integer :: i, k, a, b, c, m, d, dir, slot
   logical :: dbg, no_yderivs
 
   call init_params('parameter_files/vacuum_kerr.par')
@@ -78,6 +85,30 @@ program test_k_from_gauge
   if (ybuf/=" ") read(ybuf,*) Nx
   call get_environment_variable("GR_NZ",ybuf)
   if (ybuf/=" ") read(ybuf,*) Nz
+  zero_dy_beta=.false.
+  zero_dy_gamma=.false.
+  call get_environment_variable("GR_ZERO_DY_BETA",ybuf)
+  if (ybuf/=" ") zero_dy_beta=.true.
+  call get_environment_variable("GR_ZERO_DY_GAMMA",ybuf)
+  if (ybuf/=" ") zero_dy_gamma=.true.
+  mode_label='baseline (all derivatives)'
+  if (zero_dy_beta) mode_label='ZERO d_y of beta only'
+  if (zero_dy_gamma) mode_label='ZERO d_y of gamma only'
+  if (zero_dy_beta .and. zero_dy_gamma) mode_label='ZERO all d_y'
+  call get_environment_variable("GR_NX",ybuf)
+  if (ybuf/=" ") read(ybuf,*) Nx
+  call get_environment_variable("GR_NZ",ybuf)
+  if (ybuf/=" ") read(ybuf,*) Nz
+  zero_dy_beta=.false.
+  zero_dy_gamma=.false.
+  call get_environment_variable("GR_ZERO_DY_BETA",ybuf)
+  if (ybuf/=" ") zero_dy_beta=.true.
+  call get_environment_variable("GR_ZERO_DY_GAMMA",ybuf)
+  if (ybuf/=" ") zero_dy_gamma=.true.
+  mode_label='baseline (all derivatives)'
+  if (zero_dy_beta) mode_label='ZERO d_y of beta only'
+  if (zero_dy_gamma) mode_label='ZERO d_y of gamma only'
+  if (zero_dy_beta .and. zero_dy_gamma) mode_label='ZERO all d_y'
   dx = xmax/real(Nx-1,dp); dz = 2.0_dp*zmax/real(Nz-1,dp); dy = dx
   slicing_mode = 0
   gamma_driver_mode = 2            ! frozen shift: this test is geometric only
@@ -91,6 +122,7 @@ program test_k_from_gauge
   call extrapolate_excised(u)
 
   trmax=0.0_dp; trrms=0.0_dp; kmax=0.0_dp; kerr=0.0_dp; npt=0.0_dp
+  serr=0.0_dp; stot=0.0_dp
   dbg=.false.
   no_yderivs=.false.
   call get_environment_variable("GR_NO_YDERIVS",ybuf)
@@ -192,14 +224,27 @@ program test_k_from_gauge
       !  identity that does not hold, and silently gives the wrong answer.)
       do a=1,3
         do b=1,3
-          Lbg=0.0_dp
+          T1=0.0_dp; T2=0.0_dp; T3=0.0_dp
           do m=1,3
-            Lbg=Lbg+bv(m)*dgam(a,b,m)
+            if (zero_dy_gamma .and. m==2) cycle
+            T1=T1+bv(m)*dgam(a,b,m)
           end do
           do m=1,3
-            Lbg=Lbg+gam(b,m)*d1bv(S,m,a) + gam(a,m)*d1bv(S,m,b)
+            if (.not. (zero_dy_beta .and. a==2)) &
+                 T2=T2+gam(b,m)*d1bv(S,m,a)
+            if (.not. (zero_dy_beta .and. b==2)) &
+                 T3=T3+gam(a,m)*d1bv(S,m,b)
           end do
+          Lbg=T1+T2+T3
           Kgauge(a,b)=Lbg/(2.0_dp*S%val(IALPHA))
+          ! per-slot accumulation here, where T1..T3 and Kstored(a,b) are valid
+          slot=slotix(a,b)
+          Lt=2.0_dp*S%val(IALPHA)*e4phi* &
+             (atld_c(S,a,b)+gt(a,b)*S%val(IK)/3.0_dp)
+          stot(slot)=stot(slot)+(Lbg-Lt)**2
+          serr(slot,1)=serr(slot,1)+(T1-Lt)**2
+          serr(slot,2)=serr(slot,2)+(T2-Lt)**2
+          serr(slot,3)=serr(slot,3)+(T3-Lt)**2
         end do
       end do
 
@@ -232,6 +277,7 @@ program test_k_from_gauge
       kmax  = max(kmax,  abs(ktrg))
       kerr  = max(kerr,  abs(ktrg-kex))
       npt   = npt + 1.0_dp
+
     end do
   end do
   trrms = sqrt(trrms/max(npt,1.0_dp))
@@ -241,6 +287,17 @@ program test_k_from_gauge
   write(*,'(A,ES12.4)')  'max |K_gauge - K_stored|:   ', trmax
   write(*,'(A,ES12.4)')  'rms |K_gauge - K_stored|:   ', trrms
   write(*,'(A,ES12.4)')  'max |K_gauge - K_analytic|: ', kerr
+  write(*,'(A)')
+  write(*,'(A)') 'Lie-derivative term decomposition. Target Lt = 2*alpha*K_stored.'
+  write(*,'(A)') 'MODE: '//trim(mode_label)
+  write(*,'(A,4ES12.3)') '  slot   rms|L-Lt|   rms T1       rms T2       rms T3'
+  do slot=1,6
+    write(*,'(A,4ES12.3)') '  '//slotname(slot), &
+         sqrt(stot(slot)/max(npt,1.0_dp)), &
+         sqrt(serr(slot,1)/max(npt,1.0_dp)), &
+         sqrt(serr(slot,2)/max(npt,1.0_dp)), &
+         sqrt(serr(slot,3)/max(npt,1.0_dp))
+  end do
   write(*,'(A,I0,A,I0,A,ES12.4)') 'worst cell i=',wi,' k=',wk,' r=',wr
   write(*,'(A,6ES12.3)') '  wKg row1: ',wKg(1,1),wKg(1,2),wKg(1,3)
   write(*,'(A,6ES12.3)') '  wKg row2: ',wKg(2,1),wKg(2,2),wKg(2,3)
@@ -255,36 +312,89 @@ program test_k_from_gauge
   if (npt < 100.0_dp) error stop 'annulus too small to be meaningful'
   tol = 5.0e-3_dp*max(kmax,1.0_dp)
   if (trmax > tol) then
-     write(*,'(A)') 'KNOWN FAILURE: components with a y index disagree.'
-     write(*,'(A)') 'The x and z components of K_gauge reproduce K_stored to 4-5'
-     write(*,'(A)') 'significant figures; only the y-slot is wrong.  Forcing all'
-     write(*,'(A)') 'y-derivatives to zero makes it worse, so d_y is genuinely'
-     write(*,'(A)') 'required (gamma_xy ~ f^-1 x y / r^2 is odd in y).  The error'
-     write(*,'(A)') 'rms does NOT fall under refinement (1.08e-2 at 48x96,'
-     write(*,'(A)') '9.58e-3 at 96x192, 9.40e-3 at 192x384), so this is a defect in'
-     write(*,'(A)') 'the cartoon y-derivative reconstruction, not truncation error.'
-     write(*,'(A)') 'See LONG_TERM_GAUGE_DRIFT_REPORT.md section 6, theory D.'
-     error stop 'K from the gauge: cartoon y-derivative does not converge'
+     write(*,'(A,ES12.4)') '  (worst cell matrix dumped above)'
+     error stop 'K from the gauge disagrees with the stored K: check this test first'
   end if
   write(*,'(A)') 'PASS: K from (alpha,beta,gamma) reproduces the stored K.'
 
 contains
 
+  ! ---- symmetric-tensor index mapping -------------------------------------
+  ! Keyed on 3*a+b for a,b in 1..3:
+  !   (1,1)=4  (1,2)=5  (2,1)=7  (1,3)=6  (3,1)=10
+  !   (2,2)=8  (2,3)=9  (3,2)=11 (3,3)=12
+  ! The lower triangle MUST be handled explicitly.  An earlier version of this
+  ! test handled only 4,5,6,8,9,12 and let 7,10,11 fall through to a default,
+  ! silently scoring (2,1), (3,1) and (3,2) against the wrong component.  That
+  ! produced a spurious "y-slot failure that plateaus under refinement".
+
+  pure function slotix(a,b) result(s)
+    integer,intent(in) :: a,b
+    integer :: s
+    select case (3*a+b)
+      case (4);  s=1
+      case (5);  s=2
+      case (7);  s=2
+      case (6);  s=3
+      case (10); s=3
+      case (8);  s=4
+      case (9);  s=5
+      case (11); s=5
+      case (12); s=6
+      case default; s=1
+    end select
+  end function slotix
+
+  pure function slotname(s) result(n)
+    integer,intent(in) :: s
+    character(len=8) :: n
+    select case (s)
+      case(1); n='xx'
+      case(2); n='xy'
+      case(3); n='xz'
+      case(4); n='yy'
+      case(5); n='yz'
+      case default; n='zz'
+    end select
+  end function slotname
+
   pure function gtvar(a,b) result(n)
     integer,intent(in) :: a,b
     integer :: n
     select case (3*a+b)
-      case (4);  n=IGXX      ! (1,1)
-      case (5);  n=IGXY      ! (1,2),(2,1)
-      case (6);  n=IGXZ      ! (1,3),(3,1)
-      case (8);  n=IGYY      ! (2,2)
-      case (9);  n=IGYZ      ! (2,3),(3,2)
-      case (12); n=IGZZ      ! (3,3)
+      case (4);  n=IGXX
+      case (5);  n=IGXY      ! (1,2)
+      case (7);  n=IGXY      ! (2,1)
+      case (6);  n=IGXZ      ! (1,3)
+      case (10); n=IGXZ      ! (3,1)
+      case (8);  n=IGYY
+      case (9);  n=IGYZ      ! (2,3)
+      case (11); n=IGYZ      ! (3,2)
+      case (12); n=IGZZ
       case default; n=IGXX
     end select
   end function gtvar
 
-  ! d_dir gtilde_ab along cartesian direction dir (1=x,2=y,3=z)
+  function atld_c(St,a,b) result(v)
+    type(stencil_t),intent(in) :: St
+    integer,intent(in) :: a,b
+    real(dp) :: v
+    integer :: n
+    select case (3*a+b)
+      case (4);  n=IAXX
+      case (5);  n=IAXY
+      case (7);  n=IAXY
+      case (6);  n=IAXZ
+      case (10); n=IAXZ
+      case (8);  n=IAYY
+      case (9);  n=IAYZ
+      case (11); n=IAYZ
+      case (12); n=IAZZ
+      case default; n=IAXX
+    end select
+    v=St%val(n)
+  end function atld_c
+
   function d1g(St,a,b,dir) result(d)
     type(stencil_t),intent(in) :: St
     integer,intent(in) :: a,b,dir
@@ -326,22 +436,4 @@ contains
     end select
   end function d1bv
 
-  ! Atilde_ab component from the stencil
-  function atld_c(St,a,b) result(v)
-    type(stencil_t),intent(in) :: St
-    integer,intent(in) :: a,b
-    real(dp) :: v
-    integer :: n
-    select case (3*a+b)
-      case (4);  n=IAXX
-      case (5);  n=IAXY
-      case (6);  n=IAXZ
-      case (8);  n=IAYY
-      case (9);  n=IAYZ
-      case (12); n=IAZZ
-      case default; n=IAXX
-    end select
-    v=St%val(n)
-  end function atld_c
-
-  end program test_k_from_gauge
+end program test_k_from_gauge

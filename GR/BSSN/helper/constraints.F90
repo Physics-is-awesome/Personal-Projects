@@ -143,10 +143,30 @@ contains
             Abup(a,b) = q
           end do
         end do
+        ! TWO PASSES, and this ordering is load-bearing.
+        !
+        ! The derivative of Atilde^{ij} needs the WHOLE d_dir gtilde^{ij} tensor:
+        !
+        !   d_dir Atilde^{ij} = d_dir(g^{ik} g^{jl} A_kl)
+        !       = d_dir(g^{ik}) g^{jl} A_kl + g^{ik} d_dir(g^{jl}) A_kl
+        !         + g^{ik} g^{jl} d_dir(A_kl)
+        !   with  d_dir(g^{ij}) = -g^{ac} g^{bd} d_dir(gtilde_cd)
+        !
+        ! so the first term reads dgtinv(dir,a,c) and dgtinv(dir,b,d) for ALL
+        ! c and d -- not just the entries with indices <= the ones being
+        ! computed.  Fusing the two into one loop nest (as this code used to)
+        ! therefore reads dgtinv entries that have not been written yet for the
+        ! current dir.  dgtinv is a subroutine-scope local that is never
+        ! re-zeroed inside the cell loop, so those reads returned values left
+        ! over from the PREVIOUS GRID CELL.  That silently corrupted exactly
+        ! one term of M (piece 1, d_j Atilde^{ij}), which is the only consumer
+        ! of the off-diagonal dgtinv entries, and it is what made the momentum
+        ! constraint residual dx-independent.  See the momentum notes in the
+        ! Makefile and helper/diagnose_momentum_exact.F90.
         do dir = 1, 3
+          ! ---- pass 1: the complete d_dir gtilde^{ij}
           do a = 1, 3
             do b = 1, 3
-              ! d_dir gtilde^{ij} = -gamma-tilde^{ac} gamma-tilde^{bd} d_dir gtilde_cd
               q = 0.0_dp
               do c = 1, 3
                 do d = 1, 3
@@ -154,6 +174,11 @@ contains
                 end do
               end do
               dgtinv(dir,a,b) = -q
+            end do
+          end do
+          ! ---- pass 2: d_dir Atilde^{ij}, now that dgtinv(dir,:,:) is complete
+          do a = 1, 3
+            do b = 1, 3
               acc = 0.0_dp
               do c = 1, 3
                 do d = 1, 3
@@ -180,7 +205,17 @@ contains
         do dir = 1, 3
           do a = 1, 3
             do b = 1, 3
-               dgamma(dir,a,b) = 4.0_dp*dphi(dir)*gt(a,b) + e4*dgt(dir,a,b)
+               ! d_dir gamma_ij = d_dir(e^{4 phi} gtilde_ij)
+               !              = e^{4 phi} [ 4 (d_dir phi) gtilde_ij
+               !                             + d_dir gtilde_ij ]
+               ! BOTH terms carry e^{4 phi}.  Dropping it from the first is a
+               ! pure algebraic error: it leaves S^{ij} and d_j S^{ij} correct
+               ! (they never touch gamma) while corrupting Gamma^i_{jk}, which
+               ! is exactly the split observed by
+               ! helper/diagnose_momentum_exact.F90 (S and d_jS agree with the
+               ! independent ADM form to 1e-17 and 1e-12; Gamma disagrees by
+               ! 1.1e-3).  That is the entire momentum-constraint plateau.
+               dgamma(dir,a,b) = e4*( 4.0_dp*dphi(dir)*gt(a,b) + dgt(dir,a,b) )
             end do
           end do
         end do
