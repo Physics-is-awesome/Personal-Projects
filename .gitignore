@@ -72,11 +72,11 @@ instance/
 docs/_build/
 
 # PyBuilder
-.pybuilder/
+*.pybuilder/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+*.ipynb_checkpoints
 
 # IPython
 profile_default/
@@ -137,25 +137,25 @@ env.bak/
 venv.bak/
 
 # Spyder project settings
-.spyderproject
-.spyproject
+*.spyderproject
+*.spyproject
 
 # Rope project settings
-.ropeproject
+*.ropeproject
 
 # mkdocs documentation
 /site
 
 # mypy
-.mypy_cache/
-.dmypy.json
+*.mypy_cache/
+*.dmypy.json
 dmypy.json
 
 # Pyre type checker
-.pyre/
+*.pyre/
 
 # pytype static type analyzer
-.pytype/
+*.pytype/
 
 # Cython debug symbols
 cython_debug/
@@ -168,16 +168,16 @@ cython_debug/
 #.idea/
 
 
-.dat
-.log
-.aux
-.hdf5
-.pdf
-.mod
-.obj
-.mp4
+*.dat
+*.log
+*.aux
+*.hdf5
+*.pdf
+*.mod
+*.obj
+*.mp4
 
 # PyPI configuration file
-.pypirc
+*.pypirc
 
-.env
+*.env
