@@ -172,11 +172,16 @@ cython_debug/
 *.log
 *.aux
 *.hdf5
-*.pdf
+*.svg
+*.pptx
 *.mod
 *.obj
 *.mp4
-
+*.xdmf
+*.png
+*.el
+*.toml
+*.wav
 # PyPI configuration file
 *.pypirc
 
