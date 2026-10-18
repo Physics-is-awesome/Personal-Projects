@@ -39,4 +39,117 @@ Taking an N-body Hamiltonian
 H = \frac{1}{2m}\sum^N_{i=1} \va{p_i}^2 + \sum^N_{i=1} V\va{r_i} + \sum^N_{i<j} U(\va{r_i} - \va{r_j})
   \]
 
-  Where the Hamiltonian constains an external force $\va{F} = - \nabla V$, that acts equally on every particle. There is also two-body interaction between particles captured by the potential energy term. Later on we will make the assumption that this potential is short ranged.
+  Where the Hamiltonian constains an external force $\va{F} = - \nabla V$, that acts equally on every particle. There is also two-body interaction between particles captured by the potential energy term. Later on we will make the assumption that this potential is short ranged. I will also be notating position as r rather than q for convenience.
+
+For our interests, we wish to examine it as a probobility distribution, like all probobilitity distributions they are normalized as follows
+\[
+\int dV \, f(\va{r},\va{p},t) = 1 \quad dV = \prod_{i=1}^N d^3 r_i d^3 p_i
+  \]
+
+  Further, since the probability is locally conserved, the equation most follow continuity. Any probability change in one point in phase-space must by its nature be compensated by neighboring points.
+
+  This fairly trivially corresponds to the equation
+\[
+\pdv{f}{t} +\pdv{}{\va{r_i}} \cdot (\dot{\va{r_i}}f) +\pdv{}{\va{p_i}} \cdot (\dot{\va{p_i}}f) = 0
+  \]
+
+  Using the nature of what a Hamiltonian and its derivatives we can transform this equation
+
+  \[
+\pdv{f}{t} +\pdv{}{\va{r_i}} \cdot (\pdv{H}{\va{p}} f) +\pdv{}{\va{p_i}} \cdot (\pdv{H}{\va{r_i}}f) = 0 \longrightarrow
+  \]
+\[
+\pdv{f}{t} + \sum_{i=1}^N \pdv{f}{\va{r_i}} \cdot \pdv{H}{\va{p_i}} + \pdv{f}{\va{p_i}} \cdot \pdv{H}{\va{r_i}} = 0
+  \]
+
+This final equation is the Liouville’s equation. It is the statement that probability
+doesn’t change as you follow it along any trajectory in phase space, as is seen by
+writing the Liouville equation as a total derivative
+
+\[
+\dv{f}{t} = \pdv{f}{t} + \sum_{i=1}^N \pdv{f}{\va{r_i}} \cdot \pdv{H}{\va{p_i}} + \pdv{f}{\va{p_i}} \cdot \pdv{H}{\va{r_i}} = 0
+  \]
+
+  we can better understand this equation using the familiar Liouville theorem that we have used in the past to express in poisson brackets defined at
+\[
+\pb{A}{B} \equiv \pdv{A}{\va{r_i}} \cdot \pdv{B}{\va{p_i}} + \pdv{A}{\va{p_i}} \cdot \pdv{B}{\va{r_i}}
+  \]
+
+  With this definition one can clearly see the above equation finds that
+
+\[
+\pdv{f}{t} = \pb{H}{f}
+  \]
+
+  Meaning that the equilibrium distribution is explicitly time independent.
+
+  To make this statement true, we must make $f$ a function of $H$, the most famous example being Boltzmann's distribution $f \sim e^{-\beta H}$, there is nothing that requires this as there are several such solutions given this limited definition.
+
+Now, let us add a new function $A(\va{r}_i,\va{p}_i)$ on the phase space.With the expectation value
+
+\[
+\langle A \rangle = \int dV A(\va{r}_i,\va{p}_i) f(\va{r}_i,\va{p}_i, t)
+  \]
+
+  We can then find the time dependence of the expectation value of A by
+
+\begin{align}
+  \dv{\langle A \rangle}{t} \, &= \, \int \, dV \, A \pdv{f}{t} \\
+                               &= \, \int \, dV \, A \left(\pdv{f}{\va{r_i}} \cdot \pdv{H}{\va{p_i}} + \pdv{f}{\va{p_i}} \cdot \pdv{H}{\va{r_i}} \right) \\
+                              &= \, \int \, dV \, \left(\pdv{A}{\va{r_i}} \cdot \pdv{H}{\va{p_i}} + \pdv{A}{\va{p_i}} \cdot \pdv{H}{\va{r_i}} \right) f
+\end{align}
+
+where we hav0e integrated by parts to get to the last line, throwing away boundary terms which is justified in this context because f is normalized which ensures that we must have $f \to 0$ in asymptotic parts of phase space. Finally, we learn that
+\[
+\dv{\langle A \rangle}{t} = \int dV \, \pb{A}{H}f = \langle \pb{A}{H} \rangle
+\]
+
+This looks very closely to the quantum expectation values.
+
+\subsection{The BBGKY Hierarchy}
+
+Now, that we have it in a distribution formulism, we still have a problem, we still have a function with an obscene amount of variables, assuming we have N $\approx 10^{23}$, so we will focus on one particles, but since all of the particles are identical, we aren't actually privileging one particle over the others. From we find that a series of equations; energy flux, average density, average velocity, etc all require a function $f_1$, we define $f_1$ time derivative as:
+
+\[
+\pdv{f_1}{t} = N \int \prod_{i=1}^n d^3r_i d^3 p_i \pb{H}{f}
+  \]
+
+  Using the Hamiltonian from earlier this becomes
+\[
+  \frac{\partial f_1}{\partial t} = N \int \prod_{i=2}^{N} d^3r_i\, d^3p_i \left( -\frac{\mathbf p}{m}\cdot\frac{\partial f}{\partial \mathbf r} +\frac{\partial V(\mathbf r)}{\partial \mathbf r}\cdot\frac{\partial f}{\partial \mathbf p} +\sum_{k=2}^{N} \frac{\partial U(\mathbf r-\mathbf r_k)}{\partial \mathbf r}\cdot \frac{\partial f}{\partial \mathbf p} \right)
+\]
+
+Now, whenever $j =2,...N$, we can always integrate by parts to move the derivatives
+away from f and onto the other terms. And, in each case, the result is simply zero
+because when the derivative is with respect to $\va{r}_j$ , the other terms depend only on $\va{p}_i$
+and vice-versa. We’re left only with the terms that involve derivatives with respect
+to $\va{r}_1$ and $\va{p}_1$ because we can’t integrate these by parts. Let’s revert to our previous
+notation and call $\va{r}_1 \equiv \va{r}$ and $\va{p}_1 \equiv \va{p}$. We have
+
+\begin{align}
+  \frac{\partial f_1}{\partial t} &= N \int \prod_{i=2}^{N} d^3r_i\, d^3p_i \left( -\frac{\mathbf p}{m}\cdot\frac{\partial f}{\partial \mathbf r} +\frac{\partial V(\mathbf r)}{\partial \mathbf r}\cdot\frac{\partial f}{\partial \mathbf p} +\sum_{k=2}^{N} \frac{\partial U(\mathbf r-\mathbf r_k)}{\partial \mathbf r}\cdot \frac{\partial f}{\partial \mathbf p} \right) \\
+ &= \{H_1,f_1\} + N \int \prod_{i=2}^{N} d^3r_i\, d^3p_i \sum_{k=2}^{N} \frac{\partial U(\mathbf r-\mathbf r_k)}{\partial \mathbf r}\cdot \frac{\partial f}{\partial \mathbf p}. \tag{2.10}
+\end{align}
+
+
+We find this expression can be defined by a Liouville-like equation with an added collision term.
+\[
+\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pdv{f_1}{H}  \right)_{coll}
+  \]
+
+  The first term is sometimes referred to as the streaming term. It tells you how the
+particles move in the absence of collisions. The second term, known as the collision
+integral, is given by the second term in In fact, because all particles are the
+same, each of the $(N-1)$ terms in $\sum^N_{k=2}$ from earlier are identical and we can write
+
+.... continue
+
+
+\section{Motivating the Boltzmann Equation}
+
+Now that we have the structure of the Boltzmann equation
+\[
+\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pv{f_1}{t}  \right)
+  \]
+
+  but now we need to create an expression for the collision integral in terms of $f_1$.

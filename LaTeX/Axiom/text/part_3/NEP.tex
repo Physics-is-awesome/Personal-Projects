@@ -5,15 +5,15 @@
 \subsubsection{Goals for next week}
 We are currently working to establish what thruster type we will use. Likely our next steps will be propellant and creating design targets. I will assign
 \begin{itemize}
-  \item Find NASA resources to create target
-  \item Xeon(Hall, ion, RF)
-  \item Krypton(hall or ion)
-  \item Iodine(Hall, Ion)
-  \item Argon(MHD or RF)
-  \item Hydrogent(MHD, RF)
-  \item Research Rover
-  \item Research Atomic in Orbit
-  \item Research Atomic at Lagrangian
+	\item Find NASA resources to create target
+	\item Xeon(Hall, ion, RF)
+	\item Krypton(hall or ion)
+	\item Iodine(Hall, Ion)
+	\item Argon(MHD or RF)
+	\item Hydrogent(MHD, RF)
+	\item Research Rover
+	\item Research Atomic in Orbit
+	\item Research Atomic at Lagrangian
 \end{itemize}
 
 \subsubsection{Goal}
@@ -64,22 +64,22 @@ The decision is not simply which mission is ``most useful.'' Four
 distinct questions must be answered:
 
 \begin{enumerate}
-    \item \textbf{Mission utility:} What scientific, operational,
-    or infrastructure capability does the mission provide?
+	\item \textbf{Mission utility:} What scientific, operational,
+	      or infrastructure capability does the mission provide?
 
-    \item \textbf{Trajectory compatibility:} Does the mission
-    benefit from continuous low thrust, or can it be accomplished
-    more simply using conventional chemical propulsion?
+	\item \textbf{Trajectory compatibility:} Does the mission
+	      benefit from continuous low thrust, or can it be accomplished
+	      more simply using conventional chemical propulsion?
 
-    \item \textbf{Thruster-design value:} Does the mission impose
-    sufficiently concrete requirements to guide channel geometry,
-    magnetic-field configuration, discharge power, propellant flow,
-    thermal management, and cathode integration?
+	\item \textbf{Thruster-design value:} Does the mission impose
+	      sufficiently concrete requirements to guide channel geometry,
+	      magnetic-field configuration, discharge power, propellant flow,
+	      thermal management, and cathode integration?
 
-    \item \textbf{Undergraduate feasibility:} Can the group evaluate
-    the mission with accessible trajectory tools, published
-    reference data, and a defensible simulation hierarchy without
-    needing to solve every spacecraft subsystem?
+	\item \textbf{Undergraduate feasibility:} Can the group evaluate
+	      the mission with accessible trajectory tools, published
+	      reference data, and a defensible simulation hierarchy without
+	      needing to solve every spacecraft subsystem?
 \end{enumerate}
 
 These questions should be scored separately before a final mission
@@ -98,17 +98,17 @@ designing a nuclear reactor.
 The relevant spacecraft-level variables include
 
 \begin{itemize}
-    \item initial wet mass, \(m_0\);
-    \item dry spacecraft mass, \(m_{\mathrm{dry}}\);
-    \item propellant mass, \(m_p\);
-    \item thruster electrical input power, \(P_{\mathrm{in}}\);
-    \item thrust, \(T\);
-    \item specific impulse, \(I_{\mathrm{sp}}\);
-    \item total thruster operating time, \(t_{\mathrm{on}}\);
-    \item required mission \(\Delta v\);
-    \item mission duration and operational lifetime;
-    \item payload power and spacecraft bus power;
-    \item propellant type and storage requirements.
+	\item initial wet mass, \(m_0\);
+	\item dry spacecraft mass, \(m_{\mathrm{dry}}\);
+	\item propellant mass, \(m_p\);
+	\item thruster electrical input power, \(P_{\mathrm{in}}\);
+	\item thrust, \(T\);
+	\item specific impulse, \(I_{\mathrm{sp}}\);
+	\item total thruster operating time, \(t_{\mathrm{on}}\);
+	\item required mission \(\Delta v\);
+	\item mission duration and operational lifetime;
+	\item payload power and spacecraft bus power;
+	\item propellant type and storage requirements.
 \end{itemize}
 
 The analysis assumes that the team is evaluating a plausible mission
@@ -121,7 +121,7 @@ assumptions and limitations are explicit.
 For an idealized electric thruster, the effective exhaust velocity is
 
 \[
-    v_e = g_0 I_{\mathrm{sp}},
+	v_e = g_0 I_{\mathrm{sp}},
 \]
 
 where \(g_0 \simeq 9.80665\ \mathrm{m\,s^{-2}}\).
@@ -129,32 +129,32 @@ where \(g_0 \simeq 9.80665\ \mathrm{m\,s^{-2}}\).
 The thrust is related to propellant mass flow by
 
 \[
-    T = \dot{m}v_e
-      = \dot{m}g_0 I_{\mathrm{sp}},
+	T = \dot{m}v_e
+	= \dot{m}g_0 I_{\mathrm{sp}},
 \]
 
 where \(\dot{m}\) is the propellant mass-flow rate. For a steady
 operating point, an idealized jet-power relation is
 
 \[
-    P_{\mathrm{jet}}
-    = \frac{1}{2}\dot{m}v_e^2
-    = \frac{T v_e}{2}.
+	P_{\mathrm{jet}}
+	= \frac{1}{2}\dot{m}v_e^2
+	= \frac{T v_e}{2}.
 \]
 
 If the total thruster efficiency is \(\eta_t\), then
 
 \[
-    P_{\mathrm{in}}
-    \simeq \frac{P_{\mathrm{jet}}}{\eta_t},
+	P_{\mathrm{in}}
+	\simeq \frac{P_{\mathrm{jet}}}{\eta_t},
 \]
 
 and therefore
 
 \[
-    T \simeq \frac{2\eta_t P_{\mathrm{in}}}{v_e}
-      = \frac{2\eta_t P_{\mathrm{in}}}
-             {g_0 I_{\mathrm{sp}}}.
+	T \simeq \frac{2\eta_t P_{\mathrm{in}}}{v_e}
+	= \frac{2\eta_t P_{\mathrm{in}}}
+	{g_0 I_{\mathrm{sp}}}.
 \]
 
 These equations are useful for preliminary sizing, but they do not
@@ -167,8 +167,8 @@ The rocket equation gives a useful first-order estimate of
 propellant requirements for a specified ideal velocity increment:
 
 \[
-    \Delta v
-    = v_e \ln\left(\frac{m_0}{m_f}\right),
+	\Delta v
+	= v_e \ln\left(\frac{m_0}{m_f}\right),
 \]
 
 where \(m_f\) is the final mass after propellant expenditure. This
@@ -193,11 +193,11 @@ thruster.
 The mission therefore creates a trade between
 
 \[
-\text{propellant mass},\quad
-\text{electrical power},\quad
-\text{thrust},\quad
-\text{transfer time},\quad
-\text{spacecraft lifetime}.
+	\text{propellant mass},\quad
+	\text{electrical power},\quad
+	\text{thrust},\quad
+	\text{transfer time},\quad
+	\text{spacecraft lifetime}.
 \]
 
 A strong mission concept makes these competing requirements
@@ -215,14 +215,14 @@ navigation architecture, the spacecraft could support one or more
 of the following:
 
 \begin{itemize}
-    \item one-way radiometric tracking and spacecraft orbit
-    determination;
-    \item autonomous or partially autonomous navigation;
-    \item precision timing for a distributed Mars communications
-    or navigation system;
-    \item radio-science measurements and improved orbit knowledge;
-    \item timing and navigation experiments supporting future
-    Mars surface and orbital missions.
+	\item one-way radiometric tracking and spacecraft orbit
+	      determination;
+	\item autonomous or partially autonomous navigation;
+	\item precision timing for a distributed Mars communications
+	      or navigation system;
+	\item radio-science measurements and improved orbit knowledge;
+	\item timing and navigation experiments supporting future
+	      Mars surface and orbital missions.
 \end{itemize}
 
 The clock is not, by itself, a navigation system. Its value depends
@@ -266,9 +266,9 @@ For a student project, this is valuable because the scientific
 objective can be expressed in testable terms. For example:
 
 \begin{quote}
-Determine whether a specified onboard clock stability and
-one-way radio-tracking architecture can achieve a target orbit
-determination accuracy for a spacecraft in a specified Mars orbit.
+	Determine whether a specified onboard clock stability and
+	one-way radio-tracking architecture can achieve a target orbit
+	determination accuracy for a spacecraft in a specified Mars orbit.
 \end{quote}
 
 That question can be studied using published clock stability
@@ -321,7 +321,7 @@ on the mission's intended service, not simply on the fact that
 the spacecraft is near Mars.
 
 \textbf{D. The mission has a relatively clear connection to
-a Hall-thruster design}
+	a Hall-thruster design}
 
 An orbital mission allows the team to connect propulsion decisions
 to a well-defined arrival condition. The spacecraft must depart
@@ -343,12 +343,12 @@ arrival.
 A useful engineering study would compare at least two cases:
 
 \begin{enumerate}
-    \item chemical or other conventional injection into the
-    desired Mars orbit, followed by electric-propulsion
-    station-keeping or orbit adjustment;
-    \item electric propulsion used for a substantial fraction
-    of the Earth-to-Mars transfer and, if required, arrival
-    orbit acquisition.
+	\item chemical or other conventional injection into the
+	      desired Mars orbit, followed by electric-propulsion
+	      station-keeping or orbit adjustment;
+	\item electric propulsion used for a substantial fraction
+	      of the Earth-to-Mars transfer and, if required, arrival
+	      orbit acquisition.
 \end{enumerate}
 
 This comparison determines whether the NEP system creates a
@@ -356,7 +356,7 @@ meaningful mass or mission-duration advantage rather than simply
 adding complexity.
 
 \textbf{E. The mission can be scoped around a measurable
-navigation objective}
+	navigation objective}
 
 A strong undergraduate project should define a baseline architecture
 and then evaluate one change at a time.
@@ -366,12 +366,12 @@ against a case with a specified onboard clock and one-way
 radiometric tracking. Performance metrics could include
 
 \begin{itemize}
-    \item position and velocity estimation error;
-    \item sensitivity to clock frequency drift;
-    \item measurement availability;
-    \item dependence on ground-station tracking;
-    \item navigation performance under communication outages;
-    \item sensitivity to uncertainty in the spacecraft's initial state.
+	\item position and velocity estimation error;
+	\item sensitivity to clock frequency drift;
+	\item measurement availability;
+	\item dependence on ground-station tracking;
+	\item navigation performance under communication outages;
+	\item sensitivity to uncertainty in the spacecraft's initial state.
 \end{itemize}
 
 The group would not need to build or validate a real atomic clock.
@@ -406,13 +406,13 @@ designed and analyzed.
 A better claim is:
 
 \begin{quote}
-A clock-equipped Mars orbiter could demonstrate a component of
-a future Mars navigation architecture, provided that the
-measurement system and its navigation performance are specified.
+	A clock-equipped Mars orbiter could demonstrate a component of
+	a future Mars navigation architecture, provided that the
+	measurement system and its navigation performance are specified.
 \end{quote}
 
 \textbf{B. The payload's benefit may not justify a dedicated
-spacecraft}
+	spacecraft}
 
 The clock could potentially be hosted on an existing orbiter or
 included as a secondary payload. If so, a dedicated spacecraft
@@ -435,7 +435,7 @@ navigation architecture with specific performance targets, the
 dedicated spacecraft has a stronger justification.
 
 \textbf{C. The trajectory may not require nuclear electric
-propulsion}
+	propulsion}
 
 An atomic-clock payload does not intrinsically require an electric
 thruster. A clock-equipped spacecraft could reach Mars using a
@@ -459,7 +459,7 @@ be useful for navigation research but weak as a justification
 for the thruster.
 
 \textbf{D. Orbit insertion and mission duration may dominate
-the design}
+	the design}
 
 A bound Mars orbit requires the spacecraft to arrive with a
 suitable velocity and energy. A low-thrust arrival architecture
@@ -479,7 +479,7 @@ tool, and treating detailed orbit design as a bounded subsystem
 study.
 
 \textbf{E. The clock payload does not necessarily demand
-large propulsion capability}
+	large propulsion capability}
 
 A small clock instrument may not create a particularly large
 spacecraft mass or power requirement. The required NEP system
@@ -540,7 +540,7 @@ The precise orbit matters. A mission described only as
 \subparagraph{Arguments in favor}
 
 \textbf{A. It provides a different geometric location for
-navigation measurements}
+	navigation measurements}
 
 The most defensible argument for the L1 architecture is that
 it can occupy a location different from a Mars orbiter. If the
@@ -587,12 +587,12 @@ For a technically ambitious group, this can lead to a useful
 systems-engineering study involving
 
 \begin{itemize}
-    \item three-body orbital dynamics;
-    \item trajectory design and station-keeping;
-    \item clock error and frequency stability;
-    \item radio-ranging or Doppler measurement models;
-    \item navigation observability and covariance analysis;
-    \item sensitivity to spacecraft orbit uncertainty.
+	\item three-body orbital dynamics;
+	\item trajectory design and station-keeping;
+	\item clock error and frequency stability;
+	\item radio-ranging or Doppler measurement models;
+	\item navigation observability and covariance analysis;
+	\item sensitivity to spacecraft orbit uncertainty.
 \end{itemize}
 
 The main value is the opportunity to formulate and test a
@@ -600,7 +600,7 @@ nontrivial systems-level hypothesis. It is not evidence that
 the L1 architecture is inherently superior.
 
 \textbf{C. It may support a future distributed infrastructure
-architecture}
+	architecture}
 
 A dedicated node near L1 could be considered as part of a future
 Mars communications, timing, or navigation infrastructure.
@@ -626,7 +626,7 @@ should follow from the geometry and performance analysis.
 \subparagraph{Arguments against}
 
 \textbf{A. L1 does not provide an intrinsic atomic-clock
-advantage}
+	advantage}
 
 There is no general principle that an atomic clock becomes more
 accurate or useful merely because its spacecraft is near L1.
@@ -645,7 +645,7 @@ interesting placement exercise without a sufficiently clear
 operational purpose.
 
 \textbf{B. A single clock at L1 does not create a navigation
-network}
+	network}
 
 The same limitation applies here as in Mars orbit, but it is
 particularly important for the L1 concept. A clock-equipped
@@ -664,18 +664,18 @@ L1 has no operational navigation benefit.
 A convincing proposal must answer at least four questions:
 
 \begin{enumerate}
-    \item Which spacecraft or surface assets receive a benefit?
-    \item Which measurements does the L1 spacecraft provide?
-    \item What information does it add beyond existing nodes?
-    \item How much does that information improve a stated
-    navigation or timing metric?
+	\item Which spacecraft or surface assets receive a benefit?
+	\item Which measurements does the L1 spacecraft provide?
+	\item What information does it add beyond existing nodes?
+	\item How much does that information improve a stated
+	      navigation or timing metric?
 \end{enumerate}
 
 If these questions cannot be answered, the L1 mission is not
 yet justified as a navigation mission.
 
 \textbf{C. The dynamical environment introduces additional
-trajectory requirements}
+	trajectory requirements}
 
 A practical L1 mission needs an actual reference trajectory,
 not just a nominal equilibrium point. The spacecraft may follow
@@ -701,7 +701,7 @@ control, but it creates scope risk if the primary deliverable
 is a thruster design.
 
 \textbf{D. It may be difficult to demonstrate a direct
-operational need}
+	operational need}
 
 Mars orbiters already have clear roles in imaging, communications
 relay, atmospheric science, and other Mars operations. An L1
@@ -781,14 +781,14 @@ uncertainties.
 Let the spacecraft state be represented by
 
 \[
-    \mathbf{x}
-    =
-    \begin{bmatrix}
-        \mathbf{r} \\
-        \mathbf{v} \\
-        b \\
-        d
-    \end{bmatrix},
+	\mathbf{x}
+	=
+	\begin{bmatrix}
+		\mathbf{r} \\
+		\mathbf{v} \\
+		b          \\
+		d
+	\end{bmatrix},
 \]
 
 where \(\mathbf{r}\) is position, \(\mathbf{v}\) is velocity,
@@ -796,9 +796,9 @@ where \(\mathbf{r}\) is position, \(\mathbf{v}\) is velocity,
 model can be written abstractly as
 
 \[
-    \mathbf{y}
-    =
-    h(\mathbf{x})+\boldsymbol{\epsilon},
+	\mathbf{y}
+	=
+	h(\mathbf{x})+\boldsymbol{\epsilon},
 \]
 
 where \(h\) maps the state to predicted measurements and
@@ -810,18 +810,18 @@ linearized estimation framework, the measurement sensitivity
 matrix is
 
 \[
-    H
-    =
-    \frac{\partial h}{\partial \mathbf{x}}.
+	H
+	=
+	\frac{\partial h}{\partial \mathbf{x}}.
 \]
 
 If the measurement-noise covariance is \(R\), a simplified
 information contribution is proportional to
 
 \[
-    \mathcal{I}
-    =
-    H^{\mathsf T}R^{-1}H.
+	\mathcal{I}
+	=
+	H^{\mathsf T}R^{-1}H.
 \]
 
 This expression is not a complete navigation solution. It
@@ -839,27 +839,27 @@ from the two candidate locations.
 The team could formulate the following study:
 
 \begin{enumerate}
-    \item Define a baseline navigation network consisting of
-    a ground reference and a specified set of Mars orbiters.
+	\item Define a baseline navigation network consisting of
+	      a ground reference and a specified set of Mars orbiters.
 
-    \item Define a clock stability model and a radio measurement
-    model using published or explicitly assumed parameters.
+	\item Define a clock stability model and a radio measurement
+	      model using published or explicitly assumed parameters.
 
-    \item Simulate the baseline navigation performance without
-    the proposed clock spacecraft.
+	\item Simulate the baseline navigation performance without
+	      the proposed clock spacecraft.
 
-    \item Add the clock-equipped Mars orbiter and calculate the
-    resulting position and velocity estimation errors.
+	\item Add the clock-equipped Mars orbiter and calculate the
+	      resulting position and velocity estimation errors.
 
-    \item Repeat the experiment with a spacecraft on a specified
-    bounded orbit near Mars--Sun L1.
+	\item Repeat the experiment with a spacecraft on a specified
+	      bounded orbit near Mars--Sun L1.
 
-    \item Compare accuracy, measurement availability, sensitivity
-    to clock drift, sensitivity to ephemeris error, and robustness
-    to measurement outages.
+	\item Compare accuracy, measurement availability, sensitivity
+	      to clock drift, sensitivity to ephemeris error, and robustness
+	      to measurement outages.
 
-    \item Perform a separate trajectory and propulsion analysis
-    for each architecture.
+	\item Perform a separate trajectory and propulsion analysis
+	      for each architecture.
 \end{enumerate}
 
 The experiment must not assume that the two spacecraft provide
@@ -914,7 +914,7 @@ the encounter geometry and the planet's motion.
 \subparagraph{Arguments in favor}
 
 \textbf{A. The mission avoids the requirement to enter
-a long-term Mars orbit}
+	a long-term Mars orbit}
 
 A flyby does not require the spacecraft to remain bound to
 Mars after the encounter. This can simplify the mission
@@ -946,12 +946,12 @@ compare a chemical baseline against a low-thrust trajectory.
 The required analysis may include
 
 \begin{itemize}
-    \item launch and departure conditions;
-    \item heliocentric transfer trajectory;
-    \item thrust magnitude and pointing history;
-    \item Mars-relative hyperbolic excess velocity;
-    \item closest-approach distance and encounter time;
-    \item outbound trajectory and final mission conditions.
+	\item launch and departure conditions;
+	\item heliocentric transfer trajectory;
+	\item thrust magnitude and pointing history;
+	\item Mars-relative hyperbolic excess velocity;
+	\item closest-approach distance and encounter time;
+	\item outbound trajectory and final mission conditions.
 \end{itemize}
 
 The flyby can therefore provide a focused way to investigate
@@ -959,7 +959,7 @@ whether the selected Hall thruster can deliver the required
 integrated velocity change within the available mission time.
 
 \textbf{C. A gravity assist may reduce the propulsion
-burden of a larger mission}
+	burden of a larger mission}
 
 If the spacecraft uses Mars as a gravity-assist body, the
 planet can redirect the trajectory and alter the spacecraft's
@@ -985,7 +985,7 @@ change in heliocentric velocity. Whether this is advantageous
 depends on the mission's actual boundary conditions.
 
 \textbf{D. The mission can be used to test a propulsion
-system over a finite operating campaign}
+	system over a finite operating campaign}
 
 A flyby mission may be designed around a finite cruise and
 encounter phase rather than a long period of Mars-local
@@ -1035,7 +1035,7 @@ when the mission could be completed more simply by a conventional
 architecture and no further benefit is established.
 
 \textbf{B. The encounter is a time- and geometry-constrained
-event}
+	event}
 
 Unlike an orbiter, a flyby spacecraft has a limited interval
 during which it is near Mars. If the science objective depends
@@ -1056,7 +1056,7 @@ This can make the mission operationally simple after the
 encounter but demanding in the approach phase.
 
 \textbf{C. The spacecraft does not provide sustained
-Mars-local infrastructure}
+	Mars-local infrastructure}
 
 A flyby spacecraft cannot serve as a persistent Mars navigation
 node or routine communications relay after it departs. It may
@@ -1074,7 +1074,7 @@ whose main value depends on repeated coverage, sustained
 communications, or long-term orbit determination at Mars.
 
 \textbf{D. A gravity assist is not a guaranteed propulsion
-substitute}
+	substitute}
 
 The value of a gravity assist depends on the planetary encounter.
 A flyby can increase or decrease heliocentric energy, depending
@@ -1091,7 +1091,7 @@ gravity assist must be evaluated as part of the complete
 trajectory, not as a standalone source of free performance.
 
 \textbf{E. A flyby can be less informative for long-duration
-thruster operations}
+	thruster operations}
 
 A flyby may be suitable for studying integrated propellant
 consumption and finite-duration thruster performance. It is
@@ -1166,7 +1166,7 @@ the complete vehicle, including the hardware needed to land
 and operate on Mars.
 
 \textbf{B. Electric propulsion may reduce the mass of
-the interplanetary transportation stage}
+	the interplanetary transportation stage}
 
 For a sufficiently long transfer, high-specific-impulse
 electric propulsion may reduce the propellant required for
@@ -1209,17 +1209,17 @@ meaningful and can constrain the propulsion design.
 The group should distinguish between
 
 \[
-m_{\mathrm{spacecraft}}
-=
-m_{\mathrm{cruise}}
-+
-m_{\mathrm{rover}}
-+
-m_{\mathrm{landing}}
-+
-m_{\mathrm{payload}}
-+
-m_{\mathrm{propellant}},
+	m_{\mathrm{spacecraft}}
+	=
+	m_{\mathrm{cruise}}
+	+
+	m_{\mathrm{rover}}
+	+
+	m_{\mathrm{landing}}
+	+
+	m_{\mathrm{payload}}
+	+
+	m_{\mathrm{propellant}},
 \]
 
 where the exact categories must be defined to avoid double-counting.
@@ -1269,7 +1269,7 @@ assumptions.
 \subparagraph{Arguments against}
 
 \textbf{A. Atmospheric entry, descent, and landing are
-separate major engineering problems}
+	separate major engineering problems}
 
 The most important drawback is that a rover must survive
 arrival at Mars and reach the surface safely. This introduces
@@ -1295,7 +1295,7 @@ mass and interface unless entry and landing are explicitly
 part of the project.
 
 \textbf{B. The rover's surface power system is not the
-same as the spacecraft's electric-propulsion power system}
+	same as the spacecraft's electric-propulsion power system}
 
 A rover needs power after landing. A Hall thruster requires
 substantial electrical power during operation, along with
@@ -1319,7 +1319,7 @@ thruster and assume that the complete vehicle is a consistent
 design.
 
 \textbf{C. The mission may become a landing-system project
-rather than a thruster project}
+	rather than a thruster project}
 
 A rover is a compelling exploration platform, but its
 requirements may be dominated by surface mobility, scientific
@@ -1336,7 +1336,7 @@ interface specification. The propulsion team can then
 evaluate the transfer stage required to deliver that payload.
 
 \textbf{D. The rover does not inherently require an
-atomic clock}
+	atomic clock}
 
 A rover mission may benefit from accurate timing and navigation,
 but the presence of a rover does not establish the need for
@@ -1359,7 +1359,7 @@ as a separate subsystem rather than treated as an automatic
 consequence of selecting a rover.
 
 \textbf{E. The mass benefit of NEP must be evaluated across
-the complete vehicle}
+	the complete vehicle}
 
 A rover mission can make high specific impulse attractive
 because the payload and landing system may be substantial.
@@ -1369,15 +1369,15 @@ also contribute mass.
 A fair comparison should include at least
 
 \begin{itemize}
-    \item thruster and power-processing-unit mass;
-    \item nuclear-electric power-system mass;
-    \item propellant and tank mass;
-    \item structural and thermal mass;
-    \item cruise-stage mass;
-    \item rover and scientific payload mass;
-    \item landing-system mass;
-    \item any additional hardware needed for the selected
-    transfer and arrival architecture.
+	\item thruster and power-processing-unit mass;
+	\item nuclear-electric power-system mass;
+	\item propellant and tank mass;
+	\item structural and thermal mass;
+	\item cruise-stage mass;
+	\item rover and scientific payload mass;
+	\item landing-system mass;
+	\item any additional hardware needed for the selected
+	      transfer and arrival architecture.
 \end{itemize}
 
 The result may favor NEP, chemical propulsion, or a hybrid
@@ -1415,95 +1415,95 @@ The terms ``high'' and ``low'' refer to the relative clarity
 or complexity of the mission concept for the stated project.
 
 \begin{longtable}{
-    p{0.17\textwidth}
-    p{0.19\textwidth}
-    p{0.19\textwidth}
-    p{0.19\textwidth}
-    p{0.19\textwidth}
-}
-\toprule
-\textbf{Criterion}
-& \textbf{Mars-orbit clock}
-& \textbf{L1 clock}
-& \textbf{Mars flyby}
-& \textbf{Mars rover}
-\\
-\midrule
-\endfirsthead
+		p{0.17\textwidth}
+		p{0.19\textwidth}
+		p{0.19\textwidth}
+		p{0.19\textwidth}
+		p{0.19\textwidth}
+	}
+	\toprule
+	\textbf{Criterion}
+	 & \textbf{Mars-orbit clock}
+	 & \textbf{L1 clock}
+	 & \textbf{Mars flyby}
+	 & \textbf{Mars rover}
+	\\
+	\midrule
+	\endfirsthead
 
-\toprule
-\textbf{Criterion}
-& \textbf{Mars-orbit clock}
-& \textbf{L1 clock}
-& \textbf{Mars flyby}
-& \textbf{Mars rover}
-\\
-\midrule
-\endhead
+	\toprule
+	\textbf{Criterion}
+	 & \textbf{Mars-orbit clock}
+	 & \textbf{L1 clock}
+	 & \textbf{Mars flyby}
+	 & \textbf{Mars rover}
+	\\
+	\midrule
+	\endhead
 
-Immediate mission purpose
-& Strong if tied to navigation or timing
-& Conditional on a defined network role
-& Strong if a specific encounter or science objective is selected
-& Strong and easy to communicate
-\\
+	Immediate mission purpose
+	 & Strong if tied to navigation or timing
+	 & Conditional on a defined network role
+	 & Strong if a specific encounter or science objective is selected
+	 & Strong and easy to communicate
+	\\
 
-Connection to existing Mars operations
-& Direct
-& Indirect unless integrated into a network
-& Limited after the encounter
-& Direct through surface exploration and relay
-\\
+	Connection to existing Mars operations
+	 & Direct
+	 & Indirect unless integrated into a network
+	 & Limited after the encounter
+	 & Direct through surface exploration and relay
+	\\
 
-Trajectory complexity
-& Moderate to high; depends on arrival orbit
-& High; target-region dynamics and bounded orbit must be specified
-& Moderate to high; encounter conditions are critical
-& High when the complete arrival and landing architecture is included
-\\
+	Trajectory complexity
+	 & Moderate to high; depends on arrival orbit
+	 & High; target-region dynamics and bounded orbit must be specified
+	 & Moderate to high; encounter conditions are critical
+	 & High when the complete arrival and landing architecture is included
+	\\
 
-Need for long-term Mars operations
-& Yes, if the clock is intended as a persistent Mars node
-& No Mars orbit is required, but sustained operations may still be intended
-& No
-& Yes, for surface exploration
-\\
+	Need for long-term Mars operations
+	 & Yes, if the clock is intended as a persistent Mars node
+	 & No Mars orbit is required, but sustained operations may still be intended
+	 & No
+	 & Yes, for surface exploration
+	\\
 
-Navigation-system research potential
-& Strong and directly motivated
-& Potentially strong but conditional
-& Limited for persistent Mars navigation
-& Depends on whether navigation is a central payload objective
-\\
+	Navigation-system research potential
+	 & Strong and directly motivated
+	 & Potentially strong but conditional
+	 & Limited for persistent Mars navigation
+	 & Depends on whether navigation is a central payload objective
+	\\
 
-Landing-system complexity
-& None
-& None
-& None
-& Major additional subsystem
-\\
+	Landing-system complexity
+	 & None
+	 & None
+	 & None
+	 & Major additional subsystem
+	\\
 
-Scope risk for a thruster project
-& Moderate
-& High if navigation and three-body dynamics become dominant
-& Low to moderate for a bounded flyby study
-& High if landing and surface systems are included
-\\
+	Scope risk for a thruster project
+	 & Moderate
+	 & High if navigation and three-body dynamics become dominant
+	 & Low to moderate for a bounded flyby study
+	 & High if landing and surface systems are included
+	\\
 
-Clarity of NEP justification
-& Must be shown with trajectory and mass comparison
-& Must be shown with trajectory and mass comparison
-& Must be shown; chemical baseline may be competitive
-& Potentially strong for a large payload, but system mass must be counted
-\\
+	Clarity of NEP justification
+	 & Must be shown with trajectory and mass comparison
+	 & Must be shown with trajectory and mass comparison
+	 & Must be shown; chemical baseline may be competitive
+	 & Potentially strong for a large payload, but system mass must be counted
+	\\
 
-Best project emphasis
-& Navigation and propulsion co-design
-& Distributed navigation and three-body dynamics
-& Low-thrust trajectory and encounter design
-& Payload delivery and multidisciplinary systems engineering
-\\
-\bottomrule
+	Best project emphasis
+	 & Navigation and propulsion co-design
+	 & Distributed navigation and three-body dynamics
+	 & Low-thrust trajectory and encounter design
+	 & Payload delivery and multidisciplinary systems engineering
+	\\
+	\bottomrule
 \end{longtable}
 
 \subparagraph{The four missions answer different questions}
@@ -1544,15 +1544,15 @@ explicitly identify which requirements differ.
 At minimum, specify
 
 \begin{itemize}
-    \item launch date or launch-window assumptions;
-    \item initial spacecraft mass and payload mass;
-    \item destination or encounter conditions;
-    \item allowable transfer duration;
-    \item required operational lifetime;
-    \item available electrical power;
-    \item arrival or encounter velocity constraints;
-    \item communication and navigation objectives;
-    \item propellant and thermal constraints.
+	\item launch date or launch-window assumptions;
+	\item initial spacecraft mass and payload mass;
+	\item destination or encounter conditions;
+	\item allowable transfer duration;
+	\item required operational lifetime;
+	\item available electrical power;
+	\item arrival or encounter velocity constraints;
+	\item communication and navigation objectives;
+	\item propellant and thermal constraints.
 \end{itemize}
 
 A mission concept without these parameters cannot support a
@@ -1569,22 +1569,22 @@ double-counting the cruise stage or landing system.
 A useful initial accounting identity is
 
 \[
-m_0 =
-m_{\mathrm{payload}}
-+
-m_{\mathrm{bus}}
-+
-m_{\mathrm{power}}
-+
-m_{\mathrm{thruster}}
-+
-m_{\mathrm{PPU}}
-+
-m_{\mathrm{tank}}
-+
-m_p
-+
-m_{\mathrm{other}},
+	m_0 =
+	m_{\mathrm{payload}}
+	+
+	m_{\mathrm{bus}}
+	+
+	m_{\mathrm{power}}
+	+
+	m_{\mathrm{thruster}}
+	+
+	m_{\mathrm{PPU}}
+	+
+	m_{\mathrm{tank}}
+	+
+	m_p
+	+
+	m_{\mathrm{other}},
 \]
 
 where \(m_{\mathrm{other}}\) represents any additional
@@ -1606,23 +1606,23 @@ For a chosen specific impulse and efficiency, estimate the
 thrust available at the selected electrical power:
 
 \[
-T \simeq
-\frac{2\eta_t P_{\mathrm{in}}}
-     {g_0 I_{\mathrm{sp}}}.
+	T \simeq
+	\frac{2\eta_t P_{\mathrm{in}}}
+	{g_0 I_{\mathrm{sp}}}.
 \]
 
 The corresponding mass-flow rate is
 
 \[
-\dot{m} =
-\frac{T}{g_0 I_{\mathrm{sp}}}.
+	\dot{m} =
+	\frac{T}{g_0 I_{\mathrm{sp}}}.
 \]
 
 The approximate propellant consumed during a period of
 continuous operation is
 
 \[
-m_p \simeq \dot{m}t_{\mathrm{on}}.
+	m_p \simeq \dot{m}t_{\mathrm{on}}.
 \]
 
 This last expression is only a first-order estimate when
@@ -1631,8 +1631,8 @@ thrust, variable power, or changing specific impulse requires
 integration over time:
 
 \[
-m_p =
-\int_{t_0}^{t_f} \dot{m}(t)\,dt.
+	m_p =
+	\int_{t_0}^{t_f} \dot{m}(t)\,dt.
 \]
 
 The group should calculate several operating points rather
@@ -1677,14 +1677,14 @@ the best option.
 Possible comparisons include
 
 \begin{itemize}
-    \item chemical transfer versus electric transfer;
-    \item chemical orbit insertion versus electric orbit acquisition;
-    \item electric propulsion with different power levels;
-    \item different specific-impulse operating points;
-    \item different mission durations;
-    \item different payload masses;
-    \item for the clock concepts, Mars orbit versus L1 using
-    the same navigation-performance assumptions.
+	\item chemical transfer versus electric transfer;
+	\item chemical orbit insertion versus electric orbit acquisition;
+	\item electric propulsion with different power levels;
+	\item different specific-impulse operating points;
+	\item different mission durations;
+	\item different payload masses;
+	\item for the clock concepts, Mars orbit versus L1 using
+	      the same navigation-performance assumptions.
 \end{itemize}
 
 The team should compare complete system outcomes, including
@@ -1699,14 +1699,14 @@ inform the thruster's preliminary design.
 Relevant design variables include
 
 \begin{itemize}
-    \item discharge voltage and current;
-    \item channel inner and outer radii;
-    \item channel length;
-    \item magnetic-field topology and field strength;
-    \item propellant injection and distribution;
-    \item cathode placement and coupling;
-    \item thermal loads and material limits;
-    \item expected operating duration and erosion exposure.
+	\item discharge voltage and current;
+	\item channel inner and outer radii;
+	\item channel length;
+	\item magnetic-field topology and field strength;
+	\item propellant injection and distribution;
+	\item cathode placement and coupling;
+	\item thermal loads and material limits;
+	\item expected operating duration and erosion exposure.
 \end{itemize}
 
 These variables should not be selected independently of the
@@ -1723,15 +1723,15 @@ does not establish mission feasibility by itself.
 A defensible workflow is
 
 \[
-\text{mission requirements}
-\rightarrow
-\text{trajectory}
-\rightarrow
-\text{thruster operating point}
-\rightarrow
-\text{thruster geometry and physics}
-\rightarrow
-\text{performance validation}.
+	\text{mission requirements}
+	\rightarrow
+	\text{trajectory}
+	\rightarrow
+	\text{thruster operating point}
+	\rightarrow
+	\text{thruster geometry and physics}
+	\rightarrow
+	\text{performance validation}.
 \]
 
 The chain must also be iterated in the reverse direction:
@@ -1829,41 +1829,41 @@ which mission becomes the baseline.
 % ============================================================
 \begin{thebibliography}{9}
 
-\bibitem{DSACNavigation}
-A. S. Ely et al.,
-\textit{Advancing Navigation, Timing, and Science with the
-Deep Space Atomic Clock},
-NASA Technical Reports Server, 2016.
-\url{https://ntrs.nasa.gov/citations/20160008206}
+	\bibitem{DSACNavigation}
+	A. S. Ely et al.,
+	\textit{Advancing Navigation, Timing, and Science with the
+		Deep Space Atomic Clock},
+	NASA Technical Reports Server, 2016.
+	\url{https://ntrs.nasa.gov/citations/20160008206}
 
-\bibitem{DSACParadigm}
-\textit{The Deep Space Atomic Clock: Ushering in a New Paradigm
-for Radio Navigation and Science},
-NASA Technical Reports Server.
-\url{https://ntrs.nasa.gov/citations/20150007332}
+	\bibitem{DSACParadigm}
+	\textit{The Deep Space Atomic Clock: Ushering in a New Paradigm
+		for Radio Navigation and Science},
+	NASA Technical Reports Server.
+	\url{https://ntrs.nasa.gov/citations/20150007332}
 
-\bibitem{MarsRelayNetwork}
-NASA Science,
-\textit{Mars Relay Network}.
-\url{https://science.nasa.gov/mars/mars-relay-network/}
+	\bibitem{MarsRelayNetwork}
+	NASA Science,
+	\textit{Mars Relay Network}.
+	\url{https://science.nasa.gov/mars/mars-relay-network/}
 
-\bibitem{NASATrajectories}
-NASA Science,
-\textit{Basics of Space Flight: Trajectories}.
-\url{https://science.nasa.gov/learn/basics-of-space-flight/chapter4-1/}
+	\bibitem{NASATrajectories}
+	NASA Science,
+	\textit{Basics of Space Flight: Trajectories}.
+	\url{https://science.nasa.gov/learn/basics-of-space-flight/chapter4-1/}
 
-\bibitem{MarsRelayTechnical}
-NASA Technical Reports Server,
-\textit{A Martian Telecommunications Network: UHF Relay Support
-of the Mars Exploration Rovers by the Mars Global Surveyor,
-Mars Odyssey, and Mars Express Orbiters}.
-\url{https://ntrs.nasa.gov/search.jsp?R=20070023754}
+	\bibitem{MarsRelayTechnical}
+	NASA Technical Reports Server,
+	\textit{A Martian Telecommunications Network: UHF Relay Support
+		of the Mars Exploration Rovers by the Mars Global Surveyor,
+		Mars Odyssey, and Mars Express Orbiters}.
+	\url{https://ntrs.nasa.gov/search.jsp?R=20070023754}
 
-\bibitem{DSACOnboard}
-NASA Technical Reports Server,
-\textit{Preliminary Investigation of Onboard Orbit Determination
-Using Deep Space Atomic Clock Based Radio Tracking}.
-\url{https://ntrs.nasa.gov/citations/20190025513}
+	\bibitem{DSACOnboard}
+	NASA Technical Reports Server,
+	\textit{Preliminary Investigation of Onboard Orbit Determination
+		Using Deep Space Atomic Clock Based Radio Tracking}.
+	\url{https://ntrs.nasa.gov/citations/20190025513}
 
 \end{thebibliography}
 
@@ -1871,17 +1871,24 @@ Using Deep Space Atomic Clock Based Radio Tracking}.
 
 \textbf{Outline of plan}
 \begin{enumerate}
-  \item Find parameters
-  \item Baseline operating point(discharge voltage, flow rate, etc)
-  \item Find secondary performance via calculations
-  \item Design vague physical architecture
-  \item Optimize for size of channel and magnetic circut
-  \item Design propellant delivery
-  \item Simulate and further optimize
-  \item Integrate models
-  \item Write report
+	\item Find parameters
+	\item Baseline operating point(discharge voltage, flow rate, etc)
+	\item Find secondary performance via calculations
+	\item Design vague physical architecture
+	\item Optimize for size of channel and magnetic circut
+	\item Design propellant delivery
+	\item Simulate and further optimize
+	\item Integrate models
+	\item Write report
 \end{enumerate}
 
+Once we have the basic goal and such
+\begin{itemize}
+  \item Plasma physics and discharge
+  \item Electromagnetic coil
+  \item Propellant system
+  \item Simulate and optimize
+\end{itemize}
 
 \section{Design}
 
@@ -1911,11 +1918,11 @@ Didn't use this for planning but may not evaluation and next steps
 \textbf{First Go}
 
 \begin{itemize}
-  \item What is plasma
-  \item Lorentz Force
-  \item Parameters
-  \item Types of representation's
-  \item MHD in more detail
-  \item How plasma Produces Thrust
-  \item Plasma in relation to our Thruster
+	\item What is plasma
+	\item Lorentz Force
+	\item Parameters
+	\item Types of representation's
+	\item MHD in more detail
+	\item How plasma Produces Thrust
+	\item Plasma in relation to our Thruster
 \end{itemize}

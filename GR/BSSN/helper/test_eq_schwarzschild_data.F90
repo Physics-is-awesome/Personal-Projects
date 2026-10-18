@@ -18,19 +18,26 @@ program test_eq_schwarzschild_data
   use excision_mod, only: excision_status,PHYSICAL
   implicit none
   real(dp),allocatable :: u(:,:,:),H(:,:),Mcon(:,:,:)
-  real(dp) :: rhs(NVARS),alpha_p,q_p,beta_r,beta_r_p,bdriver,drhs(7),legacy_b_rhs
+  real(dp) :: rhs(NVARS),alpha_p,q_p,beta_r,beta_r_p,bdriver,drhs(7),production_b_rhs
   real(dp) :: stationary_b_rhs,stationary_beta_rhs
+  ! Both driver gates compare the production default against the demonstrated
+  ! stationary candidate (mode 4) on identical data and stencil, so the
+  ! comparison is resolution-independent and self-calibrating.
+  real(dp),parameter :: gate_factor=10.0_dp
   real(dp) :: r,alpha,q,k_exact,radial,mtan,hmx,hrms,mrad,mphi,my
   real(dp) :: axis_hmax,axis_mrad,axis_mphi,axis_my
   real(dp) :: x,z,ux,uz,npts,expected_beta,measured_beta
-  integer :: i,k,imin,imax,kmin,kmax,mri,mrk
+  integer :: i,k,imin,imax,kmin,kmax,mri,mrk,production_mode
 
   call init_params('parameter_files/vacuum_kerr.par')
   bh_spin=0.0_dp
   r_excise=1.4_dp
   Nx=96; Nz=192
   dx=xmax/real(Nx-1,dp); dz=2.0_dp*zmax/real(Nz-1,dp); dy=dx
-  gamma_driver_mode=0
+  ! Whatever init_params settled on IS the production default (module default,
+  ! parameter file, or GR_GAMMA_DRIVER_MODE).  Gate that, not a hardcoded mode,
+  ! so changing the production default to a stationary gauge passes this test.
+  production_mode=gamma_driver_mode
   call setup_grid()
   call alloc_state(u,Nx,Nz)
   allocate(H(Nx,Nz),Mcon(Nx,Nz,3))
@@ -41,16 +48,16 @@ program test_eq_schwarzschild_data
   call init_deriv_stencils()
   call extrapolate_excised(u)
 
-  ! First check the legacy driver with its production B=0 initialization.
-  gamma_driver_mode=0
-  legacy_b_rhs=0.0_dp
+  ! Production default driver, with the production B=0 initialization.
+  gamma_driver_mode=production_mode
+  production_b_rhs=0.0_dp
   do k=2,Nz-1
     do i=5,Nx-1
       r=sqrt(xg(i)**2+zg(k)**2)
       if (r<2.6_dp .or. r>5.0_dp) cycle
       if (excision_status(i,k)/=PHYSICAL) cycle
       call compute_rhs_point(u,i,k,rhs)
-      legacy_b_rhs=max(legacy_b_rhs,maxval(abs(rhs(IBX:IBZ))))
+      production_b_rhs=max(production_b_rhs,maxval(abs(rhs(IBX:IBZ))))
     end do
   end do
 
@@ -151,7 +158,8 @@ program test_eq_schwarzschild_data
   write(*,'(A,4ES11.3)') ' axis layer (x<4dx) max [H,Mrad,Mtan,My]: ', &
        axis_hmax,axis_mrad,axis_mphi,axis_my
   write(*,'(A,7ES11.3)') ' BSSN RHS max [phi,gtilde,K,beta,B,Atilde,alpha]: ',drhs
-  write(*,'(A,ES11.3)') ' legacy Gamma-driver max|RHS_B| (B=0): ',legacy_b_rhs
+  write(*,'(A,I0,A,ES11.3)') ' production Gamma-driver (mode ',production_mode, &
+       ') max|RHS_B| (B=0): ',production_b_rhs
   write(*,'(A,2ES11.3)') ' non-advective stationary candidate max|RHS_B,beta|: ', &
        stationary_b_rhs,stationary_beta_rhs
   if (abs(k_exact)<1.0e-5_dp .or. abs(expected_beta)<1.0e-5_dp) &
@@ -160,10 +168,79 @@ program test_eq_schwarzschild_data
        error stop 'Schwarzschild K disagrees with independent spherical anchor'
   if (abs(measured_beta-expected_beta)>1.0e-5_dp) &
        error stop 'Schwarzschild shift disagrees with areal-coordinate anchor'
-  if (legacy_b_rhs<1.0e-6_dp .or. stationary_b_rhs>=0.1_dp*legacy_b_rhs) &
-       error stop 'non-advective Gamma-driver did not reduce the stationary B residual'
   if (hmx>5.0e-2_dp .or. hrms>1.0e-2_dp .or. mrad>5.0e-2_dp .or. &
       mphi>5.0e-2_dp .or. my>5.0e-2_dp) error stop 'Schwarzschild constraint gate failed'
+  ! ---- stationary-gauge gate -------------------------------------------------
+  ! On exact equilibrium data with the production B=0 initialisation, a gauge
+  ! that is a genuine fixed point of the evolution must leave only a
+  ! discretisation-level residual in its driver variable.  The default
+  ! (gamma_driver_mode 0) has no such fixed point: its driver residual is orders
+  ! of magnitude above the physical fields, the shift is anchored to nothing,
+  ! and the apparent horizon migrates inward until it reaches the fixed
+  ! r_excise surface (observed: step 6848, det(gtilde) < 0 at the boundary).
+  !
+  ! Gate on the RATIO, not an absolute number: both residuals come from the
+  ! same stencil on the same data, so the ratio isolates the gauge defect from
+  ! truncation error.  Do NOT loosen gate_factor to make `make check` green --
+  ! fix the gauge instead.  See the KNOWN LIMITATION note in the Makefile.
+  !
+  ! Note on candidate fixes -- READ BEFORE CHANGING THE DEFAULT:
+  !
+  ! * mode 1 (puncture-anchored) does NOT satisfy this gate as written.  With
+  !   the production B=0 initialization its driver RHS is -eta*B_puncture,
+  !   which measures 1.674 here -- far worse than mode 0.  It is only
+  !   stationary if B is initialised to the puncture profile, an
+  !   equilibrium-data question rather than a one-line default change.
+  !
+  ! * mode 4 DOES satisfy this gate today (ratio 1.0), because B=0 is its exact
+  !   fixed point on Schwarzschild.  DO NOT conclude that switching the default
+  !   to mode 4 fixes production.  Measured on parameter_files/vacuum_kerr.par
+  !   at 48x96, equal physical time t=1.786, apparent-horizon r_min from 1.5999:
+  !       mode 0: 1.4359   (drift 0.1640)
+  !       mode 4: 1.3079   (drift 0.2920)
+  !   That comparison is NOT conclusive: 48x96 is itself under-resolved (see
+  !   below), so it understates how badly mode 0 drifts.  The mode-4 number has
+  !   not been repeated at higher resolution.  Treat "mode 4 is worse" as
+  !   unproven rather than established.
+  !
+  ! Why this gate cannot be the whole story: the fixture is SPHERICAL
+  ! (bh_spin=0).  There is no Kerr equilibrium data in the tree, so production
+  ! starts from Kerr-Schild, which is NOT a 1+log slice at any spin.  A gauge
+  ! that is a fixed point of spherical equilibrium data can still be the wrong
+  ! fixed point for Kerr-Schild data.  This gate is a NECESSARY condition only;
+  ! passing it does not license changing the production default.
+  !
+  ! Resolution evidence (mode 0, r_excise=1.0, equal physical time):
+  !       t       48x96 drift    96x192 drift
+  !     0.4466       0.0429         0.0395
+  !     0.8886       0.1277         0.1274
+  !     1.3328       0.1558         0.2364
+  !     1.7770       0.1640         0.3452
+  ! The two resolutions agree early and diverge later, and 48x96 STALLS at
+  ! r~1.44 while 96x192 keeps marching.  The stall is a discretization artifact:
+  ! the coarse grid appears to survive only because it cannot follow the true
+  ! horizon motion.  The production grid is therefore under-resolved, and the
+  ! controlling blocker remains the absence of stationary Kerr data
+  ! (LONG_TERM_GAUGE_DRIFT_REPORT.md section 9, Phase 3).
+  if (stationary_b_rhs<=0.0_dp) &
+       error stop 'stationary candidate residual must be > 0 to calibrate the gate'
+  if (production_b_rhs>gate_factor*stationary_b_rhs) then
+     write(*,'(A,I0,A,ES11.3,A,ES11.3,A,F7.2,A,ES11.3)') &
+          'FAIL: production Gamma-driver (mode ',production_mode,') residual=', &
+          production_b_rhs,'  stationary candidate=',stationary_b_rhs, &
+          '  ratio=',production_b_rhs/stationary_b_rhs,'  (limit ',gate_factor,')'
+     write(*,'(A)') ' The default gauge is not stationary on exact equilibrium data,'
+     write(*,'(A)') ' so `make run` will migrate the horizon into the excision region.'
+     error stop 'production default gauge is not stationary'
+  end if
+  if (stationary_b_rhs>gate_factor*production_b_rhs) then
+     write(*,'(A,ES11.3,A,ES11.3)') &
+          'FAIL: stationary candidate residual=',stationary_b_rhs, &
+          '  is worse than production=',production_b_rhs
+     error stop 'stationary candidate is not the better driver'
+  end if
+  write(*,'(A,ES11.3,A,ES11.3,A,F7.2)') &
+       'PASS: production and candidate driver residuals within factor ', &
+       gate_factor,'  (',production_b_rhs,' vs ',stationary_b_rhs,')'
   write(*,'(A)') 'PASS: nonzero Schwarzschild anchor and full constraint-vector checks.'
-  write(*,'(A)') 'DIAGNOSTIC: the tested Gamma-driver RHS is not stationary; see residuals above.'
 end program test_eq_schwarzschild_data

@@ -1,0 +1,42 @@
+\chapter{A computational method in Plasma physics}
+
+\section{The Variational Principle}
+
+\subsection{The Magnetostatic Equation}
+
+Variational priciple or the potential energy
+
+\[
+E = \int \int \int \left(\frac{B^2}{2} + \frac{p}{\gamma -1 }   \right)
+  \]
+
+  In minimizing the potential energy we require that $\grad \cdot B = 0$ everywhere, the toroidal and poloidal fluxes within each surface are fixed, mass within each flux tube has a fixed value, the total toroidal and poloidal fluxes in the vacuum are fixed, and the free surface $\Gamma$ and outer wall are flux surfaces wich $B \cdot v = 0$
+
+
+\subsection{Flux Constraints in the Plasma}
+
+Taking
+\[
+B = \grad s \times \grad \psi
+  \]
+  and knowing that B must be single valued, we take the special form
+\[
+\psi = -u+ \mu(s) v + \lambda(s,u,v)
+  \]
+  Though a more general form is often used
+
+  \[
+\psi = f_1(s)u+ f_2(s) v + \lambda(s,u,v)
+  \]
+  where $\lambda$ is periodic in $u$ and $v$. We then find the toroidal flux
+\[
+F_T(s_0) = \oint \psi ds
+  \]
+\subsection{The Ergodic Constraint}
+
+Taking the relationship that
+\[
+B \cdot \grad p = 0
+  \]
+
+  Implies that the magnetic lines are real characteristics of the magnetostatic equation. In order to formulate a well-posed problem, we want to eliminate the real characteristics from our system of equations.

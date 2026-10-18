@@ -3017,18 +3017,62 @@ Several directions open from here. Morrison's 4-bracket replaces the symmetric b
 
 
 
+\section{Numerically Simulating Navier-Stokes Singularity}
+
+\begin{itemize}
+  \item Introduction
+  \item Why simulate
+  \item The Problem
+  \item How the Flow works
+  \item The code
+  \item Conditions and Numerics
+  \item Validation
+  \item Animation(maybe)
+\end{itemize}
+
+\subsection{Introduction}
+
+I am sure anyone watching this video has likely heard the drama relating OpenAI's alegaded proof of singularities in physical solutions to the Navier-Stokes equation, I won't be going into any of that. A smaller subset probably have an understanding of the mathematics of PDE theory and how this proof is thought has the capacity to push this field forward, I am sadly not part of this subset so I will not be talking about that either.
 
 
+I will be working on trying to numerically simulate this solution.
+
+\subsection{Why Simulate}
+
+Now, you might be thinking, why simulate it? A numerical simulation will at best be an inferior and less accurate result as compared to the analytical one, in reality it will be worse than that, to that I say you are right...
+
+Really, curiosity is the only motivating factor, I am wondering if in doing this I will have fun challenges I didn't account for or results I didn't expect. Curiosity alone motivates this, I am fairly certain the results will be trivial and offer nothing new to mathematics, only new to me and hopefully new to anyone watching.
 
 
+\subsection{The Problem}
+To give a bit of an introduction,
 
+The Navier--Stokes equations are Newton's second law for a fluid. The velocity field $u$ changes because of advection --- the fluid carries its own momentum around --- because of pressure, because of viscosity, which smooths things out, and because of an external force $f$. And the fluid is incompressible: the divergence of $u$ is zero.
 
+The nonlinear advection term is the whole difficulty. It lets large structures feed small ones. Viscosity, on the other hand, kills small structures. Now the question of the millennia, is who wins this.
 
+When one wins and cancels out everything, a \emph{finite-time singularity} is created, which means the velocity becomes unbounded at some finite time $T$, even though everything started smooth. Now real fluids obviously don't do that. That's why the question matters, what seperates fluid mechanics from our current models and further, what aspects of PDE's create these singularities and can we make better ones.
 
+\subsection{The Flow}
 
+To actually simulate it, we need to look into the actual ''physical'' flow. The solution is a vortex. In the middle plane fluid spirals inward toward the axis, picks up spin as it comes in and then flows away along the axis, up on one side, down on the other. Incompressibility is what forces that axial outflow: the fluid that arrives has to go somewhere.
 
+We can define $\tau$ be the time remaining until the singularity. The core radius shrinks like $\tau^{1/2}$ --- exactly the viscous diffusion scale. The core \emph{height} shrinks a little more slowly, like $\tau^{1/2-h}$, with $h$ a small fixed number below one hundredth. So the core becomes a longer and longer, thinner and thinner column.
 
+Doing this keeps the fluid physical as the core volume goes like $\tau^{3/2-h}$. The speed squared goes like $\tau^{-1-2h}$. Multiply them: the kinetic energy in the core scales like $\tau^{1/2-3h}$, and as long as $h$ is small that tends to zero.
 
+The swirl Reynolds number, speed times core radius over viscosity, goes like $\tau^{-h}$, so it grows without bound --- slowly. The radial one stays order one. So viscosity never stops mattering for the inflow, which is exactly why the radial part of the flow can balance itself.
+
+Now the key idea, and it is a simple one. Pick \emph{any} flow $u$ and pressure $p$. Define the force to be whatever is left over when you plug them into the equations: $f := u_t + (u\cdot\nabla)u - \nu\Delta u + \nabla p$. Then the equations hold by construction. The challenge is to choose a blowing-up $u$ whose residual stays smooth. Each term in it diverges on its own, so they must cancel to every order.
+
+The paper does this in layers. In the inner core the profile solves the momentum balance. Outside is an exterior swirl that solves the heat equation exactly, so it needs no force. But joining the two leaves a leftover in a ring around the core, and that leftover blows up. To cancel it, they add many small, rapidly oscillating pulses. Each oscillation averages to zero, but its \emph{momentum flux} doesn't, and that flux supplies exactly the missing force. The background shear amplifies the pulses, and viscosity eventually kills them. Then come further corrections, order after order, until the leftover and all its derivatives are smooth through the singular time.
+
+Actually simulating that is quite challenging as the paper does not give a closed formula for the solution. The profiles are built implicitly, through matching conditions and an infinite correction cycle, and the force is whatever the construction leaves behind. There is nothing to paste into a code.
+
+What I \emph{can} do is something smaller. I keep the geometry and the scalings --- axisymmetric vortex, $\ell_r\sim\tau^{1/2}$, $\ell_z\sim\tau^{1/2-h}$, the right speed growth --- pick simple Gaussian profiles for the shape, and use the very same trick: \emph{define the force as the residual}. That's called a manufactured solution, and it lets me test a Navier--Stokes solver against an exact answer.
+
+\subsection{Numerical methods and boundary conditions}
+\subsection{The Code}
 \section{Developing Numerical Relativity: Simulating a Star with TOV}
 
 \begin{itemize}
