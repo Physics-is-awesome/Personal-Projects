@@ -138,13 +138,18 @@ contains
     logical :: ok
     integer :: i, k, nbad, nbad1, nbad2, rsn, iw, kw, nfar
     real(dp) :: rr2, rmin1, rmax1, rmin2, rmax2
+    ! Radial projection variables: for rejected cells (inside trumpet),
+    ! project radially outward to the nearest valid point and use its values.
+    logical :: ok2, projected
+    integer :: nproj, expand, iter
+    real(dp) :: xp_proj, zp_proj, r_lo, r_hi, r_mid
 
     mm = bh_mass;  if (present(m)) mm = m
     aa = bh_spin;  if (present(a)) aa = a
     rr = mm;       if (present(r0)) rr = r0
 
     u = 0.0_dp
-    nbad = 0; nbad1 = 0; nbad2 = 0; nfar = 0
+    nbad = 0; nbad1 = 0; nbad2 = 0; nfar = 0; nproj = 0
     rmin1 = huge(1.0_dp); rmax1 = -huge(1.0_dp)
     rmin2 = huge(1.0_dp); rmax2 = -huge(1.0_dp)
     do k = 1, size(u,2)
@@ -166,11 +171,67 @@ contains
             nfar = nfar + 1
             iw = i;  kw = k
           end if
-          ! Inside the trumpet: flat metric, unit lapse, zero shift.  This is a
-          ! placeholder, NOT constraint-satisfying data; it is excised.
-          u(i,k,IGXX) = 1.0_dp; u(i,k,IGYY) = 1.0_dp; u(i,k,IGZZ) = 1.0_dp
-          u(i,k,IALPHA) = 1.0_dp
-          nbad = nbad + 1
+          ! Radial projection: find the nearest valid point outward along
+          ! the radial direction and use its values. This creates a
+          ! continuous interior that matches the boundary, unlike the old
+          ! flat placeholder which caused a discontinuity at the trumpet
+          ! surface and excision instability.
+          projected = .false.
+          if (rr2 > 1.0e-10_dp) then
+            ! Exponential search for an upper bound (a valid radius)
+            r_lo = rr2
+            r_hi = rr2 * 1.1_dp
+            do expand = 1, 50
+              xp_proj = xg(i) * r_hi / rr2
+              zp_proj = zg(k) * r_hi / rr2
+              call state_at(xp_proj, 0.0_dp, zp_proj, mm, aa, rr, &
+                            phi, gt, at, Ktr, alpha, beta, ok2)
+              if (ok2 .and. alpha > 1.0e-6_dp) exit
+              r_lo = r_hi
+              r_hi = r_hi * 1.5_dp
+            end do
+            if (ok2 .and. alpha > 1.0e-6_dp) then
+              ! Binary search for the nearest valid radius
+              do iter = 1, 60
+                r_mid = 0.5_dp * (r_lo + r_hi)
+                xp_proj = xg(i) * r_mid / rr2
+                zp_proj = zg(k) * r_mid / rr2
+                call state_at(xp_proj, 0.0_dp, zp_proj, mm, aa, rr, &
+                              phi, gt, at, Ktr, alpha, beta, ok2)
+                if (ok2 .and. alpha > 1.0e-6_dp) then
+                  r_hi = r_mid
+                else
+                  r_lo = r_mid
+                end if
+              end do
+              ! Final evaluation at r_hi (known valid)
+              xp_proj = xg(i) * r_hi / rr2
+              zp_proj = zg(k) * r_hi / rr2
+              call state_at(xp_proj, 0.0_dp, zp_proj, mm, aa, rr, &
+                            phi, gt, at, Ktr, alpha, beta, ok2)
+              if (ok2 .and. alpha > 1.0e-6_dp) then
+                projected = .true.
+                nproj = nproj + 1
+              end if
+            end if
+          end if
+          if (projected) then
+            u(i,k,IPHI) = phi
+            u(i,k,IGXX) = gt(1,1); u(i,k,IGXY) = gt(1,2); u(i,k,IGXZ) = gt(1,3)
+            u(i,k,IGYY) = gt(2,2); u(i,k,IGYZ) = gt(2,3); u(i,k,IGZZ) = gt(3,3)
+            u(i,k,IK)   = Ktr
+            u(i,k,IAXX) = at(1,1); u(i,k,IAXY) = at(1,2); u(i,k,IAXZ) = at(1,3)
+            u(i,k,IAYY) = at(2,2); u(i,k,IAYZ) = at(2,3); u(i,k,IAZZ) = at(3,3)
+            u(i,k,IALPHA) = alpha
+            u(i,k,IBETAX) = beta(1)
+            u(i,k,IBETAY) = beta(2)
+            u(i,k,IBETAZ) = beta(3)
+          else
+            ! Fallback: flat placeholder (only if radial projection fails)
+            u(i,k,IGXX) = 1.0_dp; u(i,k,IGYY) = 1.0_dp; u(i,k,IGZZ) = 1.0_dp
+            u(i,k,IALPHA) = 1.0_dp
+            nbad = nbad + 1
+          end if
           cycle
         end if
         u(i,k,IPHI) = phi
@@ -193,6 +254,8 @@ contains
     if (nbad2 > 0) write(*,'(A,F9.4,A,F9.4)') '    degenerate  rejections span r in [', rmin2, ' ,', rmax2, ']'
     write(*,'(A,I0,A,I0)') '  total placeholder cells=', nbad, &
          '   FAR outside trumpet (r>1.5*R0)=', nfar
+    write(*,'(A,I0,A,I0)') '  radially projected=', nproj, &
+         '   flat fallback=', nbad
     if (nfar > 0) then
       write(*,'(A,F9.4,A,F9.4,A,I0,A,I0)') &
            '  WARNING: far-field rejections at (x,z)=(', xg(iw), ' ,', zg(kw), &

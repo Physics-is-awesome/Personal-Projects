@@ -149,7 +149,13 @@ same, each of the $(N-1)$ terms in $\sum^N_{k=2}$ from earlier are identical and
 
 Now that we have the structure of the Boltzmann equation
 \[
-\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pv{f_1}{t}  \right)
+\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pv{f_1}{t}  \right)_{\text{coll}}
   \]
 
-  but now we need to create an expression for the collision integral in terms of $f_1$.
+  but now we need to create an expression for the collision integral in terms of $f_1$. It is self-evident that such an integral should also be in terms of the rate at which said collision occur.
+
+  This rate can be trivially defined as
+\[
+\text{Rate} = \omega(\va{p},\va{p}_2 \vert \va{p}_1,\va{p}_2 ) f_2(\va{r},\va{r}, \va{p},\va{p}_2) \, d^3p d^3p_2 d^3p_1' d^3p_2'
+  \]
+  (Here we’ve dropped the explicit t dependence of f2 only to keep the notation consice)

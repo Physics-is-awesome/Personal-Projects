@@ -46,14 +46,27 @@ program diagnose_kerr_bssn
   real(dp), allocatable :: u(:,:,:), rhs(:), H(:,:), M(:,:,:)
   real(dp) :: r, hmx, hrms, mmx, rphi, rgam, rktr, rbet, rB, rat, ralp
   real(dp) :: hmx_s, hrms_s, mmx_s, rgam_s, ralp_s
-  integer :: i, k, ilo, ihi, klo, khi, hmi, hmk, nprobe, rsn_p
+  integer :: i, k, ilo, ihi, klo, khi, hmi, hmk, nprobe, rsn_p, nb, nbth
+  integer, parameter :: NRBIN = 7, NTH_BIN = 10
+  real(dp) :: cth, cth_cell, cth_lo, cth_hi, cth_mid, mmax, msum, mcnt
+  real(dp) :: spin, r0in
+  character(len=64) :: argbuf
+  real(dp) :: rlo, rhi, bh, bs, bn
   real(dp) :: rp, ctp, phi_p, Ktr_p, alpha_p, det_p, gt_p(3,3), at_p(3,3), beta_p(3)
   logical :: ok_p
   real(dp) :: hmr, hmalpha, hmphi, hmgxx, hmgyy
   real(dp) :: npts
 
+  ! Optional argv: spin, then R0.  Comparing H across spin is the test that
+  ! separates a radial fault (alpha, bR, g_rr) from a spin-dependent one
+  ! (bP, the azimuthal shift, which carries 1/sin^2(th) behaviour near the axis).
+  spin = 0.8_dp;  r0in = 1.0_dp
+  argbuf = ''
+  call get_command_argument(1, argbuf); if (len_trim(argbuf) > 0) read(argbuf,*) spin
+  argbuf = ''
+  call get_command_argument(2, argbuf); if (len_trim(argbuf) > 0) read(argbuf,*) r0in
   call init_params('parameter_files/vacuum_kerr.par')
-  bh_spin = 0.8_dp
+  bh_spin = spin
   slicing_mode = 3
   gamma_driver_mode = 4
   ilo=2; ihi=Nx-1; klo=2; khi=Nz-1
@@ -67,7 +80,7 @@ program diagnose_kerr_bssn
   write(*,'(A)') '------------------------------------------------------------'
 
   ! ---------------- Kerr trumpet ----------------
-  call set_eq_kerr_trumpet_id(u, 1.0_dp, 0.8_dp, 1.0_dp)
+  call set_eq_kerr_trumpet_id(u, 1.0_dp, spin, r0in)
   call compute_conformal_connections(u)
   call set_excision_background(u)
   call init_deriv_stencils()
@@ -165,6 +178,61 @@ program diagnose_kerr_bssn
     end do
   end do
   hrms=sqrt(hrms/max(npts,1.0_dp))
+
+  ! M vs r and theta.  The max|M| did NOT improve with the g_Rphi fix
+  ! (6.29e-3 -> 7.49e-3), so it is probably a different mechanism.
+  ! If it's concentrated on the axis, the cartoon/Jacobian axis is the
+  ! suspect; if it's spread out, it's the K-from-gauge or something else.
+  ! This is the single measurement that separates the remaining candidates.
+  write(*,'(A)') ' polar-angle profile of |M| at r in [3,5]:'
+  write(*,'(A,ES13.5)') '   ct         max|M|       rms|M|'
+  do nbth = 0, 9
+    cth_lo = real(nbth,dp)/10.0_dp
+    cth_hi = real(nbth+1,dp)/10.0_dp
+    cth_mid = 0.5_dp*(cth_lo+cth_hi)
+    mmax = 0.0_dp; msum = 0.0_dp; mcnt = 0.0_dp
+    do k=3,Nz-2
+      do i=2,Nx-1
+        r=sqrt(xg(i)**2+zg(k)**2)
+        if (r<3.0_dp .or. r>5.0_dp) cycle
+        if (excision_status(i,k)/=PHYSICAL) cycle
+        cth_cell = abs(zg(k))/max(r,1.0e-30_dp)
+        if (cth_cell < cth_lo .or. cth_cell >= cth_hi) cycle
+        mmax = max(mmax, sqrt(sum(M(i,k,:)**2)))
+        msum = msum + sum(M(i,k,:)**2)
+        mcnt = mcnt + 1.0_dp
+      end do
+    end do
+    write(*,'(A,F7.4,A,F7.4,2ES13.5)') ' ', cth_lo, '..', cth_hi, mmax, sqrt(msum/max(mcnt,1.0_dp))
+  end do
+  write(*,'(A)') '   If the peak is at |ct|~1 => axis.  If flat => spread.'
+  ! H vs r.  This is the test that separates the two remaining candidates:
+  ! if H -> 0 at large r and grows inward, the LAPSE is the suspect and there
+  ! is something to fix; if H is FLAT in r, the family is not a vacuum solution
+  ! as coded and route C is dead.  Nothing in the tree has ever checked
+  ! R_ij = 0 for this family -- Part A checked structure and asymptotics only.
+  write(*,'(A,F7.4,A,F7.4)') ' spin=', spin, '  R0=', r0in
+  write(*,'(A)') ' radial profile of the Hamiltonian residual:'
+  write(*,'(A,3ES13.4)') '   r-bin        max|H|        rms|H|'
+  do nb = 1, 7
+    rlo = 2.0_dp + (12.0_dp-2.0_dp)*real(nb-1,dp)/7.0_dp
+    rhi = 2.0_dp + (12.0_dp-2.0_dp)*real(nb  ,dp)/7.0_dp
+    bh = 0.0_dp; bs = 0.0_dp; bn = 0.0_dp
+    do k=3,Nz-2
+      do i=2,Nx-1
+        r=sqrt(xg(i)**2+zg(k)**2)
+        if (r<rlo .or. r>=rhi) cycle
+        if (excision_status(i,k)/=PHYSICAL) cycle
+        bh=max(bh,abs(H(i,k)));  bs=bs+H(i,k)**2;  bn=bn+1.0_dp
+      end do
+    end do
+    write(*,'(A,F6.2,A,F6.2,2ES13.4)') '   ', rlo, '..', rhi, bh, &
+         sqrt(bs/max(bn,1.0_dp))
+  end do
+  write(*,'(A)') '   NOTE: the innermost bins still sit close to the trumpet'
+  write(*,'(A)') '   placeholder (160 flat cells, r<1.41); treat r<3 as suspect.'
+  write(*,'(A)') '   H flat in r => the family is not a vacuum solution as coded.'
+
   write(*,'(A,ES12.4,A,ES12.4)') ' Kerr   constraints: max|H|=', hmx, '  rms|H|=', hrms
   write(*,'(A,F8.3,A,2F8.3)') '   max|H| at r=', hmr, '  (x,z)=(', xg(hmi), zg(hmk), ')'
   write(*,'(A,4ES12.4)') '   there: alpha,phi,gtxx,gtyy=', hmalpha, hmphi, hmgxx, hmgyy

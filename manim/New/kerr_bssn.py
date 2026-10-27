@@ -1104,7 +1104,7 @@ class S4(SyncedScene):
         q = Text("too many equations?", font_size=34, color=YELLOW).move_to([3.3, -2.2, 0])
         self.at(61, FadeIn(q), Indicate(hamg, color=YELLOW), Indicate(momg, color=YELLOW), run_time=1.0)
         red = note("the constraints look redundant – they only use γᵢⱼ and Kᵢⱼ,\nthe same variables we evolve", 18, GREY_B)
-        red.next_to(q, UP, buff=0.2)
+        red.next_to(q, DOWN, buff=0.2)
         self.sync(CUES[61].start + 6.0)
         self.play(FadeIn(red), run_time=0.5)
         self.at(62, FadeOut(q), FadeOut(red), run_time=0.4)
@@ -1170,7 +1170,7 @@ class S4_1(SyncedScene):
                 GrowFromCenter(b1), FadeIn(t1), run_time=1.0)
         # cue 68: four gauge
         b2 = Brace(sq[4:8], DOWN, color=PURPLE)
-        t2 = note("4 gauge freedoms\n(lapse + 3 shift components)", 18, PURPLE).next_to(b2, DOWN, buff=0.1)
+        t2 = note("4 gauge freedoms\n(lapse + 3 shift components)", 18, PURPLE).next_to(b2, DOWN, buff=0.8)
         self.at(68, *[sq[i].animate.set_fill(PURPLE, 0.5).set_color(PURPLE) for i in range(4, 8)],
                 GrowFromCenter(b2), FadeIn(t2), run_time=1.0)
         # cue 69: four physical
@@ -2155,7 +2155,7 @@ class S9_2(SyncedScene):
         lo = note("a low-order treatment:\nit does not converge at the excision surface", 22, ORANGE).move_to([3.7, 0.9, 0])
         self.play(FadeIn(lo), run_time=0.5)
         ok = note("that is acceptable – the region is causally\ndisconnected from the exterior", 22, GREEN).move_to([3.7, -0.5, 0])
-        self.at(142, FadeIn(ok), run_time=0.5)
+        self.wait(0.5)
 
         # cue 143: convergence tests must exclude a thin shell
         self.at(143, *[FadeOut(m) for m in [b, sep, ex_t, ac_t, it_t, t3, lo, ok]], run_time=0.5)

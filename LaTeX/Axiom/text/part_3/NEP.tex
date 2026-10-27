@@ -1890,6 +1890,83 @@ Once we have the basic goal and such
   \item Simulate and optimize
 \end{itemize}
 
+\subsection{TODO Oct 22}
+
+\subsubsection{MPD}
+\begin{itemize}
+  \item Sub-type
+  \begin{itemize}
+    \item Applied Field
+    \item Self-field
+  \end{itemize}
+  \item Proppelant subteam
+  \begin{itemize}
+    \item Hydrogen
+    \item Argon
+  \end{itemize}
+  \item Thruster Goals paper
+\end{itemize}
+
+\subsubsection{Hall}
+\begin{itemize}
+  \item Sub-type
+  \begin{itemize}
+    \item SPT
+    \item TAL
+  \end{itemize}
+  \item Proppelant subteam
+  \begin{itemize}
+    \item Xeon
+    \item Krypton
+    \item Iodine
+  \end{itemize}
+  \item Thruster goals paper
+\end{itemize}
+
+\subsubsection{Propellant Decision Matrix}
+
+\vspace{1.5em}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{} l c l X @{}}
+\toprule
+\textbf{Category} & \textbf{Weight} & \textbf{Key Metric} & \textbf{Impact on Mission} \\
+\midrule
+\textbf{Performance} & 40\% & Isp \& Thrust-to-Power & Heavier/easily-ionized atoms maximize thrust per kW and minimize total fuel mass. \\
+\addlinespace
+\textbf{Storage \& Logistics} & 30\% & Density \& Thermal Needs & High density or solid propellants eliminate heavy high-pressure tanks, drastically reducing dry mass. \\
+\addlinespace
+\textbf{System Compatibility} & 20\% & Plume \& Corrosivity & Corrosive or condensable propellants require specialized feed lines and can degrade spacecraft systems. \\
+\addlinespace
+\textbf{Cost \& Supply} & 10\% & Bulk Availability & NEP requires immense fuel loads; rare gases like Xenon may be prohibitively expensive or scarce at scale. \\
+\bottomrule
+\end{tabularx}
+
+\subsubsection{Sub-type Thruster}
+
+\vspace{1.5em}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{} l c l X @{}}
+\toprule
+\textbf{Category} & \textbf{Weight} & \textbf{Key Metric} & \textbf{Impact on Mission} \\
+\midrule
+\textbf{Power Scalability} & 40\% & Power Density (kW/m$^2$) & NEP systems deliver MW-class power. The thruster must process immense electrical power without requiring unwieldy, massive arrays. \\
+\addlinespace
+\textbf{Performance} & 20\% & Isp & Determines how effectively the reactor's output is converted to kinetic energy, directly dictating total mission propellant mass. \\
+\addlinespace
+\textbf{Lifespan} & 20\% & Component Erosion Rate & Deep space missions require years of continuous thrusting. Grid, channel, and electrode erosion are primary failure modes. \\
+\addlinespace
+\textbf{Thruster efficiency} & 20\% &  Thruster efficiency & Determines how effectively the propellant is converted to thrust, directly dictating total mission propellant mass. \\
+\bottomrule
+\end{tabularx}
+
+\subsubsection{Sub-subteam}
+First we have the magnetic coil/plasma physics group. Pretty self-explanatory
+
+Then, we have the thruster geometry, working to develop the shape of the thruster as well as, later working on the mechanics of the things like propellant feed. Electrode sizing, materials, active cooling, etc
+
+Finally, the electrical group will work closely with the reactor team about developing interface to trasiion power
 \section{Design}
 
 

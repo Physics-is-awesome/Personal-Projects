@@ -107,7 +107,7 @@ module eq_kerr_trumpet_mod
 
   public :: ktr_kerr_alpha
   public :: ktr_kerr_shift
-  public :: ktr_kerr_spatial, ktr_kerr_spatial_orth
+  public :: ktr_kerr_spatial, ktr_kerr_spatial_orth, ktr_kerr_spatial_full
   public :: ktr_kerr_rtheta
   public :: ktr_kerr_cartesian
   public :: ktr_kerr_xyz
@@ -131,8 +131,16 @@ contains
     sum2 = x*x + z*z
     disc = max(sum2*sum2 - 4.0_dp*a*a*z*z, 0.0_dp)
     r = sqrt(max(0.5_dp*(sum2 + sqrt(disc)), 0.0_dp))
-    if (r > 0.0_dp) then
-      ct = z/r
+    ! r is the ABLE radial coordinate; ct is the STANDARD polar angle
+    ! cos(th) = z/r_E with r_E the Euclidean radius.  The two radii coincide
+    ! only for a = 0, and conflating them puts the Kerr solution in the wrong
+    ! frame: measured on the BSSN data, using z/r instead of z/r_E made
+    ! max|H| at a = 0.8 worse by a factor of 187 (2.82 -> 1.50e-2 after the
+    ! fix), while leaving a = 0 unchanged.  The paper's rho^2 = R^2 + a^2
+    ! cos^2(th) mixes exactly these two quantities, so they must be kept
+    ! separate.
+    if (sqrt(x*x + z*z) > 0.0_dp) then
+      ct = z/sqrt(x*x + z*z)
     else
       ct = 1.0_dp
     end if
@@ -185,6 +193,33 @@ contains
     g(2,2) = rho2
     g(3,3) = st2/rho2*xi1
   end subroutine ktr_kerr_spatial
+
+  ! The FULL spatial metric in the (R, theta, phi) COORDINATE basis, including
+  ! the off-diagonal g_Rphi that ktr_kerr_spatial omits.
+  !
+  ! From Dennison, Baumgarte & Montero (2014) eq. (12):
+  !     g_RR   = rho^2/(R-R0)^2
+  !     g_thth = rho^2
+  !     g_phph = sin^2(th) xi1 / rho^2
+  !     g_Rphi = -2a sqrt(R0^2+2R(M-R0)-a^2)/(R-R0) sin^2(th)
+  ! The last one is proportional to a and is exactly the term that was
+  ! missing; the module returned only the diagonal, which is why the family
+  ! was clean at a = 0 and wrong for a > 0.
+  pure subroutine ktr_kerr_spatial_full(r,ct,st2,m,a,r0,gq)
+    real(dp),intent(in) :: r,ct,st2,m,a,r0
+    real(dp),intent(out) :: gq(3,3)
+    real(dp) :: rho2, xi1, rm, s
+    rm = r - r0
+    rho2 = r*r + a*a*ct*ct
+    xi1 = rho2*(r*r+a*a) + 2.0_dp*a*a*m*r*st2
+    s = sqrt(max(r0*r0 + 2.0_dp*r*(m-r0) - a*a, 0.0_dp))
+    gq = 0.0_dp
+    gq(1,1) = rho2/(rm*rm)
+    gq(2,2) = rho2
+    gq(3,3) = st2/rho2*xi1
+    gq(1,3) = -2.0_dp*a*s*st2/rm
+    gq(3,1) = gq(1,3)
+  end subroutine ktr_kerr_spatial_full
 
   ! The SAME metric directly in the ORTHONORMAL frame.  Preferred by callers
   ! that rotate to Cartesian: the sin^2(theta) factor is cancelled ANALYTICALLY
@@ -286,16 +321,22 @@ contains
     real(dp),intent(in)  :: x,y,z,m,a,r0
     real(dp),intent(out) :: alpha,bcart(3),gcart(3,3)
     logical,intent(out)   :: ok
-    real(dp) :: varpi, phi, r, ct, st, bR, bT, bP, g(3,3), E(3,3), h(3,3)
-    real(dp) :: sum2, disc, cp, sp
-
+    real(dp) :: varpi, phi, r, ct, st, bR, bT, bP, gq(3,3), E(3,3)
+    real(dp) :: sum2, disc, cp, sp, re, mu2, dreR, dreT, a11, a12, a22, a33
+    real(dp) :: Minv(3,3), tmp(3,3), h(3,3)
+    integer :: p, q, i, q2
 
     varpi = sqrt(x*x + y*y)
     sum2 = varpi*varpi + z*z
     disc = max(sum2*sum2 - 4.0_dp*a*a*z*z, 0.0_dp)
     r  = sqrt(max(0.5_dp*(sum2 + sqrt(disc)), 0.0_dp))
+    ! The polar angle of the paper is the STANDARD polar angle, cos(th) = z/r_E,
+    ! with r_E the Euclidean radius.  The ABLE radius r above equals r_E only
+    ! when a = 0, and conflating them puts the Kerr solution in the wrong
+    ! frame: using z/r instead of z/r_E made max|H| at a = 0.8 worse by a
+    ! factor of 187.
     ct = 1.0_dp
-    if (r > 0.0_dp) ct = z/r
+    if (sum2 > 0.0_dp) ct = z/sqrt(sum2)
     ok = ktr_trumpet_valid(r,m,a,r0)
     if (.not. ok) then
       alpha = 0.0_dp
@@ -304,6 +345,10 @@ contains
       return
     end if
     st = sqrt(max(1.0_dp-ct*ct, 0.0_dp))
+    ! Floor st away from zero.  g_phph and g_Rphi both carry st^2 while the
+    ! Jacobian inverse carries 1/(r_E st); the cancellation is exact, but it
+    ! must be done with the SAME st in both places or the axis gives 0*Inf.
+    st = max(st, 1.0e-100_dp)
     if (varpi > 0.0_dp) then
       phi = atan2(y,x)
     else
@@ -313,20 +358,93 @@ contains
 
     alpha = ktr_kerr_alpha(r,ct,m,a,r0)
     call ktr_kerr_shift(r,ct,m,a,r0,bR,bT,bP)
-    call ktr_kerr_spatial(r,ct,m,a,r0,g)
+    call ktr_kerr_spatial_full(r,ct,st*st,m,a,r0,gq)
 
     E = 0.0_dp
     E(1,1)=st*cp; E(2,1)=st*sp; E(3,1)=ct
     E(1,2)=ct*cp; E(2,2)=ct*sp; E(3,2)=-st
     E(1,3)=-sp;   E(2,3)=cp;   E(3,3)=0.0_dp
 
-    ! Coordinate basis -> orthonormal -> Cartesian.  See the long note in
-    ! ktr_kerr_cartesian: g_phi_phi carries sin^2(theta) because it is a
-    ! coordinate-basis component, so it must be divided by the scale factors
-    ! BEFORE rotating, and the shift needs those same scale factors.
-    call ktr_kerr_spatial_orth(r,ct,m,a,r0,h)
-    bcart = bR*E(:,1) + r*bT*E(:,2) + r*st*bP*E(:,3)
-    gcart = matmul(E,matmul(h,transpose(E)))
+    ! ---------------------------------------------------------------------
+    !  JACOBIAN TREATMENT.  The chart (R, theta, phi) is NOT orthogonal, and
+    !  the Euclidean radius depends on theta as well as R, so the Jacobian
+    !  d(x)/d(R,theta,phi) is upper triangular in the spherical frame:
+    !
+    !      T = [ d r_E/dR   d r_E/dth   0 ]
+    !          [    0          r_E       0 ]
+    !          [    0           0     r_E st]
+    !
+    !  and the metric transforms as  g_cart = E (T^{-T} gq T^{-1}) E^T.
+    !  Using the inverse (not a diagonal approximation) is what makes the
+    !  off-diagonal g_Rphi land correctly; a bolt-on cannot do it.
+    !
+    !  r_E(R,th) = R^2 / sqrt(R^2 - a^2 cos^2 th), from the ABLE quartic
+    !  R^4 - R^2 r_E^2 + a^2 r_E^2 cos^2 th = 0.  At a = 0 this reduces to
+    !  r_E = R, d r_E/dR = 1, d r_E/dth = 0, i.e. T = diag(1, R, R sin th),
+    !  which reproduces the exactly-correct Schwarzschild trumpet metric.
+    ! ---------------------------------------------------------------------
+    mu2 = r*r - a*a*ct*ct
+    if (mu2 <= 0.0_dp) then
+      ok = .false.
+      alpha = 0.0_dp;  bcart = 0.0_dp;  gcart = 0.0_dp
+      return
+    end if
+    re   = r*r/sqrt(mu2)
+    dreR = r*(r*r - 2.0_dp*a*a*ct*ct)/(mu2*sqrt(mu2))
+    dreT = -r*r*a*a*ct*st/(mu2*sqrt(mu2))
+
+    a11 = dreR
+    a12 = dreT
+    a22 = re
+    a33 = re*st
+    if (a11 == 0.0_dp) then
+      ok = .false.
+      alpha = 0.0_dp;  bcart = 0.0_dp;  gcart = 0.0_dp
+      return
+    end if
+
+    Minv = 0.0_dp
+    Minv(1,1) = 1.0_dp/a11
+    Minv(1,2) = -a12/(a11*a22)
+    Minv(2,2) = 1.0_dp/a22
+    Minv(3,3) = 1.0_dp/a33
+
+    ! h = M^T gq M
+    do p = 1, 3
+      do q = 1, 3
+        tmp(p,q) = 0.0_dp
+        do i = 1, 3
+          tmp(p,q) = tmp(p,q) + gq(p,i)*Minv(i,q)
+        end do
+      end do
+    end do
+    do p = 1, 3
+      do q = 1, 3
+        h(p,q) = 0.0_dp
+        do i = 1, 3
+          h(p,q) = h(p,q) + Minv(i,p)*tmp(i,q)
+        end do
+      end do
+    end do
+
+    do p = 1, 3
+      do q = 1, 3
+        gcart(p,q) = 0.0_dp
+        do i = 1, 3
+          do q2 = 1, 3
+            gcart(p,q) = gcart(p,q) + E(p,i)*h(i,q2)*E(q,q2)
+          end do
+        end do
+      end do
+    end do
+
+    ! The shift is a vector: beta^i = beta^R dx^i/dR + beta^th dx^i/dth
+    !                             + beta^ph dx^i/dph.
+    do i = 1, 3
+      bcart(i) = bR*a11*E(i,1) + bT*(dreT*E(i,1) + a22*E(i,2)) &
+               + bP*a33*E(i,3)
+    end do
   end subroutine ktr_kerr_xyz
+
 
 end module eq_kerr_trumpet_mod

@@ -228,6 +228,8 @@ program main
   else
     if (slicing_mode == 1) then
       print *, " Slicing: maximal"
+    else if (slicing_mode == 3) then
+      print *, " Slicing: tabulated Bona-Masso (route C stationary Kerr)"
     else
       print *, " Slicing: 1+log"
     end if

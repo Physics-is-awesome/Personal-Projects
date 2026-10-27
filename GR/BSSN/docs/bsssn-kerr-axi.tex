@@ -118,15 +118,28 @@ by the investigation recorded in Chapter~\ref{ch:findings}.
 
 \vspace{1em}
 \noindent
-\textbf{A warning about the current state.} This code does \emph{not}
-currently produce stable long-duration runs. It evolves exact Kerr--Schild
-data and develops an $O(1)$ Hamiltonian-constraint violation within one or two
-cells of the inner excision boundary, which grows until the conformal metric
-loses positive definiteness and the run aborts, typically at
-$t\approx 5.6$ in the production configuration. Chapter~\ref{ch:findings}
-documents the full investigation: what was ruled out, what was found, and what
-remains open. A large fraction of that chapter is about measurement errors that
-produced confident but wrong conclusions, which is itself instructive.
+\textbf{A warning about the current state.} The production configuration
+described here changed substantially during the investigation recorded in
+Chapter~\ref{ch:findings}, and the reader should know where it stands. The
+\emph{original} configuration --- Kerr--Schild initial data, 1+log slicing
+with the legacy $\Gamma$-driver, $48\times96$ --- aborts at $t\approx 5.6$
+when the conformal metric loses positive definiteness near the excision
+boundary, and it is the subject of most of that chapter. The \emph{current}
+configuration keeps the same exact Kerr--Schild initial data but replaces
+the gauge with a stationary Kerr gauge (``route C'',
+Chapter~\ref{ch:routec}: a tabulated Bona--Masso slicing and a non-advective
+$\Gamma$-driver) and doubles both grid resolutions to $96\times192$. In that
+configuration the apparent horizon is found at step~0, its gauge invariants
+(area, irreducible mass) are conserved at the few-$\times10^{-4}$ level, the
+constraint violation stays bounded, and runs past 800 steps show no sign of
+the old runaway. What is \emph{not} yet established is the long-duration
+verdict: the definitive equal-physical-time comparison (the old
+configuration survived 5.6 units of physical time, and the finer grid needs
+twice as many steps to cover the same time) has not been completed. Several
+genuine defects also remain open; they are listed in
+Section~\ref{sec:unfinished} and are not hidden behind the improved numbers.
+A large fraction of Chapter~\ref{ch:findings} is about measurement errors
+that produced confident but wrong conclusions, which is itself instructive.
 \end{quote}
 
 \tableofcontents
@@ -151,6 +164,12 @@ this is an exact vacuum solution, the continuum constraints vanish identically
 everywhere. Any constraint violation the code reports is therefore, by
 construction, \emph{pure discretisation error}. This makes the code an
 unusually clean testbed: there is no physics to blame.
+
+The gauge is deliberately \emph{not} the textbook 1+log/$\Gamma$-driver pair.
+It is a stationary Kerr gauge --- a tabulated Bona--Masso slicing and a
+non-advective $\Gamma$-driver fitted to the same exact solution ---
+Chapter~\ref{ch:routec} explains why that choice, and not better boundary
+treatment, is what stopped the horizon from migrating.
 
 The domain is the half-plane $x \in [0, x_{\max}]$, $z \in [-z_{\max},
 z_{\max}]$, with the $y$-direction reconstructed on demand.
@@ -198,19 +217,33 @@ A typical short run looks like:
 
 \begin{lstlisting}
 $ GR_NSTEPS=700 GR_HORIZON_EVERY=0 ./bin/vacuum_kerr parameter_files/vacuum_kerr.par
- Grid: Nx=48  Nz=96
- dx= 0.255  dy= 0.255  dz= 0.253
- Excision radius r_excise= 1.000  (horizon at r_+= 1.600M; interior frozen)
- step   700  t=  0.6252  max|H|(ext)=  1.2656E-02  rms|H|(ext)=  2.0211E-03
-   max|M|(ext)=  2.8728E-02  alpha(probe)=  0.910348
-    near-mask r_KS <   3.0000E+00  n=   192  max|H|=  1.9493E+00
-      max|M|=  1.4920E+00  worst r=  1.0227E+00
+ === GR BSSNOK (vacuum, Cartoon axisymmetric) - Milestone 1 ===
+ Grid: Nx=96  Nz=192
+ dx= 0.126  dy= 0.126  dz= 0.126
+ BH mass M= 1.000   spin a= 0.800
+ Excision radius r_excise= 0.800  (horizon at r_+= 1.600M; interior frozen)
+ [horizon] step 0  r in [  1.59997,  1.78865]  dA/A_Kerr= -3.99E-05
+            M_irr= 0.894409  J= 0.800010  M_H= 0.999991
+ Time step dt =  0.00044
+  Slicing: tabulated Bona-Masso (route C stationary Kerr)
+  Shift: non-advective Gamma-driver (stationarity candidate)
+ Evolving vacuum Kerr data with excision...
+ step     6  t=  0.0027  max|H|(ext)=  1.1163E-02  rms|H|(ext)=  1.2302E-03
+    max|M|(ext)=  2.4424E-03  alpha(probe)=  0.924714
+    near-mask r_KS <   2.8000E+00  n=   706  max|H|=  1.7890E+00
+      max|M|=  7.5744E-01  worst r=  8.1252E-01
 \end{lstlisting}
 
 Notice the near-mask line. The \texttt{max|H|(ext)} and \texttt{near-mask
-max|H|} differ by a factor of 154, and the two numbers are about completely
+max|H|} differ by a factor of 160, and the two numbers are about completely
 different things. Chapter~\ref{ch:diag} explains why both exist, and why the
 first one is structurally incapable of seeing the region that matters.
+
+Notice also the horizon line: the stationarity numbers there are
+\emph{invariants} --- the area deficit \texttt{dA/A\_Kerr}, the irreducible
+mass $M_{\mathrm{irr}}$, the spin $J$, and the horizon mass $M_H$ --- not the
+horizon's coordinate position. Section~\ref{sec:invariant-gate} explains why
+the driver aborts on those quantities and deliberately not on $r_{\min}$.
 
 \section{Repository map}
 
@@ -237,9 +270,11 @@ These files, and only these, constitute the production solver:
 \path{helper/excision.F90} & The excision mask, ghost fill, and characteristic check. \\
 \path{helper/excision\_sat.F90} & Level-set characteristic SAT (available, off). \\
 \path{helper/constraints.F90} & Hamiltonian and momentum constraint evaluation. \\
+\path{helper/eq\_kerr\_trumpet.F90} & The DBM trumpet-slice Kerr family: metric and shift in the ABLE coordinate. \\
+\path{helper/eq\_kerr\_bssn\_data.F90} & Conversion of route C data to BSSN, with radial projection of the trumpet interior. \\
 \path{integrators/time\_step.F90} & RK4, the algebraic projection, the time loop. \\
 \path{helper/horizon.F90} & Horizon location finder. \\
-\path{helper/output.F90} & HDF5 output. \\
+\path{helper/output\_test.F90} & HDF5 output (the module name is \texttt{output\_mod}; the sibling \path{helper/output.F90} is a plain-\texttt{.dat} variant that is \emph{not} compiled). \\
 \path{drivers/vacuum\_kerr.F90} & The program: setup, time loop, diagnostics. \\
 \bottomrule
 \end{longtable}
@@ -257,8 +292,14 @@ run. Knowing which is which saves a great deal of confusion:
       module does not currently satisfy the SBP property (see
       Section~\ref{sec:sbp}), so this track is not usable.
 \item \path{helper/equilibrium\_1pluslog.F90},
-      \path{helper/eq\_schwarzschild\_data.F90} --- special equilibrium
-      data used only by tests.
+      \path{helper/eq\_schwarzschild\_data.F90},
+      \path{helper/eq\_kerr\_trumpet.F90}, \path{helper/eq\_kerr\_bssn\_data.F90}
+      --- special equilibrium data used only by tests and diagnostics. The
+      route C modules sit in \texttt{SOURCES} (so the parity gate covers them)
+      but the production run initialises from Kerr--Schild, \emph{not} from
+      route C data: the route C gauge works on Kerr--Schild data while the
+      route C data itself cannot be evolved --- the gradient discontinuity at
+      the trumpet boundary, Chapter~\ref{ch:routec}.
 \item \path{helper/primitive\_recovery.F90} --- hydrodynamics recovery. Not
       exercised by the vacuum problem, though the BSSN RHS does accept an
       optional matter source \texttt{msrc}.
@@ -279,6 +320,9 @@ programs, each a standalone \texttt{program} linked against the same modules:
 \texttt{test-momentum-conv} & Momentum-constraint convergence; a real gate. \\
 \texttt{test-horizon-drift} & Validates the horizon finder against exact Kerr. \\
 \texttt{test-gamma-driver-rhs} & Checks the gauge RHS is stationary on KS data. \\
+\texttt{test-eq-schwarzschild-data} & The gauge stationarity gate: production gauge vs.\ candidate on exact stationary Schwarzschild data (Section~\ref{sec:gauge-gate}). \\
+\texttt{test-k-from-gauge} & Checks $K$ derived from the gauge (Lie form) on route C trumpet data. \\
+\texttt{diagnose-kerr-bssn} & Route C data: both constraints and the RHS on Kerr trumpet data, against a Schwarzschild fixture on identical stencils. \\
 \texttt{diagnose-ks-stationarity} & RHS residual on frozen Kerr--Schild. \\
 \texttt{diagnose-momentum-point} & Stored vs.\ analytic state, term by term. \\
 \texttt{diagnose-inner-boundary} & Fill perturbation-depth scan. \\
@@ -415,6 +459,7 @@ passed unconditionally. A real gate requiring monotonically decreasing RMS was
 added, and verified to fail when a sign is flipped.
 
 \section{Gauge}
+\label{sec:gauge}
 
 \begin{align}
 \text{1+log:} \quad &\partial_t\hat{A}
@@ -423,9 +468,23 @@ added, and verified to fail when a sign is flipped.
 \text{maximal:} \quad &\partial_t\hat{A}
   = -\alpha K + \beta^a\partial_a\hat{A},
   \label{eq:slice-max}\\
+\text{Bona--Masso:} \quad &\partial_t\hat{A}
+  = -\alpha^2 f(\alpha) K + \beta^a\partial_a\hat{A},
+  \label{eq:slice-bm}\\
 \text{frozen:} \quad &\partial_t\hat{A} = 0.
   \label{eq:slice-frozen}
 \end{align}
+
+The Bona--Masso family \eqref{eq:slice-bm} contains the two entries above
+($f = 2/\alpha$ is 1+log, $f = 1/\alpha$ is maximal), but the production
+mode (\texttt{slicing\_mode = 3}) uses a third $f(\alpha)$ with no closed
+form: the one under which the DBM trumpet Kerr family is stationary. It is
+\emph{tabulated}, not analytic. At $a = 0$ the closed form
+$f = (1-\alpha)/\alpha$ is exact, but at $a = 0.8$ the measured $f$ is
+genuinely $\alpha$-dependent (the implied ratio $c = f/(1/\alpha - 1)$ runs
+$0.972 \ldots 1.085$) and must be interpolated from the table.
+Chapter~\ref{ch:routec} documents where the table comes from and the caveat
+that attaches to it.
 
 \begin{align}
 \text{legacy:} \quad
@@ -439,6 +498,28 @@ added, and verified to fail when a sign is flipped.
 \text{frozen:} \quad &\partial_t\beta^a = 0.
   \label{eq:gd-frozen}
 \end{align}
+
+The production driver (\texttt{gamma\_driver\_mode = 4}) obeys the \emph{same
+continuum equations} as the legacy mode, \eqref{eq:gd-legacy} and
+\eqref{eq:gd-legacy-d}, and differs from it only in how the material
+derivatives are converted to partial time derivatives on discrete data. That
+difference is not small.
+
+\gotcha
+The legacy driver (mode 0) and the production driver (mode 4) discretise the
+same continuum equation, and on a stationary solution they disagree by a
+factor of 32. Measured on exact stationary Schwarzschild data: the mode-4
+gauge leaves a residual of $9.39\times10^{-4}$; mode 0 leaves
+$3.06\times10^{-2}$. The entire difference is mode 0's conversion term
+$\beta\!\cdot\!\partial\beta + \tilde\Gamma\,\partial\!\cdot\!\beta$: its
+$\partial_t\tilde{\Gamma}$ part is the same $9.39\times10^{-4}$ in both
+modes, so the conversion term alone accounts for the factor. Whether the
+mode-0 form or the mode-4 structural assumption is the correct discretisation
+of $d_\perp\tilde{\Gamma}^a$ is \emph{not} yet established --- the probe that
+would decide it is recorded in the Makefile and has not been built. Until it
+is, mode 0's residual is a measured fact without an explanation, and the
+defect is deliberately left open rather than papered over by flipping a
+default. See Section~\ref{sec:gauge-gate} for the gate that found it.
 
 \gotcha
 In \eqref{eq:gd-puncture}, $\partial_t B^a$ has \emph{no} $\partial_t
@@ -468,8 +549,21 @@ real(dp), allocatable :: zg(:)   ! z(1) = -zmax, z(Nz) = +zmax
 
 Fortran indices run $1..N$, so $\mathrm{i}=1$ is the symmetry axis $x=0$ and
 $\mathrm{k}=1$ is $z=-z_{\max}$. In the production configuration
-$N_x = 48$, $N_z = 96$, $x_{\max} = z_{\max} = 12\,M$, giving
-$dx \approx 0.2553$, $dz \approx 0.2526$, and $dy = dx$.
+$N_x = 96$, $N_z = 192$, $x_{\max} = z_{\max} = 12\,M$, giving
+$dx \approx 0.1263$, $dz \approx 0.1257$, and $dy = dx$.
+
+\gotcha
+The old default, $48\times96$, is \emph{under-resolved} for this problem and
+nothing measured at that resolution is evidence of anything. The measured
+symptoms: the apparent-horizon area is off by $\sim15\%$ from exact Kerr and
+depends on $r_{\mathrm{excise}}$ with a $29\%$ spread ($-14.9\%$ at
+$r_{\mathrm{excise}} = 0.7$ vs $+14.5\%$ at $1.0$); at $96\times192$ the
+error drops to $1$--$2\%$ and the $r_{\mathrm{excise}}$ spread collapses to
+$1.8\%$ ($-0.41\%$ vs $-2.15\%$) --- a $17\times$ improvement under $2\times$
+refinement, which is what establishes that the inner boundary is
+\emph{resolution-limited} rather than missing a boundary condition. Short
+smoke runs may override with \texttt{GR\_NX=48 GR\_NZ=96}, but only for
+plumbing checks.
 
 \gotcha
 The symmetry axis is $x=0$ and the $z$-axis is the spin axis. The code mirrors
@@ -622,10 +716,18 @@ filled last step be treated as reliable when it is not.
 
 \subsection{The mask}
 
-A point is excised if its \textbf{Kerr radius} is below the cutoff:
+A point is excised if its \textbf{Kerr radius} is below the cutoff, with the
+symmetry axis protected outright:
 \begin{lstlisting}
 logical function is_excised(i,k)
-  is_excised = (kerr_radius_squared(xg(i), zg(k)) < r_excise**2)
+  ! Never excise the axis (i=1) or the first off-axis point (i=2):
+  ! the axis is a symmetry boundary, and the first off-axis point
+  ! is too close to the axis for stable excision extrapolation.
+  if (i <= 2) then
+    is_excised = .false.
+  else
+    is_excised = (kerr_radius_squared(xg(i), zg(k)) < r_excise**2)
+  end if
 end function
 \end{lstlisting}
 with
@@ -636,9 +738,19 @@ r^2_{\mathrm{KS}} = \frac{1}{2}\left(\rho^2 - a^2
 \end{equation}
 In the production configuration $a = 0.8$, $M = 1$, so the outer horizon is
 at $r_+ = M + \sqrt{M^2 - a^2} = 1.6$ and the inner horizon at $r_- = 0.4$.
-The default $r_{\mathrm{excise}} = 1.0$ therefore sits between the two
-horizons --- inside the black hole but outside the Cauchy horizon, which is the
-standard and safe choice.
+The production parameter file sets $r_{\mathrm{excise}} = 0.8$, which sits
+between the two horizons --- inside the black hole but outside the Cauchy
+horizon, which is the standard and safe choice. (The module default is still
+$1.0$; the parameter file overrides it.)
+
+\gotcha
+The $i \leq 2$ axis protection is not cosmetic. Without it, the
+$r_{\mathrm{excise}} = 1.42$ route C attempt failed at step~1 with unstable
+ghost extrapolation right at the axis ($i = 2$), and widening the protection
+to $i \leq 6$ merely moved the failure outward. Note the consequence: axis
+points with $|z| < r_{\mathrm{excise}}$ are \emph{evolved} even though they
+lie inside the nominal excision surface. Any analysis that assumes the mask
+is a complete Kerr-radius ball must account for those two protected columns.
 
 \gotcha
 $r_{\mathrm{KS}} \neq \sqrt{x^2+z^2}$ whenever $a\neq 0$ and $z \neq 0$. The
@@ -919,12 +1031,12 @@ This costs one extra pass over arrays that have already been computed --- no
 additional stencil work, no effect on the evolution. Typical output:
 
 \begin{lstlisting}
- step 700  ...  max|H|(ext)= 1.2656E-02  rms|H|(ext)= 2.0211E-03  alpha(probe)= 0.910348
-    near-mask r_KS < 3.0000E+00  n= 192  max|H|= 1.9493E+00  max|M|= 1.4920E+00  worst r= 1.0227
+ step 6  ...  max|H|(ext)= 1.1163E-02  rms|H|(ext)= 1.2302E-03  alpha(probe)= 0.924714
+    near-mask r_KS < 2.8000E+00  n= 706  max|H|= 1.7890E+00  max|M|= 7.5744E-01  worst r= 0.8125
 \end{lstlisting}
 
-The momentum residual deserves attention: $\texttt{max|M|}$ is $1.49$ inside
-the band against $2.87\times10^{-2}$ outside --- a factor of 52. Since the band
+The momentum residual deserves attention: $\texttt{max|M|}$ is $0.76$ inside
+the band against $2.44\times10^{-3}$ outside --- a factor of 310. Since the band
 is where the fill injects its error into the stencil, a large $\max|M|$ there
 is the signature of a fill/stencil inconsistency rather than a gauge problem.
 That is a useful discriminator between two failure families that are otherwise
@@ -1279,6 +1391,259 @@ the quantity you think it is --- by cross-checking against a second,
 independently written instrument.
 \end{enumerate}
 
+\section{Where this ended up}
+
+The investigation did not find a single bug that, once fixed, made the old
+configuration survive. What it produced instead is a \emph{different}
+configuration --- the same exact Kerr--Schild initial data, but a stationary
+Kerr gauge and a grid twice as fine on each axis --- together with a driver
+that aborts on the drift of gauge-invariant horizon quantities rather than on
+the horizon's coordinate position, and with every measurement error found
+along the way recorded above so that it need not be repeated. The old
+configuration's numbers remain in this chapter because they are the baseline
+those changes were measured against, and because the near-mask error they
+exposed is still present --- merely no longer fatal. The replacement is
+Chapter~\ref{ch:routec}.
+
+\chapter{Route C: a Stationary Kerr Gauge}
+\label{ch:routec}
+
+The investigation in Chapter~\ref{ch:findings} ended on a specific missing
+ingredient: the code had no stationary Kerr data/gauge pair, so every run was
+measuring the slice evolution of Kerr--Schild data under a gauge (1+log) of
+which Kerr--Schild is not a slice. ``Route C'' is the attempt to supply one,
+named for the third of the candidate routes out of the failure. It partially
+succeeded, in a split that is worth understanding in full: the \emph{gauge}
+works, is what production now runs, and stops the horizon migrating; the
+\emph{data} does not work, for a reason --- a gradient discontinuity ---
+that is invisible to any value-continuity check and is recorded here so the
+next attempt starts from the right place.
+
+\section{The source family}
+
+The geometry is the trumpet-slice family of Dennison, Baumgarte \& Montero,
+``Trumpet Slices in Kerr Spacetimes'', PRL 113, 261101 (2014)
+(arXiv:1409.1887). In the ABLE radial coordinate $R$ the family gives the
+lapse and shift of a stationary Kerr slice in closed form for any spin, with
+a one-parameter family of trumpet surfaces $R = R_0$ inside the horizon.
+\path{helper/eq\_kerr\_trumpet.F90} implements the family;
+\path{helper/eq\_kerr\_bssn\_data.F90} converts a grid point to the full
+BSSN state, with $K$ obtained from the validated Lie form
+$K_{ij} = \mathcal{L}_\beta\gamma_{ij}/(2\alpha)$.
+
+The source paper's own caveat, which must not be lost: ``our new coordinate
+system for Kerr is not well-suited for numerical simulations'', and $K$ is
+not single-valued on the trumpet surface. Both statements turned out to
+matter.
+
+\section{Three bugs, all found by measurement}
+
+Every one of the three was invisible in the raw output and was caught only by
+a control: either the analytic $a = 0$ Schwarzschild case, or an asymptotic
+law that the quantity had to satisfy.
+
+\begin{description}
+\item[Frame conversion (the dominant error).] The module returned the spatial
+      metric in the \emph{coordinate} basis $(r,\theta,\phi)$ --- at large $r$
+      it gives $(1,\, r^2,\, r^2\sin^2\theta)$, which is legitimately flat
+      space in spherical coordinates, so $g_{\phi\phi}$ carries
+      $\sin^2\theta$ and $\det g \to 0$ on the axis. Both Cartesian assembly
+      routines rotated that with $T = E\,g\,E^\top$, i.e.\ treated it as an
+      \emph{orthonormal} tensor. The correct relation is
+      $g_{\mathrm{cart}} = J^{-\top} g\, J^{-1}$ with $J_{ia} = \partial
+      x^i/\partial q^a$; equivalently, convert to the orthonormal frame first
+      ($h_{ab} = g_{ab}/(s_a s_b)$, $s = (1,\, r,\, r\sin\theta$)) and then
+      rotate. The \emph{shift} had the same defect, missing the same scale
+      factors. Measured, along the equator: $\det\gamma$ went from $84 \to$
+      the correct $21.96$ (the wrong code gave $1695$, diverging);
+      degenerate-metric rejections went $1196 \to 0$, leaving only the 160
+      genuine trumpet cells ($r \in [0.06, 1.41]$); $\max|H|$ in the
+      $r \in [3,5]$ annulus went from $2.40\times10^{3}$ to $2.82$.
+\item[Polar angle mixing two radii.] The module computed the polar angle as
+      $z/r$ with $r$ the ABLE radial coordinate. The paper's
+      $\rho^2 = R^2 + a^2\cos^2\theta$ \emph{mixes} the ABLE radius $R$ with
+      the standard polar angle $\cos\theta = z/r_E$; the two radii coincide
+      only at $a = 0$. Using the standard angle: $\max|H|$ at $a = 0.8$ went
+      $2.82 \to 1.50\times10^{-2}$ ($187\times$), at $a = 0.4$
+      $9.09\times10^{-1} \to 3.99\times10^{-3}$ ($228\times$), and $a = 0$
+      was unchanged ($1.86\times10^{-3}$) --- exactly the $a$-dependence the
+      error requires, and a clean confirmation that the fix is the fix.
+\item[A missing $g_{R\phi}$.] The module returned only the diagonal of the
+      spatial metric, but the paper's eq.\ (12) also has
+      $g_{R\phi} = -2a\sqrt{R_0^2 + 2R(M-R_0) - a^2}\,/\,(R-R_0)\,
+      \sin^2\theta$. A bolt-on diagonal correction cannot land this term;
+      what works is the full Jacobian, which is \emph{upper triangular} in
+      the spherical frame (because the ABLE quartic makes $r_E$ depend on
+      $\theta$ as well as $R$), with the metric transforming as
+      $g_{\mathrm{cart}} = E\,(T^{-\top} g_q T^{-1})\,E^\top$ --- the inverse,
+      because the metric is covariant. On the axis $\sin\theta$ must be
+      floored and used consistently in both $g_{\phi\phi}$ and
+      $g_{R\phi}$, or $0 \times \infty$ gives NaN; with that, the
+      $1/\sin\theta$ cancels exactly. At $a = 0$ the whole construction
+      reduces to $T = \mathrm{diag}(1, R, R\sin\theta)$ and reproduces the
+      exactly correct Schwarzschild trumpet.
+\end{description}
+
+\gotcha
+An obviously wrong candidate was tested and rejected, and the rejection is
+worth recording: using the \emph{Euclidean} radius for the chart's scale
+factors instead of the ABLE radius made things far worse ($a = 0$ went from
+$1.86\times10^{-3}$ to $24.6$), which is what establishes that the ABLE
+radius is the right scale factor and only the angle was wrong. It is the
+obvious next ``fix'' and it is wrong.
+
+\section{Validation of the data, in isolation}
+
+With all three fixed, \texttt{diagnose-kerr-bssn} measures the route C data
+on the same stencils as a Schwarzschild equilibrium fixture, in the annulus
+$r \in [3,5]$ at $96\times192$:
+
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & Kerr $a=0.8$ & Schwarzschild fixture \\
+\midrule
+$\max|H|$ & $8.60\times10^{-3}$ & $2.69\times10^{-3}$ \\
+$\max|M|$ & $7.49\times10^{-3}$ & $2.02\times10^{-4}$ \\
+$\alpha$ RHS & $5.65\times10^{-4}$ & $1.58\times10^{-2}$ \\
+$\tilde\Gamma$ RHS & $9.14\times10^{-3}$ & $4.20\times10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The decisive measurement is the \emph{spin scan} of $\max|H|$ on identical
+stencils: $1.86\times10^{-3}$ ($a = 0$), $3.62\times10^{-3}$ ($a = 0.4$),
+$8.60\times10^{-3}$ ($a = 0.8$) --- gentle growth with spin. A structural
+error (a wrong radial function, a bad Jacobian) would not vanish at
+$a = 0$; the family is a genuine vacuum solution, and the residual is
+truncation, not a defect. The $\alpha$ RHS being \emph{below} the
+Schwarzschild fixture's is the slicing gauge doing its job.
+
+Two caveats survive this validation and are not resolved:
+\begin{itemize}
+\item The weakest number is $\max|M| = 7.49\times10^{-3}$, about $37\times$
+      the fixture's, and it did \emph{not} improve with the $g_{R\phi}$ fix
+      ($6.29\times10^{-3} \to 7.49\times10^{-3}$). Its polar-angle profile is
+      \emph{equatorial}, peaking at $|\cos\theta| < 0.1$ rather than at the
+      axis, so it is not the axis/Jacobian; the mechanism is open.
+\item The $f(\alpha)$ table is built from the $a = 0.8$ geometry alone.
+      Production runs $a = 0.8$, so production is covered, but any other
+      spin uses an interpolated $f$ that has never been validated for that
+      spin. Regenerate the table as part of \emph{any} change to
+      \path{helper/eq\_kerr\_trumpet.F90}; the old table was invalidated by
+      the frame fix without anyone noticing for a while.
+\end{itemize}
+
+\section{Why the route C data cannot be initial data}
+
+The 160 trumpet-interior cells ($r < 1.41$) cannot be evaluated in closed
+form, so they were filled by \emph{radial projection}: a binary search
+outward along the ray to the nearest valid point, copied inward. All 160
+cells are projected, zero flat fallbacks. This fixes the \textbf{value}
+discontinuity at the trumpet boundary --- and fixes nothing else. The
+projected region has zero radial derivative while the exterior has non-zero,
+so the \textbf{gradient} is discontinuous, and the finite-difference stencils
+see $O(1)$ second derivatives across the seam. Measured consequences:
+
+\begin{itemize}
+\item $r_{\mathrm{excise}} = 1.42$ (excise the entire projected region):
+      evolution fails at step~1 near the axis. The excision surface at
+      $r = 1.42$ intersects the axis at $z = \pm1.42$, and the one-sided
+      ghost-fill stencils are ill-conditioned for data whose lapse tends to
+      zero at the trumpet.
+\item $r_{\mathrm{excise}} = 0.8$ (leave the projected annulus physical):
+      the annulus is not constraint-satisfying --- $\max|H| = 5.89\times10^{2}$
+      --- and the run fails at step~1 for the same stencil-level reason.
+\item Widening the axis protection to $i \leq 6$ does not help; the failure
+      point moves outward and the instability persists.
+\end{itemize}
+
+What would make it workable, in rough order of promise, none attempted:
+smooth the projection into the exterior over $\sim3$ cells in a way that
+preserves $d\alpha/dr$; excise a \emph{cylindrical} region that avoids the
+axis entirely; or extend the closed form inside the trumpet (the paper says
+it is singular there --- hence its own caveat).
+
+\section{What production actually runs}
+
+Route C the \emph{data} is out; route C the \emph{gauge} is in. Production
+is: \textbf{Kerr--Schild initial data} ($\texttt{set\_kerr\_schild\_id}$) +
+\textbf{tabulated Bona--Masso slicing} ($\texttt{slicing\_mode = 3}$) +
+\textbf{non-advective $\Gamma$-driver} ($\texttt{gamma\_driver\_mode = 4}$),
+at $96\times192$ with $r_{\mathrm{excise}} = 0.8$. The route C gauge works on
+Kerr--Schild data because what it needs to be stationary is the gauge
+function $f(\alpha)$, not the trumpet coordinates. Measured, 800+ steps:
+
+\begin{itemize}
+\item The horizon is found at step~0:
+      $r \in [1.59997, 1.78865]$, \texttt{dA/A\_Kerr} $= -3.99\times10^{-5}$,
+      $M_{\mathrm{irr}} = 0.894409$, $J = 0.800010$,
+      $M_H = 0.999991$ (exact: $M_{\mathrm{irr}} = \sqrt{0.8} =
+      0.894427$, $J = 0.8$, $M_H = 1$).
+\item The invariants stay put: \texttt{dA/A} remains a few
+      $\times10^{-5}$ and $M_H$ a few $\times10^{-6}$ over the runs
+      completed so far. $\max|H|$ stays below $4\times10^{-2}$ and bounded.
+\end{itemize}
+
+\section{The stationarity gate: invariants, not coordinates}
+\label{sec:invariant-gate}
+
+The horizon finder used to be guarded by the drift of its coordinate
+position $r_{\min}$, and that guard was wrong in an instructive way: $r_{\min}$
+is gauge-dependent, and under refinement it \emph{diverged} while the
+invariants converged. Drift of $r_{\min}$ from $1.5999$, compared at equal
+\emph{physical} time:
+
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+$t$ & $48\times96$ & $96\times192$ \\
+\midrule
+0.4466 & 0.0429 & 0.0395 \\
+0.8886 & 0.1277 & 0.1274 \\
+1.3328 & 0.1558 & 0.2364 \\
+1.7770 & 0.1640 & 0.3452 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two resolutions agree early and diverge later; the coarse grid appears to
+survive longer only because it cannot follow the true horizon motion --- it
+stalls at $r \approx 1.44$. Meanwhile the invariants converge under the same
+refinement (area: $-14.9\%$ vs $-0.41\%$ error at $r_{\mathrm{excise}} =
+0.7$, $+14.5\%$ vs $-2.15\%$ at $1.0$). So the driver now records the
+reference area and $M_{\mathrm{irr}}$ at the first horizon find and aborts
+when either drifts more than 5\% (\texttt{GR\_HZ\_ABORT}), which are
+quantities a stationary vacuum black hole must conserve. The coordinate
+$r_{\min}$ is still reported --- as a diagnostic, never as a gate.
+
+\section{The gauge stationarity gate}
+\label{sec:gauge-gate}
+
+\texttt{test-eq-schwarzschild-data} was the test whose red result defined
+the project for weeks: it measures the gauge residual on \emph{exact}
+stationary Schwarzschild (trumpet) data, where a gauge that is a genuine
+fixed point must leave only a discretisation-level residual. The legacy
+configuration left $3.06\times10^{-2}$ against a $9.39\times10^{-4}$
+candidate --- ratio 32, against a gate limit of 10. With the production
+gauge (modes 3/4) both residuals are now $9.39\times10^{-4}$: ratio 1.0, and
+the gate passes.
+
+Two honest qualifications attach to that green:
+\begin{itemize}
+\item Mode 4 passes this particular fixture partly \emph{trivially}: the
+      fixture is spherical, and $B = 0$ is mode 4's exact fixed point there.
+      That is why the gate alone was never taken as proof that mode 4 is
+      right for Kerr --- what makes it production-worthy is the measured
+      Kerr--Schild behaviour above, not the fixture.
+\item The mode-0 defect behind the old ratio is \emph{not} fixed; it is
+      quarantined. Production no longer runs mode 0, and the gate now tests
+      the production modes, but the reason mode 0's conversion term is
+      $32\times$ too large on stationary data is still open
+      (Section~\ref{sec:gauge} records the probe that would decide it).
+\end{itemize}
+
+
 \chapter{Writing Your Own}
 \label{ch:extend}
 
@@ -1344,6 +1709,7 @@ get it wrong.
 \end{description}
 
 \section{Where the physics is genuinely unfinished}
+\label{sec:unfinished}
 
 In rough order of value:
 
@@ -1351,14 +1717,23 @@ In rough order of value:
 \item \textbf{The near-mask error.} This is the actual bug. It is an $O(1)$
       Hamiltonian violation in the first two cells outside the mask, present in
       the initial discretisation, not caused by the projection, the fill, the
-      connection, or the gauge. It is what kills the run.
+      connection, or the gauge. It is what killed the old run. It is still
+      there in the new configuration --- the new gauge just stops the
+      horizon-migration and the coarser grid pathology from feeding it back
+      catastrophically --- so it remains the blocker for genuine long-duration
+      stability and for any claim of convergence of the constraints.
 \item \textbf{A real characteristic boundary treatment.} The outer Sommerfeld
       condition is not characteristic and not accurate; the second-order
       convergence it appears to exhibit is reflection.
 \item \textbf{SBP--SAT.} Blocked on a genuinely invalid SBP operator.
-\item \textbf{An active puncture gauge.} The \texttt{KNOWN LIMITATION} note
-      is accurate: the puncture gauge does not currently drive anything, and
-      the horizon drifts.
+\item \textbf{The puncture gauge and mode 0.} The puncture gauge
+      (\texttt{gamma\_driver\_mode = 1}) does not currently drive anything and
+      the horizon drifts under it; the legacy driver (mode 0) passes the wrong
+      discrete fixed-point condition by a factor of 32 and is not production.
+      Neither is understood well enough to be safe defaults.
+\item \textbf{Route C data.} The gradient discontinuity at the trumpet
+      boundary prevents the DBM trumpet from being used as initial data. The
+      gauge works; the data does not (Chapter~\ref{ch:routec}).
 \end{enumerate}
 
 \chapter{Deriving BSSN, and Why It Exists}
@@ -1824,6 +2199,7 @@ Every one of these cost real time in this project.
 \texttt{make run} & The production configuration. \\
 \path{./bin/diagnose\_ghost\_accuracy parameter\_files/vacuum\_kerr.par} &
 Ghost-fill accuracy, derivative errors, $H$ decomposition, $\Gt$ accuracy. \\
+\path{./bin/diagnose\_kerr\_bssn} & Route C data validation on Kerr trumpet against Schwarzschild fixture. \\
 \path{GR\_DIAG\_MARGIN=0.05 ./bin/vacuum\_kerr \ldots} & The margin sweep. \\
 \path{GR\_NEAR\_MASK\_W=0 ./bin/vacuum\_kerr \ldots} & Silences the
 near-mask line, to confirm it is inert. \\
@@ -1832,7 +2208,7 @@ Kerr--Schild gauge; the stationary control. \\
 \path{GR\_PROJ\_DIAG=1 ./bin/vacuum\_kerr \ldots} & Projection correction
 report. \\
 \texttt{GR\_EXCISION\_ORDER=$n$ \ldots} & The order sweep. \\
-\texttt{GR\_SOMMERFELD\_DECAY=1 \ldots} & Per-field asymptotic powers. \\
+\texttt{GR\_NX=48 GR\_NZ=96 \ldots} & Under-resolved smoke run (not for physics). \\
 \bottomrule
 \end{longtable}
 

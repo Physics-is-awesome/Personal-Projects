@@ -13,10 +13,10 @@ General notes from my first look at the paper detecting Gravitational Wave Memor
 \subsubsection{Action Notes}
 
 \begin{itemize}
-  \item Learn Linear Prediction Filtration
-  \item Learn librosa python module
-  \item What is a whitened signal
-  \item What is amplitude spectral density
+	\item Learn Linear Prediction Filtration
+	\item Learn librosa python module
+	\item What is a whitened signal
+	\item What is amplitude spectral density
 \end{itemize}
 
 I found a MITOpenCourseWare on signal theory that I will likely try to do
@@ -29,10 +29,10 @@ Got some audio stuff working
 
 Convolution is defined via
 \[
-\sum_{k=-\infty}^\infty x[k]h[x-k] = (x \star h)[n]
-  \]
+	\sum_{k=-\infty}^\infty x[k]h[x-k] = (x \star h)[n]
+\]
 
-  There is also a lot of other information listed but I am not sure what is important, the equations are generally pretty simple so I think I will just look them up.
+There is also a lot of other information listed but I am not sure what is important, the equations are generally pretty simple so I think I will just look them up.
 \section{September 10}
 
 add whiten to gw, zero out wavelets
@@ -49,13 +49,13 @@ I got the code for the audio of the CCSN. I did successfully whiten the gravitat
 
 Calculating the quadrupole mass moment is fairly simple
 \[
-I_{2m} = \frac{16 \sqrt{3} \pi}{15} \int \rho Y_{2m}^{\star} r^2 dV
-  \]
+	I_{2m} = \frac{16 \sqrt{3} \pi}{15} \int \rho Y_{2m}^{\star} r^2 dV
+\]
 
-  The star superscript means we are using the complex conjugate.
+The star superscript means we are using the complex conjugate.
 
 
-  Rather than write everything out, calculate mass moment very simply, find its second order time derivative, then plug that into the gravitational wave equation.
+Rather than write everything out, calculate mass moment very simply, find its second order time derivative, then plug that into the gravitational wave equation.
 
 \section{September 24}
 
@@ -79,3 +79,15 @@ Gorgoulon General Relativity
 
 
 \section{October 15}
+Make sure
+
+Look at D25 solar mass simulation
+
+
+Change theta or phi and mess around with it.
+
+Change premissions ``chmod -R 777 *''
+
+Actually run: ``sbatch aj_job_submit.slurm''
+
+Directory: ``../../lustre/isaac24/scratch/cricha80/GW_NextGen''

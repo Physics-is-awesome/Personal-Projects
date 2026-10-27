@@ -45,7 +45,7 @@ module params_mod
   ! mode 2 freezes the Kerr-Schild lapse; pair with gamma_driver_mode=2.
   ! The Kerr-Schild initial data is a static gauge, so evolving it with
   ! maximal slicing produces a much smaller gauge transient than 1+log.
-  integer  :: slicing_mode = 0
+  integer  :: slicing_mode = 3
   ! 0 = legacy: d_t Gbar = RHS_Gam - eta*Gbar   (Gbar is coupled to the
   !     Gtilde equations and is only damped towards ZERO -- no puncture)
   ! 1 = puncture: d_t Gbar = -eta (Gbar - puncture_sign*2M x^a/r^3)
@@ -54,7 +54,7 @@ module params_mod
   !     (d_t-beta.D)B=(d_t-beta.D)Lambda-eta B (experimental)
   ! 4 = non-advective Gamma-driver, d_t beta=3/4 B and
   !     d_t B=d_t Lambda-eta B (stationary-shift compatibility candidate)
-  integer  :: gamma_driver_mode = 0
+  integer  :: gamma_driver_mode = 4
   ! Puncture-lapse shaping for the INITIAL data:
   !   0 = off: lapse is whatever Kerr-Schild gives (maximal-slicing like,
   !       alpha ~ 0.707 at the horizon -- does NOT vanish anywhere)

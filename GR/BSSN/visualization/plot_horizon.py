@@ -4,7 +4,7 @@
 """Plot the apparent-horizon diagnostics stored in output/diagnostics.h5.
 
 usage:  python3 plot_horizon.py [output_dir] [--M 1.0 --a 0.5]
-
+python3 visualization/plot_horizon.py output --M 1.0 --a 0.8
 Prints a table of (step, time, area, M_irr, J, M_H) and saves horizon.png.
 If --M and --a are given (the Kerr mass and spin you started from), the plots
 also show the exact stationary-Kerr values, since area, J and M_H of a Kerr
