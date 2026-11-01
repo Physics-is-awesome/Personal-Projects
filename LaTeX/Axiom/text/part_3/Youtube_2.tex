@@ -1,0 +1,82 @@
+\section{Metriplectic 4-bracket}
+
+\begin{itemize}
+  \item Introduction
+  \item Review of Metriplectic Dynamics
+  \item Motivating 4-brackets
+  \item Poisson to Metriplectic
+  \item Metriplectic to 4-bracket
+  \item Kulkarni-Nomizu construction
+  \item UTA(unified thermodynamics algorithm)
+  \item Conclusion
+\end{itemize}
+
+\subsection{Introduction}
+
+Welcome back to our series on Metriplectic dynamics. If you haven't already I would recommend watching our previous video motivating the Metriplectic system.
+
+Here we will work to extend the system from a binary bracket into a four-bracket in order to expand the geometry used.
+
+
+\subsection{Review of Metriplectic}
+
+For a quick review, Metriplectic systems expand Hamiltonian dynamics into dissipative and irreversible systems.
+
+It is able to do this as the reason traditional Hamiltonians are so limited, is because they are fundamentally symplectic, it expands it into Remaniann geometry, hence the metric. We have the antisymmetric Poisson bracket—representing the conservative, Hamiltonian flow, and a symmetric metric bracket, representing dissipation and entropy generation. Together, they create a complete picture of a system obeying the first and second laws of thermodynamics.
+
+Starting with the poission bracket
+$$\dot{f}=\{f,g\}$$
+In this case
+$$0= \{S,H\}$$
+Thus it is the Casimir functionals of the Poisson bracket
+$$\{C,f\}=0 \forall f$$
+From here we can define the Hamiltonian free energy.
+$$F=H+\lambda C $$
+Where $\lambda$ is an arbitrary constant left. In MSTDOF, it is the minus of the tempeture.
+
+To then expand the system, $\langle\langle f,g \rangle \rangle$ via $F$. So that $\langle\langle f, g\rangle \rangle=\{f,h\} + (f,g)$ and $(f,g)$ is symmetric, bilinear and semi-definite.
+
+Evolution is then given by
+$$\dot{f}=\langle\langle f, F\rangle \rangle$$
+(the symmetric bracket $(f,g)$ will be defined so to cancel out the presence of the coefficient
+ $\lambda$, removing it from the equations of motion).
+
+ $(f,g)$ is defined so that $H$ is conserved.
+ $$(H, f) = 0 \forall f$$
+ Thus metriplectic evolution reads:
+ $$\dot{f}=\{f,H\}+\lambda(f,C)$$
+ The Casimir to mimic entropy undergoes an evolution described by:
+ $$\dot{C}=\lambda(C,C)$$
+
+
+\subsection{Motivating Metriplectic 4-bracket}
+
+With this bracket system, we can look at the stracture of the dissipative bracket.
+
+One is symmetry
+\[
+(F,G) = (G,F)
+\]
+
+Positive semidefiniteness
+\[
+(F,F) \geq 0
+  \]
+  Energy degeneracy
+\[
+(H,F) = 0
+\]
+
+The third condition is particularly important. It makes the claim that the bracket doesn't actually produce a change of total energy, just produces entropy that can in some cases mimic energy dissipation, but you can't just add arbitrary dissipative operators.
+
+A great example is the fact that in fluid dynamics, you add arbitrary dissipative structure like viscosity or collisional relaxation. While, individually you it can be done, but when coupling them it breaks the mathematical structure without extremly careful mathematics hard to justify.
+
+\[
+(F,S) = (F,S)_{\text{visc}} + (F,S)_{\text{heat}}
+  \]
+
+  it requires you to construct the operators consistently. Cross-coupling between the processes introduces further constraints.
+
+  The two-bracket formulation does not provide a general construction procedure for accomplishing this. The four-bracket does, which is what we will show momentarly.
+
+  \subsection{Poisson to Metriplectic}

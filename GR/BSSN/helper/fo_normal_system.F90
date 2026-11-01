@@ -310,10 +310,10 @@ contains
       A(fo_complete_index(IALPHA,d),IK) = -2.0_dp*q(IALPHA)*nn(d)
     end do
     labels(IK) = 'lapse-K-coupled'
-    supported(IK) = .false.
+    supported(IK) = .true.
     do d = 1, 3
       labels(fo_complete_index(IALPHA,d)) = 'lapse-K-coupled'
-      supported(fo_complete_index(IALPHA,d)) = .false.
+      supported(fo_complete_index(IALPHA,d)) = .true.
     end do
     lambda(IK) = -beta_n
     do d = 1, 3

@@ -34,6 +34,18 @@ program test_eq_kerr_data
   integer :: i, j, nfail, nscan
   logical :: ok
 
+  ! Sampling grid for the f(alpha) table.  Dense near the trumpet R -> R0 = M,
+  ! because the a = 0.8 lapse minimum (and therefore the bottom of the usable
+  ! alpha range) is reached well inside R = 1.8 -- the old grid started at
+  ! R = 1.8 and left the lowest alpha the evolved run actually visits outside
+  ! the table.
+  integer, parameter :: NRG = 23
+  real(dp), parameter :: rgrid(NRG) = [ &
+       1.05_dp, 1.10_dp, 1.15_dp, 1.20_dp, 1.25_dp, 1.30_dp, 1.40_dp, &
+       1.50_dp, 1.60_dp, 1.70_dp, 1.80_dp, 2.00_dp, 2.20_dp, 2.60_dp, &
+       3.00_dp, 3.40_dp, 3.80_dp, 4.20_dp, 4.60_dp, 5.00_dp, 5.40_dp, &
+       5.80_dp, 6.20_dp ]
+
   nfail = 0
   M = 1.0_dp
   h = 1.0e-4_dp
@@ -263,21 +275,26 @@ program test_eq_kerr_data
   write(*,'(A)') '=== Part H: tabulate f(alpha) for the slicing mode ==='
   write(*,'(A)') '  h = 1e-4 is converged (Part G).  Emitted along the equator;'
   write(*,'(A)') '  Part E shows the same f at the same alpha off-equator to ~0.5%.'
-  write(*,'(A)') '  Copy these columns into the mode as the f(alpha) table.'
+  write(*,'(A)') '  Copy these columns into bm_f_tab as the f(alpha) table.'
+  write(*,'(A)') '  The R grid is dense for R -> R0 = M because that is where the'
+  write(*,'(A)') '  a = 0.8 lapse minimum is; a grid starting at R = 1.8 (the old'
+  write(*,'(A)') '  choice, tuned for a = 0) ended at alpha = 0.376 while the run'
+  write(*,'(A)') '  reaches 0.363.  The a = 0 column must reproduce (1-alpha)/alpha'
+  write(*,'(A)') '  exactly; it is the validation that the whole pipeline is sound.'
   write(*,'(A)')
-  write(*,'(A,F7.3,2F16.8)') '        a         R          alpha            f(alpha)'
+  write(*,'(A,F7.3,2F16.8,A)') '        a         R          alpha            f(alpha)      alpha*f'
   do ii=1,2
     if (ii==1) then
       aa=0.0_dp
     else
       aa=0.8_dp
     end if
-    do ir=1,12
-      Rr = 1.4_dp + 0.4_dp*real(ir,dp)
+    do ir=1,size(rgrid)
+      Rr = rgrid(ir)
       call point_derivs3(Rr, 0.0_dp, M, aa, M, 1.0e-4_dp, Ktr, bda, al0)
       if (al0<=0.0_dp) cycle
       f1 = bda/(al0*al0*Ktr)
-      write(*,'(A,2F7.3,2F16.8)') ' ', aa, Rr, al0, f1
+      write(*,'(A,2F7.3,2F16.8,F12.4)') ' ', aa, Rr, al0, f1, f1*al0
     end do
   end do
 

@@ -11,6 +11,7 @@ module params_mod
   public :: gamma_driver_mode
   public :: puncture_lapse_mode
   public :: conformal_factor_mode
+  public :: initial_data_mode
   public :: cfl, nsteps, out_every, hz_every_par
   public :: ko_eps
   public :: r_excise
@@ -66,6 +67,9 @@ module params_mod
   ! 0 = phi=(1/12)ln det gamma (det gamma-tilde = 1)
   ! 1 = phi=(1/4)ln(1+2H)    (standard Kerr-Schild, gamma-tilde -> delta)
   integer  :: conformal_factor_mode = 0
+  ! 0 = Kerr-Schild initial data (legacy/production)
+  ! 1 = Dennison-Baumgarte-Montero trumpet initial data (route C)
+  integer  :: initial_data_mode = 0
 
   ! --- Time evolution ---
   real(dp) :: cfl = 0.005_dp
@@ -115,6 +119,7 @@ contains
     call override_int("GR_SLICING_MODE", slicing_mode)
     call override_int("GR_PUNCTURE_LAPSE_MODE", puncture_lapse_mode)
     call override_int("GR_CONFORMAL_FACTOR_MODE", conformal_factor_mode)
+    call override_int("GR_INITIAL_DATA_MODE", initial_data_mode)
     call override_int("GR_NSTEPS", nsteps)
     call override_int("GR_OUT_EVERY", out_every)
     call override_int("GR_HORIZON_EVERY", hz_every_par)
@@ -204,6 +209,7 @@ contains
         case ('slicing_mode'); read(value, *, iostat=val_ios) slicing_mode
         case ('puncture_lapse_mode'); read(value, *, iostat=val_ios) puncture_lapse_mode
         case ('conformal_factor_mode'); read(value, *, iostat=val_ios) conformal_factor_mode
+        case ('initial_data_mode'); read(value, *, iostat=val_ios) initial_data_mode
         case ('cfl');            read(value, *, iostat=val_ios) cfl
         case ('nsteps');         read(value, *, iostat=val_ios) nsteps
         case ('out_every');      read(value, *, iostat=val_ios) out_every

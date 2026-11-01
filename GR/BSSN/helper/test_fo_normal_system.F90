@@ -49,7 +49,7 @@ program test_fo_normal_system
   if (maxval(abs(Ac - transpose(Ac))) <= 0.0_dp) then
     error stop 'complete normal matrix was not populated'
   end if
-  if (csupported(IK)) error stop 'unsupported K gauge coupling was misclassified'
+  if (.not. csupported(IK)) error stop 'fully coupled K gauge coupling was misclassified'
   if (.not. csupported(fo_complete_index(IPHI,1))) &
     error stop 'reduction transport mode was not classified'
   write(*,'(A,ES12.4)') 'complete normal matrix gauge coupling: ', &

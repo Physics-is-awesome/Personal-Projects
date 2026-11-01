@@ -8,6 +8,7 @@ program main
   use grid_mod, only: xg, zg, setup_grid
   use vars_mod, only: NVARS, IALPHA, IPHI, IK, IBETAX, IBX, alloc_state, ICONFMET, IATILDE
   use initial_data_mod, only: set_kerr_schild_id, compute_conformal_connections
+  use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use timestep_mod, only: rk4_step
   use excision_mod, only: extrapolate_excised, is_excised, set_excision_background, &
@@ -27,10 +28,16 @@ program main
   integer :: n, npts
   real(dp) :: dt, t
   integer :: axis_k, i, k
-  real(dp) :: diag_margin
-  real(dp) :: near_mask_w
-  integer  :: nm_npts, nm_i, nm_k
-  real(dp) :: nm_Hmax, nm_Mmax, nm_rr
+  ! Constraint shells, keyed to the apparent horizon (see the note below).
+  real(dp) :: near_mask_w        ! horizon-shell width, in cells
+  real(dp) :: r_ah               ! apparent-horizon radius (fallback: analytic r_+)
+  real(dp) :: shell_w            ! horizon-shell width in length units
+  real(dp) :: junk_H, junk_R, junk_M
+  real(dp) :: hor_H,  hor_R,  hor_M
+  real(dp) :: alpha_min
+  integer  :: junk_n, hor_n, hor_i, hor_k
+  integer  :: ext_i, ext_k
+  integer  :: skip_i = -1, skip_k = -1   ! sentinel: do not record a worst point
   real(dp) :: r_horizon
   real(dp) :: char_speed
   integer :: n_char_bad
@@ -77,22 +84,29 @@ program main
   call setup_grid()
   call alloc_state(u, Nx, Nz)
 
-  diag_margin = 1.0_dp
-  call get_environment_variable("GR_DIAG_MARGIN", buf, status=envstat)
-  if (envstat == 0) read(buf,*) diag_margin
-
   ! ---------------------------------------------------------------------
-  ! Near-mask diagnostic band.
+  ! Constraint-diagnostic shells.
   !
-  ! diag_margin deliberately excludes r_excise < r_KS < r_excise+diag_margin
-  ! from the exterior statistics, so that a growing error localised in the
-  ! first cells outside the mask is invisible in max|H|(ext).  Measurement
-  ! (baseline/DRIVER_FILTER_BUG.md) shows that band carries the largest
-  ! constraint violation in the whole domain, by ~2 orders of magnitude at
-  ! the production resolution, while max|H|(ext) stays small.
+  ! These used to be defined as r > r_excise + diag_margin (exterior) and
+  ! r_excise < r < r_excise + w (near-mask).  Both are wrong when the mask
+  ! sits inside the horizon, which it always does here (r_excise ~ 0.55 r_+):
   !
-  ! This band reports max|H| and max|M| over r_excise < r_KS < r_excise+w
-  ! explicitly.  Set GR_NEAR_MASK_W=0 to silence it.
+  !   * with r_excise = 1.0 and diag_margin = 1.0 the exterior test discards
+  !     r < 2.0, i.e. the whole shell r_+ < r < 2.0 in which inner-boundary
+  !     error can legitimately enter the physical domain;
+  !   * the near-mask band starts at r_excise and therefore contains the
+  !     inside-horizon region r_excise < r < r_+, where the constraint has no
+  !     physical meaning.  Its maximum is inside-horizon junk (measured at
+  !     r ~ 1.06 for r_excise = 1.0), not a boundary-operator error.
+  !
+  ! Shells are now keyed to the apparent horizon r_ah:
+  !
+  !   inside-horizon  [r_excise, r_ah)        reported, never gated
+  !   horizon shell   [r_ah, r_ah + w)        reported, this is the gate
+  !   exterior        [r_ah + w, inf)         reported, this is the claim
+  !
+  ! w = GR_NEAR_MASK_W cells (default 2).  Set GR_NEAR_MASK_W=0 to collapse
+  ! the horizon shell into the exterior.
   ! ---------------------------------------------------------------------
   near_mask_w = 2.0_dp
   call get_environment_variable("GR_NEAR_MASK_W", buf, status=envstat)
@@ -147,7 +161,12 @@ program main
     "  (horizon at r_+=", r_horizon, "M; interior frozen)"
   print *
 
-  call set_kerr_schild_id(u)
+  if (initial_data_mode == 1) then
+    print *, " Initial data: Dennison-Baumgarte-Montero trumpet (route C)"
+    call set_eq_kerr_trumpet_id(u, bh_mass, bh_spin, bh_mass)
+  else
+    call set_kerr_schild_id(u)
+  end if
   call compute_conformal_connections(u)
   call set_excision_background(u)
   call init_deriv_stencils()
@@ -164,42 +183,30 @@ program main
   allocate(Hgrid(Nx,Nz))
   allocate(Mgrid(Nx,Nz,3))
   call hamiltonian_constraint(u, Hgrid, imin, imax, kmin, kmax)
-  Hmax = 0.0_dp; Hrms = 0.0_dp; npts = 0
-  do k = kmin, kmax
-    do i = imin, imax
-      if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
-      Hmax = max(Hmax, abs(Hgrid(i,k)))
-      Hrms = Hrms + Hgrid(i,k)**2
-      npts = npts + 1
-    end do
-  end do
-  Hrms = sqrt(Hrms / real(max(npts,1), dp))
+  call momentum_constraint(u, Mgrid)
+
+  ! Shells keyed to the horizon, not to r_excise -- see the note near
+  ! near_mask_w above.  At t=0 the horizon has not been found yet, so
+  ! shell_radius() falls back to the analytic r_+.
+  r_ah = shell_radius()
+  shell_w = near_mask_w*max(dx,dz)
+  call shell_stats(r_excise, r_ah, junk_H, junk_R, junk_M, junk_n, skip_i, skip_k)
+  call shell_stats(r_ah, r_ah + shell_w, hor_H, hor_R, hor_M, hor_n, hor_i, hor_k)
+  call shell_stats(r_ah + shell_w, huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
+
   print '(A,ES12.4,A,ES12.4)', " t=0 Hamiltonian constraint (exterior): max|H| = ", Hmax, &
     "   rms|H| = ", Hrms
-  block
-    integer :: ii, kk0
-    real(dp) :: rr
-    ii = -1; kk0 = -1
-    do k = kmin, kmax
-      do i = imin, imax
-        if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
-        if (ii < 0) then
-          ii = i; kk0 = k
-        else if (abs(Hgrid(i,k)) >= abs(Hgrid(ii,kk0))) then
-          ii = i; kk0 = k
-        end if
-      end do
-    end do
-    if (ii > 0) then
-      rr = sqrt(kerr_radius_squared(xg(ii), zg(kk0)))
-      print '(A,I0,A,I0,A,F8.4,A,ES12.4)', " worst point: i=", ii, " k=", kk0, &
-        "  r_KS=", rr, "  H=", Hgrid(ii,kk0)
-    end if
-    print *, " H at a few sample radii along the axis (x=0):"
-    do kk0 = kmin, kmax, max(1,(kmax-kmin)/8)
-      print '(A,F8.4,A,ES12.4)', "   z=", zg(kk0), "   H=", Hgrid(imin,kk0)
-    end do
-  end block
+  if (hor_n > 0) &
+    print '(A,F8.4,A,F8.4,A,ES12.4,A,ES12.4,A,F8.4)', "   horizon-shell [", r_ah, ",", &
+      r_ah + shell_w, "]:  max|H|=", hor_H, "  max|M|=", hor_M, &
+      "  worst r=", sqrt(kerr_radius_squared(xg(hor_i), zg(hor_k)))
+  if (junk_n > 0) &
+    print '(A,F8.4,A,F8.4,A,ES12.4,A,ES12.4,A)', "   inside-horizon [", r_excise, ",", &
+      r_ah, "):  max|H|=", junk_H, "  max|M|=", junk_M, "  (not gated)"
+  print *, " H at a few sample radii along the axis (x=0):"
+  do k = kmin, kmax, max(1,(kmax-kmin)/8)
+    print '(A,F8.4,A,ES12.4)', "   z=", zg(k), "   H=", Hgrid(imin,k)
+  end do
 
   ! Representative axis point comfortably outside the excision radius, used
   ! for the lapse trace below (should evolve smoothly, unlike the frozen
@@ -370,80 +377,56 @@ program main
       call hamiltonian_constraint(u, Hgrid, imin, imax, kmin, kmax)
       call momentum_constraint(u, Mgrid)
 
-      ! Stats over the exterior (evolved) region only.
-      Hmax = 0.0_dp; Hrms = 0.0_dp; npts = 0
+      ! Shells keyed to the apparent horizon.  r_excise sits inside r_+, so
+      ! anchoring the exterior at r_excise + margin hides the only region in
+      ! which inner-boundary error can reach the physical domain; anchoring a
+      ! "near-mask" band at r_excise instead reports inside-horizon junk.
+      r_ah = shell_radius()
+      shell_w = near_mask_w*max(dx,dz)
+
+      call shell_stats(r_excise, r_ah, junk_H, junk_R, junk_M, junk_n, skip_i, skip_k)
+      call shell_stats(r_ah, r_ah + shell_w, hor_H, hor_R, hor_M, hor_n, hor_i, hor_k)
+      call shell_stats(r_ah + shell_w, huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
+
+      ! Minimum lapse over the evolved domain.  For slicing_mode = 3 this is
+      ! the long-term indicator: it falls monotonically from the first cell
+      ! outside the mask because an inward lapse mode is allowed to collapse
+      ! there, and it is what drives f(alpha) and hence d_t alpha at long
+      ! times.  See baseline/GAUGE_COLLAPSE.md.
+      alpha_min = u(1,1,IALPHA)
       do k = kmin, kmax
         do i = imin, imax
-          if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
-          Hmax = max(Hmax, abs(Hgrid(i,k)))
-          Hrms = Hrms + Hgrid(i,k)**2
-          npts = npts + 1
-        end do
-      end do
-      Hrms = sqrt(Hrms / real(max(npts,1), dp))
-
-      ! Momentum constraint residual over the same exterior region.  Both
-      ! differential constraints matter for a puncture evolution: H growing
-      ! signals the gauge/inner boundary is wrong, M growing signals the
-      ! characteristic fields are inconsistent.  Reported together so the
-      ! failure mode is identifiable rather than guessed at.
-      Mmax = 0.0_dp
-      do k = kmin, kmax
-        do i = imin, imax
-          if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
-          Mmax = max(Mmax, sqrt(Mgrid(i,k,1)**2 + Mgrid(i,k,2)**2 + Mgrid(i,k,3)**2))
+          if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise) cycle
+          alpha_min = min(alpha_min, u(i,k,IALPHA))
         end do
       end do
 
-      print '(A,I5,A,F8.4,A,ES12.4,A,ES12.4,A,ES12.4,A,F10.6)', &
+      print '(A,I5,A,F8.4,A,ES12.4,A,ES12.4,A,ES12.4,A,F10.6,A,F8.5)', &
         " step ", n, "  t=", t, "  max|H|(ext)=", Hmax, "  rms|H|(ext)=", Hrms, &
-        "  max|M|(ext)=", Mmax, "  alpha(probe)=", u(1,axis_k,IALPHA)
+        "  max|M|(ext)=", Mmax, "  alpha(probe)=", u(1,axis_k,IALPHA), &
+        "  alpha_min=", alpha_min
 
-      ! Near-mask band: r_excise < r_KS < r_excise + near_mask_w.  This is the
-      ! region the exterior statistics above are blind to by construction.
-      if (near_mask_w > 0.0_dp) then
-        nm_Hmax = 0.0_dp; nm_Mmax = 0.0_dp; nm_npts = 0; nm_i = -1; nm_k = -1
-        do k = kmin, kmax
-          do i = imin, imax
-            nm_rr = sqrt(kerr_radius_squared(xg(i), zg(k)))
-            if (nm_rr < r_excise .or. nm_rr >= r_excise + near_mask_w) cycle
-            nm_npts = nm_npts + 1
-            if (abs(Hgrid(i,k)) > nm_Hmax) then
-              nm_Hmax = abs(Hgrid(i,k)); nm_i = i; nm_k = k
-            end if
-            nm_Mmax = max(nm_Mmax, &
-                 sqrt(Mgrid(i,k,1)**2 + Mgrid(i,k,2)**2 + Mgrid(i,k,3)**2))
-          end do
-        end do
-        if (nm_npts > 0) then
-          write(*,'(A,ES12.4,A,I6,A,ES12.4,A,ES12.4,A,ES12.4)') &
-            "    near-mask r_KS < ", r_excise + near_mask_w, "  n=", nm_npts, &
-            "  max|H|=", nm_Hmax, "  max|M|=", nm_Mmax, "  worst r=", &
-            sqrt(kerr_radius_squared(xg(nm_i), zg(nm_k)))
-        end if
+      ! The horizon shell is the only place a mask-edge error can enter the
+      ! evolved domain, so it is reported separately and is not merged into
+      ! the exterior statistics.
+      if (near_mask_w > 0.0_dp .and. hor_n > 0) then
+        write(*,'(A,F8.4,A,F8.4,A,I6,A,ES12.4,A,ES12.4,A,F8.4)') &
+          "    horizon-shell [", r_ah, ",", r_ah + shell_w, "]  n=", hor_n, &
+          "  max|H|=", hor_H, "  max|M|=", hor_M, &
+          "  worst r=", sqrt(kerr_radius_squared(xg(hor_i), zg(hor_k)))
+      end if
+      ! Everything from r_excise out to r_+ is inside the horizon: no
+      ! characteristic leaves it, so a large residual there is expected and is
+      ! not a pass/fail criterion.  It is reported so that growth toward the
+      ! horizon -- which WOULD matter -- stays visible.
+      if (junk_n > 0) then
+        write(*,'(A,F8.4,A,F8.4,A,I6,A,ES12.4,A,ES12.4,A)') &
+          "    inside-horizon [", r_excise, ",", r_ah, ")  n=", junk_n, &
+          "  max|H|=", junk_H, "  max|M|=", junk_M, "  (not gated)"
       end if
 
       call output_write_diagnostics(n, t, dt, Nx, Nz, u, Hmax, Hrms, horizon_vals=hz_vals)
       call output_write_snapshot(n, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
-
-      block
-        integer :: ii, kk0, bi, bk
-        real(dp) :: bval, rr
-        bval = 0.0_dp; bi = -1; bk = -1
-        do k = kmin, kmax
-          do i = imin, imax
-            if (sqrt(kerr_radius_squared(xg(i), zg(k))) < r_excise + diag_margin) cycle
-            if (abs(Hgrid(i,k)) > bval) then
-              bval = abs(Hgrid(i,k)); bi = i; bk = k
-            end if
-          end do
-        end do
-        if (bi > 0) then
-          rr = sqrt(kerr_radius_squared(xg(bi), zg(bk)))
-          print '(A,F8.4,A,F8.4)', "    (worst point beyond margin at r=", rr, &
-            "  vs r_excise+margin=", r_excise + diag_margin
-        end if
-      end block
     end if
   end do
 
@@ -451,6 +434,46 @@ program main
   call output_finalize()
 
 contains
+
+  !---------------------------------------------------------------------------
+  ! Radius of the shell boundary: the apparent-horizon radius if the finder
+  ! has one, otherwise the analytic Kerr r_+.  Never r_excise: the mask is
+  ! deliberately inside the horizon and is not a physical boundary.
+  !---------------------------------------------------------------------------
+  real(dp) function shell_radius() result(rr)
+    rr = r_horizon
+    if (hz_every > 0 .and. hz%found) rr = hz%hmin
+  end function shell_radius
+
+  !---------------------------------------------------------------------------
+  ! Constraint statistics in the radial shell rlo <= r_KS < rhi.
+  ! iw/kw receive the index of the largest |H| in the shell (pass -1 to skip).
+  !---------------------------------------------------------------------------
+  subroutine shell_stats(rlo, rhi, hmax, hrms, mmax, ns, iw, kw)
+    real(dp), intent(in)    :: rlo, rhi
+    real(dp), intent(out)   :: hmax, hrms, mmax
+    integer,  intent(out)   :: ns
+    integer,  intent(inout) :: iw, kw
+    integer  :: ii, kk
+    real(dp) :: rr
+    hmax = 0.0_dp; hrms = 0.0_dp; mmax = 0.0_dp; ns = 0
+    do kk = kmin, kmax
+      do ii = imin, imax
+        rr = sqrt(kerr_radius_squared(xg(ii), zg(kk)))
+        if (rr < rlo .or. rr >= rhi) cycle
+        ns = ns + 1
+        if (abs(Hgrid(ii,kk)) > hmax) then
+          hmax = abs(Hgrid(ii,kk))
+          if (iw > -1) then
+            iw = ii; kw = kk
+          end if
+        end if
+        hrms = hrms + Hgrid(ii,kk)**2
+        mmax = max(mmax, sqrt(Mgrid(ii,kk,1)**2 + Mgrid(ii,kk,2)**2 + Mgrid(ii,kk,3)**2))
+      end do
+    end do
+    if (ns > 0) hrms = sqrt(hrms/real(ns, dp))
+  end subroutine shell_stats
 
   !---------------------------------------------------------------------------
   ! Find the apparent horizon in the current state and log/print it.  The area,

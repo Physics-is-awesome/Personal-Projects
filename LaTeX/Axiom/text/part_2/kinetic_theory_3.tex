@@ -150,282 +150,7 @@ and its internal entropy production. An open system can
 maintain or develop organization while exporting entropy
 to its environment.
 
-\subsubsection{Entropy Balance}
-
-For an open thermodynamic system, the entropy balance
-can be written as
-\begin{equation}
-    \frac{dS}{dt}
-    =
-    \Pi - \Phi_S,
-\end{equation}
-where
-\begin{itemize}
-    \item $S$ is the entropy of the system.
-    \item $\Pi \geq 0$ is the internal entropy production
-          rate.
-    \item $\Phi_S$ is the net entropy outflow rate.
-\end{itemize}
-
-Equivalently, using entropy flow into the system,
-\begin{equation}
-    \frac{dS}{dt}
-    =
-    \Pi + \Phi_{\mathrm{in}}.
-\end{equation}
-
-The second law requires
-\begin{equation}
-    \Pi \geq 0.
-\end{equation}
-
-It does not require the entropy of an open subsystem
-to increase monotonically. Entropy can decrease locally
-when entropy export exceeds internal production.
-
-\subsubsection{Diagram: Entropy Balance}
-
-\begin{center}
-\begin{tikzpicture}[
-    box/.style={
-        draw,
-        rounded corners,
-        minimum width=3.1cm,
-        minimum height=1.2cm,
-        align=center
-    },
-    arrow/.style={-{Stealth}, thick}
-]
-    \node[box] (env) {Environment};
-    \node[box, right=2.6cm of env] (sys)
-        {Open system\\Entropy $S$};
-    \node[box, right=2.6cm of sys] (out)
-        {Environment};
-
-    \draw[arrow] (env) -- node[above,align=center]
-        {Matter and energy\\inflow} (sys);
-    \draw[arrow] (sys) -- node[above,align=center]
-        {Matter and energy\\outflow} (out);
-
-    \node[below=0.8cm of sys,align=center]
-        {$\displaystyle \frac{dS}{dt}=\Pi-\Phi_S$};
-
-    \node[below=1.4cm of sys,align=center]
-        {$\Pi\geq 0$};
-\end{tikzpicture}
-\end{center}
-
-\subsubsection{Thermodynamic Forces and Fluxes}
-
-Near equilibrium, irreversible thermodynamics
-describes transport processes through thermodynamic
-forces $X_i$ and corresponding fluxes $J_i$.
-
-The entropy production density is commonly expressed as
-\begin{equation}
-    \sigma = \sum_i J_i X_i,
-\end{equation}
-where $\sigma$ is the entropy production per unit volume
-and unit time.
-
-Examples include:
-\begin{align}
-    \text{Heat conduction:}\qquad
-    \sigma_q
-    &= \mathbf{q}\cdot
-       \nabla\left(\frac{1}{T}\right),\\
-    \text{Diffusion:}\qquad
-    \sigma_d
-    &= \mathbf{J}_d\cdot
-       \left(-\nabla\frac{\mu}{T}\right),\\
-    \text{Electrical conduction:}\qquad
-    \sigma_e
-    &= \frac{\mathbf{j}\cdot\mathbf{E}}{T}.
-\end{align}
-
-Here $\mathbf{q}$ is the heat flux, $T$ is temperature,
-$\mathbf{J}_d$ is a diffusion flux, $\mu$ is a chemical
-potential, $\mathbf{j}$ is electric current density,
-and $\mathbf{E}$ is the electric field.
-
-The precise definitions of forces and fluxes depend on
-the choice of independent thermodynamic variables and
-the reference frame.
-
-\subsubsection{Linear Constitutive Relations}
-
-Close to equilibrium, fluxes may be approximated by
-linear relations:
-\begin{equation}
-    J_i = \sum_j L_{ij}X_j.
-\end{equation}
-
-The coefficients $L_{ij}$ describe transport and
-cross-coupling between processes. Under the appropriate
-microscopic reversibility assumptions, Onsager
-reciprocity gives
-\begin{equation}
-    L_{ij}=L_{ji},
-\end{equation}
-with suitable modifications when variables have different
-time-reversal parities or magnetic fields are present.
-
-Substituting the constitutive relations into the entropy
-production yields
-\begin{equation}
-    \sigma
-    =
-    \sum_{i,j}L_{ij}X_iX_j.
-\end{equation}
-
-Thermodynamic consistency requires this quadratic form
-to be nonnegative for admissible forces.
-
-\subsubsection{Minimum Entropy Production}
-
-Prigogine's minimum entropy production principle applies
-under specific conditions in linear irreversible
-thermodynamics, particularly for systems near equilibrium
-with appropriate fixed constraints and boundary
-conditions.
-
-It is not a universal principle stating that every
-nonequilibrium system minimizes entropy production.
-
-In a suitable linear regime, the stationary state may
-minimize the entropy production with respect to
-admissible variations of the relevant variables.
-
-This principle should be distinguished from:
-\begin{itemize}
-    \item The second law, which requires nonnegative
-          internal entropy production.
-    \item Equilibrium thermodynamics, in which entropy
-          maximization or free-energy minimization applies
-          under appropriate constraints.
-    \item Far-from-equilibrium behavior, where nonlinear
-          effects and instabilities can invalidate the
-          minimum entropy production description.
-\end{itemize}
-
-\section{Dissipative Structures}
-
-A dissipative structure is an organized macroscopic state
-that exists because the system exchanges energy or matter
-with its surroundings and remains away from equilibrium.
-
-Examples include:
-\begin{itemize}
-    \item Rayleigh--B\'enard convection cells.
-    \item Chemical oscillations, such as the Belousov--Zhabotinsky
-          reaction.
-    \item Spatial patterns formed by reaction--diffusion systems.
-\end{itemize}
-
-These structures depend on sustained driving and
-dissipation. Removing the driving can cause the
-nonequilibrium organization to disappear.
-
-\subsubsection{Diagram: From Equilibrium to a Dissipative Structure}
-
-\begin{center}
-\begin{tikzpicture}[
-    box/.style={
-        draw,
-        rounded corners,
-        minimum width=3.2cm,
-        minimum height=1.15cm,
-        align=center
-    },
-    arrow/.style={-{Stealth}, thick}
-]
-    \node[box] (eq) {Equilibrium\\No sustained gradients};
-    \node[box, right=1.0cm of eq] (drive)
-        {External driving\\Gradients imposed};
-    \node[box, right=1.0cm of drive] (inst)
-        {Instability\\Nonlinear dynamics};
-    \node[box, below=1.3cm of inst] (ds)
-        {Dissipative structure\\Macroscopic organization};
-
-    \draw[arrow] (eq) -- (drive);
-    \draw[arrow] (drive) -- (inst);
-    \draw[arrow] (inst) -- (ds);
-\end{tikzpicture}
-\end{center}
-
-This diagram is conceptual rather than universal.
-External driving does not always produce an instability
-or a new organized state. The outcome depends on the
-system's dynamics, parameters, and boundary conditions.
-
-\subsubsection{Bifurcations and Pattern Formation}
-
-Consider a nonlinear evolution equation
-\begin{equation}
-    \frac{\partial u}{\partial t}
-    =
-    F(u;\lambda),
-\end{equation}
-where $u$ is the state variable and $\lambda$ is a
-control parameter.
-
-A stationary state $u_0$ satisfies
-\begin{equation}
-    F(u_0;\lambda)=0.
-\end{equation}
-
-To analyze its stability, write
-\begin{equation}
-    u=u_0+\delta u.
-\end{equation}
-
-Linearization gives
-\begin{equation}
-    \frac{\partial \delta u}{\partial t}
-    =
-    \left.
-    \frac{\delta F}{\delta u}
-    \right|_{u_0,\lambda}\delta u.
-\end{equation}
-
-If a perturbation mode grows exponentially, the
-stationary state is unstable. As a control parameter
-crosses a critical value, a bifurcation may occur and
-a new dynamical regime may emerge.
-
-\subsubsection{Diagram: Bifurcation Concept}
-
-\begin{center}
-\begin{tikzpicture}[
-    axis/.style={-{Stealth}, thick},
-    branch/.style={thick}
-]
-    \draw[axis] (-0.2,0) -- (5.8,0)
-        node[right] {$\lambda$};
-    \draw[axis] (0,-1.6) -- (0,2.0)
-        node[above] {$u$};
-
-    \draw[branch] (0.2,0) -- (2.8,0);
-    \draw[branch] (2.8,0) .. controls (3.5,0.1)
-        and (4.0,0.6) .. (5.2,1.35);
-    \draw[branch] (2.8,0) .. controls (3.5,-0.1)
-        and (4.0,-0.6) .. (5.2,-1.35);
-
-    \draw[dashed] (2.8,-1.5) -- (2.8,1.7);
-    \node[above right] at (2.8,1.5) {Critical point};
-\end{tikzpicture}
-\end{center}
-
-This schematic illustrates the appearance of branches
-at a critical parameter. It is not a stability diagram:
-the stability of each branch must be determined from
-the governing equations.
-
-\subsubsection{Prigogine Analysis: A Practical Workflow}
-
-A typical analysis of a nonequilibrium system proceeds
-as follows:
-
+A typical workflow
 \begin{enumerate}
     \item Define the system, its boundaries, and its
           exchanges of matter and energy.
@@ -445,23 +170,6 @@ as follows:
           thermodynamics.
 \end{enumerate}
 
-\subsubsection{Conceptual Summary}
-
-\begin{center}
-\begin{tabular}{ll}
-\toprule
-Concept & Main significance \\
-\midrule
-Entropy production & Quantifies irreversible processes \\
-Thermodynamic forces & Drive transport and dissipation \\
-Linear response & Relates fluxes to forces near equilibrium \\
-Minimum entropy production & Restricted near-equilibrium principle \\
-Instability & Loss of stability of a reference state \\
-Bifurcation & Qualitative change in possible dynamics \\
-Dissipative structure & Organization sustained by driving \\
-\bottomrule
-\end{tabular}
-\end{center}
 
 The central insight is that irreversible dynamics need
 not produce only featureless relaxation. Under suitable
@@ -474,3 +182,29 @@ alone.
 \subsection{Bogoliubov Hypothesis}
 
 For context: In the interval $\tau_1$, two molecules are in each others interaction domain. The interval $\tau_2$ is the mean-free-collision times, which is the mean times between collisions. The time $tau_3$ is the average time taken for a molecule to traverse the container in which the gas is confined.
+
+This section for the most part finds the thermodynamic limit and fluid limit.
+
+They also derive the Boltzmann equation.
+
+So these Bogoliubov and Prigogin techniques give us the ability to create kinetic equations at higher configurations.
+
+\subsection{Klimontovich Picture}
+
+In this section we turn to an alternative description of kinetic theory formulated by Klimontovich. In this formalism, phase densities are introduced, moments of which are found to be related to multiparticle distribution functions introduced earlier. Moments of deviations from the mean of these phase densities are similarly found to be related to previously encountered correlation functions. Applying these algorithms to an equation of motion for the first moment of the phase densities is found the first equation of the hierarchy.
+
+\subsection{Grad's Analysis}
+
+Starting with Liouville equation written in this form
+\[
+\pdv{f_N}{t} + \sum^N \pdv{}{x_i} \cdot (v_i f_N) + \frac{1}{m} \sum^N G_i \cdot \pdv{f_N}{v_i} = 0
+  \]
+
+  \section{The Boltzmann Equation, Fluid
+Dynamics, and Irreversibility}
+
+\subsection{Fluid Dynamic Equations and the Boltzmann H
+Theorem}
+
+
+

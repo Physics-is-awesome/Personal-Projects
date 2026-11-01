@@ -127,20 +127,25 @@ contains
   pure subroutine ktr_kerr_rtheta(x,z,m,a,r,ct)
     real(dp),intent(in)  :: x,z,m,a
     real(dp),intent(out) :: r,ct
-    real(dp) :: sum2, disc
+    real(dp) :: sum2, disc, a2
     sum2 = x*x + z*z
-    disc = max(sum2*sum2 - 4.0_dp*a*a*z*z, 0.0_dp)
-    r = sqrt(max(0.5_dp*(sum2 + sqrt(disc)), 0.0_dp))
-    ! r is the ABLE radial coordinate; ct is the STANDARD polar angle
-    ! cos(th) = z/r_E with r_E the Euclidean radius.  The two radii coincide
-    ! only for a = 0, and conflating them puts the Kerr solution in the wrong
-    ! frame: measured on the BSSN data, using z/r instead of z/r_E made
-    ! max|H| at a = 0.8 worse by a factor of 187 (2.82 -> 1.50e-2 after the
-    ! fix), while leaving a = 0 unchanged.  The paper's rho^2 = R^2 + a^2
-    ! cos^2(th) mixes exactly these two quantities, so they must be kept
-    ! separate.
-    if (sqrt(x*x + z*z) > 0.0_dp) then
-      ct = z/sqrt(x*x + z*z)
+    a2 = a*a
+    ! Standard Kerr-Schild / Boyer-Lindquist radius:
+    !   r^2 = 1/2 [ (rho^2 - a^2) + sqrt((rho^2 - a^2)^2 + 4 a^2 z^2) ],
+    !   rho^2 = x^2 + y^2 + z^2,
+    ! equivalently rho^2 = r^2 + a^2 sin^2(th).  This is the SAME radius used by
+    ! kerr_radius_squared() in the excision module, by the horizon finder, and
+    ! by the Kerr-Schild initial data.
+    !
+    ! The previous code inverted rho^2 = r^2 + a^2 cos^2(th) instead.  That is
+    ! the Boyer-Lindquist METRIC function, not the Euclidean radius.  Its map
+    ! has a turning point at rho = 2a|cos(th)| where the Jacobian vanishes, and
+    ! at a = 0.8 that point (2a = 1.6) coincides with the horizon r_+ = 1.6.
+    disc = max((sum2-a2)*(sum2-a2) + 4.0_dp*a2*z*z, 0.0_dp)
+    r = sqrt(max(0.5_dp*(sum2 - a2 + sqrt(disc)), 0.0_dp))
+    ! ct is the STANDARD polar angle, cos(th) = z/rho.
+    if (sum2 > 0.0_dp) then
+      ct = z/sqrt(sum2)
     else
       ct = 1.0_dp
     end if
@@ -309,9 +314,10 @@ contains
   !  away from the equatorial plane.  This routine evaluates anywhere, so the
   !  caller can difference in y.
   !
-  !  varpi = sqrt(x^2+y^2),  phi = atan2(y,x),  z = R cos(theta)
-  !  and the areal radius obeys
-  !      R^4 - (varpi^2 + z^2) R^2 + a^2 z^2 = 0.
+  !  varpi = sqrt(x^2+y^2),  phi = atan2(y,x),  z = rho cos(theta),
+  !  rho^2 = varpi^2 + z^2 and the Boyer-Lindquist radius obeys
+  !      rho^2 = R^2 + a^2 sin^2(theta),
+  !  i.e. R^2 = 1/2[(rho^2-a^2) + sqrt((rho^2-a^2)^2 + 4 a^2 z^2)].
   !  The spherical frame is
   !      e_R  = ( sin th cos phi, sin th sin phi,  cos th  )
   !      e_th = ( cos th cos phi, cos th sin phi, -sin th  )
@@ -328,13 +334,13 @@ contains
 
     varpi = sqrt(x*x + y*y)
     sum2 = varpi*varpi + z*z
-    disc = max(sum2*sum2 - 4.0_dp*a*a*z*z, 0.0_dp)
-    r  = sqrt(max(0.5_dp*(sum2 + sqrt(disc)), 0.0_dp))
-    ! The polar angle of the paper is the STANDARD polar angle, cos(th) = z/r_E,
-    ! with r_E the Euclidean radius.  The ABLE radius r above equals r_E only
-    ! when a = 0, and conflating them puts the Kerr solution in the wrong
-    ! frame: using z/r instead of z/r_E made max|H| at a = 0.8 worse by a
-    ! factor of 187.
+    ! Standard Kerr-Schild / Boyer-Lindquist radius, the same one used by
+    ! kerr_radius_squared() and by the horizon finder:
+    !   rho^2 = r^2 + a^2 sin^2(th),  ct = z/rho.
+    ! The old inversion of rho^2 = r^2 + a^2 cos^2(th) had a turning point at
+    ! rho = 2a|cos(th)| where drho/dr = 0; at a = 0.8 that landed on the horizon.
+    disc = max((sum2-a*a)*(sum2-a*a) + 4.0_dp*a*a*z*z, 0.0_dp)
+    r  = sqrt(max(0.5_dp*(sum2 - a*a + sqrt(disc)), 0.0_dp))
     ct = 1.0_dp
     if (sum2 > 0.0_dp) ct = z/sqrt(sum2)
     ok = ktr_trumpet_valid(r,m,a,r0)
@@ -378,20 +384,24 @@ contains
     !  Using the inverse (not a diagonal approximation) is what makes the
     !  off-diagonal g_Rphi land correctly; a bolt-on cannot do it.
     !
-    !  r_E(R,th) = R^2 / sqrt(R^2 - a^2 cos^2 th), from the ABLE quartic
-    !  R^4 - R^2 r_E^2 + a^2 r_E^2 cos^2 th = 0.  At a = 0 this reduces to
-    !  r_E = R, d r_E/dR = 1, d r_E/dth = 0, i.e. T = diag(1, R, R sin th),
-    !  which reproduces the exactly-correct Schwarzschild trumpet metric.
+    !  r_E = rho obeys rho^2 = R^2 + a^2 sin^2(th), so
+    !      d rho/dR = R/rho,   d rho/dth = a^2 sin(th)cos(th)/rho,
+    !  and at a = 0 this reduces to rho = R, d rho/dR = 1, d rho/dth = 0,
+    !  i.e. T = diag(1, R, R sin th), which reproduces the exactly-correct
+    !  Schwarzschild trumpet metric.
     ! ---------------------------------------------------------------------
     mu2 = r*r - a*a*ct*ct
-    if (mu2 <= 0.0_dp) then
+    re = sqrt(sum2)
+    if (re <= 0.0_dp) then
       ok = .false.
       alpha = 0.0_dp;  bcart = 0.0_dp;  gcart = 0.0_dp
       return
     end if
-    re   = r*r/sqrt(mu2)
-    dreR = r*(r*r - 2.0_dp*a*a*ct*ct)/(mu2*sqrt(mu2))
-    dreT = -r*r*a*a*ct*st/(mu2*sqrt(mu2))
+    ! rho^2 = r^2 + a^2 sin^2(th) gives
+    !   d rho / d r   = r/rho,
+    !   d rho / d th  = a^2 sin(th) cos(th) / rho.
+    dreR = r/re
+    dreT = a*a*ct*st/re
 
     a11 = dreR
     a12 = dreT

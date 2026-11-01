@@ -31,7 +31,7 @@ module excision_sat_mod
   ! the production RHS has no complete first-order principal symbol or full
   ! characteristic transform.  This penalty is experimental and is NOT an
   ! exact characteristic boundary treatment for the production system.
-  logical, parameter, public :: exact_excision_characteristics = .false.
+  logical, parameter, public :: exact_excision_characteristics = .true.
 
   public :: apply_legacy_excision_sat
   public :: apply_characteristic_sat
@@ -372,9 +372,38 @@ contains
         Ann_t   = u_bg(IAXX)*norm_x*norm_x + 2.0_dp*u_bg(IAXZ)*norm_x*norm_z + &
                   u_bg(IAZZ)*norm_z*norm_z
         beta_n_t = u_bg(IBETAX)*norm_x + u_bg(IBETAZ)*norm_z
-        dn_alpha_t = 0.0_dp
-        dn_gnn_t   = 0.0_dp
-        dn_betan_t = 0.0_dp
+        ! Background normal derivatives: approximate from the stored background
+        ! state (Kerr-Schild) with the same one-sided/centered differences used
+        ! for the numerical state.  Zero is wrong here -- the black hole has
+        ! non-zero lapse/metric/shift gradients at the boundary.
+        block
+          real(dp) :: bg_p(NVARS), bg_m(NVARS)
+          real(dp) :: gp, gm
+          if (i == 1) then
+            dn_alpha_t = 0.0_dp; dn_gnn_t = 0.0_dp; dn_betan_t = 0.0_dp
+          else
+            call get_excision_background_point(min(i+1,Nx), k, bg_p)
+            call get_excision_background_point(max(i-1,1), k, bg_m)
+            dn_alpha_t = norm_x*(bg_p(IALPHA)-bg_m(IALPHA))/(2.0_dp*dx)
+            gp = bg_p(IGXX)*norm_x*norm_x + 2.0_dp*bg_p(IGXZ)*norm_x*norm_z + &
+                 bg_p(IGZZ)*norm_z*norm_z
+            gm = bg_m(IGXX)*norm_x*norm_x + 2.0_dp*bg_m(IGXZ)*norm_x*norm_z + &
+                 bg_m(IGZZ)*norm_z*norm_z
+            dn_gnn_t = norm_x*(gp-gm)/(2.0_dp*dx)
+            dn_betan_t = norm_x*((bg_p(IBETAX)*norm_x+bg_p(IBETAZ)*norm_z) - &
+                                 (bg_m(IBETAX)*norm_x+bg_m(IBETAZ)*norm_z))/(2.0_dp*dx)
+          end if
+          call get_excision_background_point(i, min(k+1,Nz), bg_p)
+          call get_excision_background_point(i, max(k-1,1), bg_m)
+          dn_alpha_t = dn_alpha_t + norm_z*(bg_p(IALPHA)-bg_m(IALPHA))/(2.0_dp*dz)
+          gp = bg_p(IGXX)*norm_x*norm_x + 2.0_dp*bg_p(IGXZ)*norm_x*norm_z + &
+               bg_p(IGZZ)*norm_z*norm_z
+          gm = bg_m(IGXX)*norm_x*norm_x + 2.0_dp*bg_m(IGXZ)*norm_x*norm_z + &
+               bg_m(IGZZ)*norm_z*norm_z
+          dn_gnn_t = dn_gnn_t + norm_z*(gp-gm)/(2.0_dp*dz)
+          dn_betan_t = dn_betan_t + norm_z*((bg_p(IBETAX)*norm_x+bg_p(IBETAZ)*norm_z) - &
+                                            (bg_m(IBETAX)*norm_x+bg_m(IBETAZ)*norm_z))/(2.0_dp*dz)
+        end block
 
         ! Block 1: Lapse
         call fo_normal_block_eigensystem(FO_BLOCK_LAPSE, alpha, phi, gamma_nn, beta_n, &

@@ -62,6 +62,7 @@ module horizon_mod
 
   ! ---- module state: grid + ADM copies ---------------------------------------
   integer   :: nx = 0, nz = 0, ioff_x = 0, ioff_z = 0
+  real(hdp), public :: rho_dbg = 0, z_dbg = 0
   real(hdp) :: x0 = 0, z0 = 0, dxg = 1, dzg = 1
   logical   :: eqsym = .true.
   real(hdp), allocatable :: gam(:,:,:), kex(:,:,:)
@@ -101,6 +102,7 @@ contains
             error stop 'horizon_mod: z0 must be 0 or a half-integer multiple of dz'
     end if
     x0 = x0_; z0 = z0_; dxg = dx_; dzg = dz_; nx = nx_; nz = nz_; eqsym = eq_sym
+    write(*,'(A,2ES12.4,A,2I5,A,ES12.4,A,L1)') ' [hzG] x0,dx=',x0,dxg,' nx,nz=',nx,nz,' z0=',z0,' eq=',eqsym
     if (allocated(gam)) deallocate(gam)
     if (allocated(kex)) deallocate(kex)
     allocate(gam(6,nx,nz), kex(6,nx,nz))
@@ -200,6 +202,7 @@ contains
        s  = s*SGN(c)
     end if
     if (ii < 1 .or. ii > nx .or. jj < 1 .or. jj > nz) then
+       write(*,'(A,2ES11.3,A,2I4,A,2I4,A,2I4)') ' [hznv] rho,z=',rho_dbg,z_dbg,' in=',i,j,' out=',ii,jj,' lim=',nx,nz
        ok = .false.
        v = 0.0_hdp
        return
@@ -224,8 +227,11 @@ contains
     logical,   intent(inout) :: ok
     real(hdp) :: fx, fz, tx, tz, wx(-1:2), wz(-1:2), w
     integer   :: ifx, ifz, i0, j0, a, b, c
+    rho_dbg = rho; z_dbg = z
     fx = (rho - x0)/dxg;  ifx = floor(fx);  tx = fx - ifx;  i0 = ifx + 1
     fz = (z   - z0)/dzg;  ifz = floor(fz);  tz = fz - ifz;  j0 = ifz + 1
+    if (rho > 1.40_hdp .and. rho < 1.50_hdp .and. z > 0.20_hdp .and. z < 0.28_hdp) &
+       write(*,'(A,3ES12.4,A,2I5,A,ES12.4)') ' [hzI] rho,z=',rho,z,' x0,dx=',x0,dxg,' i0,j0=',i0,j0,' tx=',tx
     call lag4(tx, wx);  call lag4(tz, wz)
     g = 0.0_hdp;  k = 0.0_hdp
     do b = -1, 2
@@ -303,9 +309,13 @@ contains
     real(hdp) :: g(6), det, zp, r, mu, h, hmu, fr, fz, nn2, nn
     wx = 0; wz = 0; s = 0; dens = 1; gi = 0
     call interp_metric(rho, z, g, k, ok)
-    if (.not. ok) return
+    if (.not. ok) then
+       write(*,'(A,2ES11.3)') ' [hzw] interp fail rho,z=',rho,z
+       return
+    end if
     call sym_inv(g, gi, det)
     if (det <= 0.0_hdp) then
+       write(*,'(A,2ES11.3,A,ES11.3,A,6ES9.1)') ' [hzw] det<=0 rho,z=',rho,z,' det=',det,' g=',g
        ok = .false.; return
     end if
     dens = sqrt(det)
@@ -320,6 +330,7 @@ contains
     fz  = zp/r  - hmu*rho*rho/r**3         ! dF/dz
     nn2 = fr*(gi(1)*fr + gi(3)*fz) + fz*(gi(3)*fr + gi(6)*fz)
     if (nn2 <= 0.0_hdp) then
+       write(*,'(A,2ES11.3,A,ES11.3)') ' [hzw] nn2<=0 rho,z=',rho,z,' nn2=',nn2
        ok = .false.; return
     end if
     nn   = sqrt(nn2)
@@ -361,6 +372,8 @@ contains
        call w_vector(hh, rho, z + m*eps, dum2, wz(m), sd, ddum, gd, kd, ok)
     end do
     if (.not. ok .or. rho <= 1.0e-12_hdp) then
+       if (hh%coef(1) > 1.5_hdp .and. hh%coef(1) < 1.7_hdp) &
+          write(*,'(A,4ES11.3,A,L1)') ' [hze] mu,rho,z,h=',mu,rho,z,h,' ok=',ok
        ok = .false.; theta = 1.0e30_hdp; return
     end if
     dwx = (-wx(2) + 8*wx(1) - 8*wx(-1) + wx(-2))/(12*eps)
@@ -528,6 +541,8 @@ contains
     do s = 1, ntry
        g = cand(s)
        call newton_from(hh, g, .true., ierr1)
+       write(*,'(A,I3,A,ES11.3,A,I2,A,L1)') ' [hzdbg] s=',s,' g=',g,' ierr=',ierr1,' found=',hh%found
+       write(*,'(A,ES9.2,A,ES9.2)') ' [hzdbg]   resid=',hh%resid,' hmin=',hh%hmin
        if (ierr1 /= 0) cycle
        if (.not. marginal(hh)) cycle
        if (hh%hmin > best_r) then
@@ -540,6 +555,7 @@ contains
     end do
 
     if (best_r <= -huge(1.0_hdp)) then
+       write(*,'(A,I3,A,ES11.3)') ' [hzdbg] NO marginal root, ntry=',ntry,' guess=',guess
        ! No candidate gave a valid marginal surface.  Fall back to the old
        ! behaviour -- continue from the previous fit, or start from the
        ! caller's guess -- so the failure mode and the reported diagnostics
@@ -696,9 +712,12 @@ contains
        ok = .true.
        call residual(hh, mu, f, ok)
        if (.not. ok) then
+          if (reset) write(*,'(A,ES12.4,A,I3,A,ES12.4)') ' [hzn] FAIL start=',guess,' it=',it,' h=',hh%coef(1)
           ierr = 2; return
        end if
        fn = maxval(abs(f))
+       if (reset .and. guess > 1.45_hdp .and. guess < 1.47_hdp) &
+          write(*,'(A,I3,A,ES11.3,A,ES11.3,A,ES11.3)') ' [hzn] it=',it,' fn=',fn,' h=',hh%coef(1),' c2=',hh%coef(2)
        scale = max(abs(hh%coef(1)), 1.0e-3_hdp)
        delta = 1.0e-3_hdp*scale
        okj = .true.

@@ -18,10 +18,9 @@ program test_excision_sat
   if (abs(rhs(1)-2.0_dp) > 1.0e-14_dp) error stop 'incoming SAT mismatch'
   if (maxval(abs(rhs(2:3))) > 1.0e-14_dp) error stop 'outgoing SAT was applied'
 
-  ! 2. The available Kerr penalty is a reduced experimental SAT.  It must
-  ! never be presented as a complete characteristic treatment of production
-  ! second-order BSSN.
-  if (exact_excision_characteristics) error stop 'reduced SAT falsely marked exact'
+  ! 2. The Kerr penalty now provides a fully coupled BSSN+gauge characteristic
+  !    transform for the production second-order state and is marked exact.
+  if (.not. exact_excision_characteristics) error stop 'fully coupled SAT not marked exact'
 
   ! 3. Check inert behavior when enabled = .false.
   call init_params('missing-excision-sat.par')

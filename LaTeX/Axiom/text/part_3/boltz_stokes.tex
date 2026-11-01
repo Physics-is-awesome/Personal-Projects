@@ -1,4 +1,4 @@
-\chapter{Hamiltonian, Boltzmann, to Navier stokes}
+\section{Hamiltonian, Boltzmann, to Navier stokes}
 
 Sources:
 \begin{itemize}
@@ -18,20 +18,51 @@ Sources:
   \item Hydro limit
 \end{itemize}
 
-\section{Introduction}
+\subsection{Introduction}
 
 Hello, and welcome to another video. On the connection between Hamiltonian dynamics, Boltzmann equation, and navier-stokes
 
-\section{Scope}
+\subsection{Scope}
 
 Here I plan to derive the Navier-stokes using the Boltzmann, and the Boltzmann using the N-body Hamiltonian. Then using how we did that, examine their connection and when it is appropriate to use one and not the other.
 
 
-\section{Brief Overview}
-....
+\subsection{Brief Overview}
+It helps to see the whole route before walking it. We will pass through three levels of description of the same gas.
+
+\begin{enumerate}
+  \item \textbf{Microscopic (Hamiltonian).} A probability density $f(\va r_1,\dots,\va r_N,\va p_1,\dots,\va p_N,t)$ on a $6N$-dimensional phase space. It is exact and time-reversible, and it has about $10^{23}$ particles' worth of variables.
+  \item \textbf{Kinetic (Boltzmann).} A single-particle distribution $f_1(\va r,\va p,t)$ that depends on just six phase-space variables and time. It is approximate, and it is irreversible.
+  \item \textbf{Hydrodynamic (Euler and Navier--Stokes).} Five fields: the density $\rho(\va r,t)$, the three components of the velocity $\va u(\va r,t)$, and the temperature $T(\va r,t)$. This is more approximate still, and it is dissipative.
+\end{enumerate}
+
+Each step throws information away, and each step is only legitimate when there is a separation of scales. Three lengths matter:
+\begin{itemize}
+  \item $d$, the range of the interaction between two particles (roughly the molecular diameter);
+  \item $\lambda$, the mean free path, the typical distance a particle travels between collisions, $\lambda \sim 1/(n d^2)$ for number density $n$;
+  \item $L$, the length over which the fluid's density, velocity and temperature change appreciably.
+\end{itemize}
+We will need $d \ll \lambda \ll L$. The ratio $\mathrm{Kn} = \lambda/L$ is the Knudsen number, and it will be the control parameter for the second half of the video. There is a matching hierarchy of times: the duration of a collision $\tau_c \sim d/\bar v$, the time between collisions $\tau \sim \lambda/\bar v$, and the time for the fluid to change $T_{\mathrm{fl}} \sim L/\bar v$, where $\bar v$ is a typical particle speed.
+
+% VISUAL: three nested zoom levels of a box of gas: particles -> one particle's trajectory with kinks -> smooth velocity field.
+To put numbers on this, for air at room temperature and atmospheric pressure: $d$ is a few ångström, $\lambda \approx 70\ \mathrm{nm}$, so $\lambda/d$ is a couple of hundred. A typical speed is about $500\ \mathrm{m/s}$, so a collision lasts roughly $10^{-12}\ \mathrm{s}$ and there is about $10^{-10}\ \mathrm{s}$ between collisions. A flow varying over a millimeter then has $\mathrm{Kn}\sim 10^{-4}$. The gas is dilute, in the sense that $n d^3 \sim 10^{-3}$, so a particle's range-$d$ neighborhood is almost always empty, and almost every collision involves exactly two particles.
+
+The route is
+\[
+\begin{aligned}
+&\underset{\text{exact, reversible}}{\text{Liouville / BBGKY}}
+\, \xrightarrow[\ \text{molecular chaos}\ ]{\ d\ll\lambda\ }\,
+\underset{\text{irreversible}}{\text{Boltzmann}} \\
+&\qquad\xrightarrow[\ \text{local equilibrium}\ ]{\ \mathrm{Kn}\to 0\ }\,
+\text{Euler}
+\, \xrightarrow[\ \text{first order in Kn}\ ]{}\,
+\text{Navier--Stokes}.
+\end{aligned}
+\]
+There is a common thread worth keeping in mind. Both arrows are \emph{closure} problems. The BBGKY hierarchy never closes on its own, and we will have to close it by assuming something about two-particle correlations. The moment equations that give us fluid mechanics also never close on their own, and we will close them by assuming something about the shape of the velocity distribution. Each closure is where the physics, and the irreversibility, enters.
 
 
-\section{From Liouville to BBGKY}
+\subsection{From Liouville to BBGKY}
 
 Taking an N-body Hamiltonian
 
@@ -134,7 +165,7 @@ notation and call $\va{r}_1 \equiv \va{r}$ and $\va{p}_1 \equiv \va{p}$. We have
 
 We find this expression can be defined by a Liouville-like equation with an added collision term.
 \[
-\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pdv{f_1}{H}  \right)_{coll}
+\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pdv{f_1}{t}  \right)_{coll}
   \]
 
   The first term is sometimes referred to as the streaming term. It tells you how the
@@ -142,14 +173,25 @@ particles move in the absence of collisions. The second term, known as the colli
 integral, is given by the second term in In fact, because all particles are the
 same, each of the $(N-1)$ terms in $\sum^N_{k=2}$ from earlier are identical and we can write
 
-.... continue
+We have not solved anything yet, we have just traded a problem for a different one. The equation for $f_1$ depends on $f_2$. The same steps for $f_2$ give an equation containing $f_3$, and in general, for the $s$-particle distribution $f_s\equiv\frac{N!}{(N-s)!}\int\prod_{i>s}d^3r_i\,d^3p_i\,f$,
+\[
+\pdv{f_s}{t} = \pb{H_s}{f_s} + \sum_{i=1}^{s}\int d^3r_{s+1}\,d^3p_{s+1}\;\nabla_{\va r_i}U(\va r_i-\va r_{s+1})\cdot\nabla_{\va p_i}f_{s+1},
+\]
+with $H_s$ the Hamiltonian of the first $s$ particles alone. This chain of $N$ coupled equations is the BBGKY hierarchy, named after Bogoliubov, Born, Green, Kirkwood and Yvon. It is completely equivalent to Liouville's equation, so it is still exact and still reversible. All we have done is reorganize. To get anywhere we must \emph{close} the hierarchy by expressing $f_2$ in terms of $f_1$.
 
+It is worth pausing on how much closure choices matter. Suppose the interaction is weak and long ranged, and every particle feels many others at once. Then it is reasonable to assume that distinct particles are uncorrelated, $f_2(\va r,\va r_2,\va p,\va p_2)\approx f_1(\va r,\va p)f_1(\va r_2,\va p_2)$, and we get
+\[
+\pdv{f_1}{t} = \pb{H_1+\Phi}{f_1}, \qquad \Phi(\va r,t)=\int d^3r_2\,U(\va r-\va r_2)\,n(\va r_2,t).
+\]
+That is the Vlasov equation, the mean-field description used for collisionless plasmas and for stellar dynamics. It is still reversible. The Boltzmann equation arises from the \emph{same} hierarchy, with a different closure for the opposite regime, short-range strong interactions in a dilute gas. And that closure, as we will see, is not reversible.
 
-\section{Motivating the Boltzmann Equation}
+:::VISUAL: split screen, BBGKY at the center, Vlasov (weak/long-range) on one side, Boltzmann (strong/short-range/dilute) on the other.
+
+\subsection{Motivating the Boltzmann Equation}
 
 Now that we have the structure of the Boltzmann equation
 \[
-\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pv{f_1}{t}  \right)_{\text{coll}}
+\pdv{f_1}{t} = \pb{H_1}{f_1} + \left(\pdv{f_1}{t}  \right)_{\text{coll}}
   \]
 
   but now we need to create an expression for the collision integral in terms of $f_1$. It is self-evident that such an integral should also be in terms of the rate at which said collision occur.
@@ -159,3 +201,288 @@ Now that we have the structure of the Boltzmann equation
 \text{Rate} = \omega(\va{p},\va{p}_2 \vert \va{p}_1,\va{p}_2 ) f_2(\va{r},\va{r}, \va{p},\va{p}_2) \, d^3p d^3p_2 d^3p_1' d^3p_2'
   \]
   (Here we’ve dropped the explicit t dependence of f2 only to keep the notation consice)
+
+  Here $omega$ represents scattering function, now this may seem like a new function, but using standard classical mechanics techniques, one can compute $\omega$ for a given inter-atomic potential $U(\va{r})$. (It is related to the differential cross-section; we will explain how to do this later). For now, note that $\omega$ is proportional to the two-body distribution function f2 since this tells us the chance that two particles originally sit in $(\va{r}, \va{p})$ and $(\va{r}, \va{p}_2)$
+
+Taking conservation of momentum
+
+Which actually has an assumption that is hiding in these equations. In general, we’re considering particles in an external potential V. This provides a force on the particles which, in principle, could mean that the momentum and kinetic energy of the particles is not the same before and after the collision. To eliminate this possibility, we assume that the interaction is via the electric field.
+
+From these facts we can find that the collision integral
+
+\[
+(\pdv{f_1}{t})_{coll} = \int d^3p_2\,d^3p'\,d^3p_2'\Big[\omega(\va p,\va p_2\,|\,\va p',\va p_2')\,f_2(\va r,\va r,\va p',\va p_2') - \omega(\va p',\va p_2'\,|\,\va p,\va p_2)\,f_2(\va r,\va r,\va p,\va p_2)\Big].
+  \]
+
+  Now that we have this scattering function, we know it must obey conservation of momentum and energy. Also, for the purposes of this work, we will assume that the scattering function has time reversal invariance.
+
+  The combination of these two means that the scattering rate is invariant under exchange of ingoing and outgoing momenta.
+
+  These symmetry properties allow us to simplify the collision term.
+\[
+(\pdv{f_1}{t})_{coll} = \int d^3p_2\,d^3p'\,d^3p_2'\;\omega(\va p',\va p_2'\,|\,\va p,\va p_2)\Big[f_2(\va r,\va r,\va p',\va p_2') - f_2(\va r,\va r,\va p,\va p_2)\Big].
+  \]
+  To finish the derivation, we need to face up to our main goal of expressing the collision integral in terms of $f_1$ rather than $f_2$. We make the assumption that the velocities of two particles are uncorrelated, so that we can write.
+\[
+f_2(\va{r}, \va{r}, \va{p}, \va{p}_2) = f_1(\va{r}, \va{p})f_1(\va{r}, \va{p}_2)
+  \]
+This assumption, which sometimes goes by the name of molecular chaos. While it seems pretty simple and infignificant, it isn't. We can see that we have taken the
+rate of collisions to be proportional to $f_2$. we are really assuming that the velocities are uncorrelated before the collision. And that sounds quite reasonable: you could imagine that during the collision process, the velocities between two particles become correlated. But there is then a long time $\tau$, before one of these particles undergoes another collision. Moreover, this next collision is typically with a completely different particle and it seems entirely plausible that the velocity of this new particle has nothing to do with the velocity of the first. Nonetheless, the fact that we’ve assumed that velocities are uncorrelated before the collision rather than after has, remarkablly created an arrow of time.
+
+Now with all of this we now have our Boltzmann equation
+\[
+\pdv{f_1}{t} = \pb{H_1}{f_1} + (\pdv{f_1}{t})_{coll}
+  \]
+  With the collision integral being
+\[
+(\pdv{f_1}{t})_{coll} = \int d^3p_2\,d^3p'\,d^3p_2'\;\omega(\va p',\va p_2'\,|\,\va p,\va p_2)\Big[f_1(\va r,\va p')f_1(\va r,\va p_2') - f_1(\va r,\va p)f_1(\va r,\va p_2)\Big],
+  \]
+
+  And the cross section form of $\omega$ is the more familiar
+\[
+\left(\pdv{f_1}{t}\right)_{\mathrm{coll}} = \int d^3p_2\,d\Omega \, \frac{|\va p-\va{p_2}|}{m}\,\frac{d\sigma}{d\Omega}\Big[f_1(\va r,\va p')f_1(\va r,\va p_2') - f_1(\va r,\va p)f_1(\va r,\va p_2)\Big].
+  \]
+
+
+\subsubsection*{Velocity variables}
+
+From here on, fluid mechanics is more naturally expressed in terms of velocity than momentum. Define $f(\va r,\va v,t)\equiv m^3 f_1(\va r,m\va v,t)$, which counts particles per $d^3r\,d^3v$, and write $\va a=\va F/m$ for the acceleration due to the external force. The Boltzmann equation becomes
+\[
+\boxed{\, \pdv{f}{t} + \va v\cdot\nabla f + \va a\cdot\nabla_{\va v}f = C[f]\, },\qquad
+C[f] = \int d^3v_2\,d\Omega\, |\va v-\va v_2|\,\frac{d\sigma}{d\Omega}\Big[f(\va v')f(\va v_2') - f(\va v)f(\va v_2)\Big].
+\]
+Equivalently, writing the collision integral in terms of the symmetric rate $W$, obtained from $\omega$ by the change of variables, which satisfies
+\[
+W(\va v',\va v_2'\,|\,\va v,\va v_2)=W(\va v,\va v_2\,|\,\va v',\va v_2'),
+\]
+and with $f'\equiv f(\va v')$, $f_2\equiv f(\va v_2)$ and so on,
+\[
+C[f]=\int d^3v_2\,d^3v'\,d^3v_2'\, W\,\big[f'f_2'-ff_2\big].
+\]
+This is the form we will use next.
+
+\subsection{H-Theorem}
+
+Now comes the payoff for the assumption we just made. Define Boltzmann's $H$-functional.
+\[
+H[f](t) = \int d^3r\,d^3v\,  f\ln f .
+\]
+
+Now, don't get confused with the H functional and the Hamiltonian, they are two different things.
+
+(The units inside the logarithm only shift $H$ by a constant, which is irrelevant here.) We will define that $-k_B H$ is the entropy of the gas, and the claim is that
+\[
+\dv{H}{t}\le 0 .
+\]
+
+Differentiate under the integral,
+\[
+\dv{H}{t} = \int d^3r\,d^3v\, (1+\ln f)\,\pdv{f}{t}.
+\]
+Substitute the Boltzmann equation. The streaming and force terms are total derivatives, $\va v\cdot\nabla(f\ln f)$ and $\va a\cdot\nabla_{\va v}(f\ln f)$ (because $\va v$ is independent of $\va r$ and $\va a$ is independent of $\va v$), so they integrate to boundary terms, which vanish for a gas in a box with reflecting or periodic walls. Only the collision integral survives. Also, $\int d^3v\,C[f]=0$, since collisions do not create or destroy particles, which removes the ``$1$'':
+\[
+\dv{H}{t} = \int d^3r\,d^3v\, \ln f\, C[f] = \int d^3r\int d^3v\,d^3v_2\,d^3v'\,d^3v_2'\, W\,\big(f'f_2'-ff_2\big)\ln f .
+\]
+
+The integration variables are dummy labels, so we are free to relabel them, and the symmetries of $W$ tell us the result is unchanged. Relabel $\va v\leftrightarrow\va v_2$ and $\va v'\leftrightarrow\va v_2'$ at the same time. The particles are identical, so $W$ is unchanged, and we find the same integral with $\ln f_2$ in place of $\ln f$. Average the two:
+\[
+\dv{H}{t} = \frac12\int d^3r\,d^3v\,d^3v_2\,d^3v'\,d^3v_2'\, W\,\big(f'f_2'-ff_2\big)\ln(ff_2).
+\]
+Now swap the unprimed and primed variables. Because of $W(\va v',\va v_2'|\va v,\va v_2)=W(\va v,\va v_2|\va v',\va v_2')$, which is the time-reversal symmetry we noted earlier,  the weight is unchanged, and the bracket changes sign, so
+\[
+\dv{H}{t} = -\frac12\int W\,\big(f'f_2'-ff_2\big)\ln(f'f_2').
+\]
+Averaging these last two forms gives
+\[
+\boxed{\, \dv{H}{t} = -\frac14\int d^3r\,d^3v\,d^3v_2\,d^3v'\,d^3v_2'\, W\, \big(f'f_2'-ff_2\big)\,\ln \, \frac{f'f_2'}{ff_2}\, \le 0\, }
+\]
+because $W\ge0$ and $(a-b)\ln(a/b)\ge0$ for any positive $a$ and $b$. This is the H-theorem.
+
+
+When does $H$ stop decreasing? Exactly when $f'f_2'=ff_2$ for every allowed collision, i.e.\ when $\ln f$ is a \emph{collision invariant}: $\ln f(\va v)+\ln f(\va v_2)=\ln f(\va v')+\ln f(\va v_2')$ whenever momentum and energy are conserved. The only functions with this property are linear combinations of the three conserved quantities (and a constant), $\ln f=\alpha+\va\beta\cdot\va v+\gamma v^2$, which, after fixing constants, is the Maxwell--Boltzmann distribution,
+\[
+f_{\mathrm{M}}(\va v)=n\left(\frac{m}{2\pi k_BT}\right)^{3/2}\exp \, \left[-\frac{m|\va v-\va u|^2}{2k_BT}\right].
+\]
+With an external potential the streaming term must also vanish, and the stationary solution is $f\propto e^{-\beta H_1}$, so that $n(\va r)\propto e^{-V(\va r)/k_BT}$. That is the Boltzmann distribution we wrote down at the beginning, \emph{assumed} there for the whole $N$-body system, and now \emph{derived} as the end point of the dynamics for the one-particle distribution. We also see that $S=-k_BH$ plays the role of the entropy, and the H-theorem is the second law, for a dilute gas.
+
+\subsubsection*{The paradoxes}
+
+The H-theorem should be something to question beyond what I am capable of explaining here. We started from reversible mechanics and ended up with a quantity that only goes one way, and two famous objections were raised in Boltzmann's time.
+
+\emph{Loschmidt's reversibility objection.} Take the gas at some late time, flip every velocity, and let it run. The microscopic dynamics will carry it back to its initial low-entropy state, so $H$ must increase along this path. Where did the proof break? The answer is that nothing in the proof was wrong, but its input was. The molecular chaos assumption holds for the \emph{typical} state a gas finds itself in, but the velocity-reversed state is exquisitely atypical: it is prepared so that every particle's velocity is correlated with those of the particles it is about to meet, precisely so that their collisions undo the earlier ones. Such states exist, but they are an incredibly small fraction of phase space.
+
+\emph{Zermelo's recurrence objection.} By the Poincar\'e recurrence theorem, a bounded Hamiltonian system returns arbitrarily close to its initial state, so $H$ must eventually go back up. This is true, but the recurrence time grows like $e^{O(N)}$, which for a macroscopic gas dwarfs the age of the universe by an absurd margin.
+
+The honest statement is that the H-theorem is a statement about the \emph{Boltzmann equation}, not about the $N$-body system, and the Boltzmann equation is valid in a statistical sense for almost all initial conditions that start out chaotic. We will see at the end how mathematicians made that precise.
+
+
+::::VISUAL: simulation of a hard-sphere gas expanding from a corner, H(t) falling to a plateau; then the velocity-reversal, H climbing back for a short time and then falling again when a tiny perturbation is added.
+
+\subsection{Conservation Laws from the Boltzmann Equation}
+
+The second half of the video begins here. The Boltzmann equation has far too much information for everyday fluid mechanics. A fluid is described by a few fields, the local density, velocity and temperature, which are \emph{moments} of $f$.
+
+Define, with the peculiar velocity $\va c=\va v-\va u$,
+\begin{align*}
+n &= \int d^3v\,f, \qquad \rho=mn, \qquad \va u = \frac1n\int d^3v\,\va v f,\\
+\tfrac32 n k_B T &= \int d^3v\,\tfrac12 m c^2 f, \\
+P_{ij} &= m\int d^3v\,c_ic_jf \quad\text{(pressure tensor)},\\
+q_i &= \int d^3v\,\tfrac12 mc^2\,c_i\,f \quad\text{(heat flux)}.
+\end{align*}
+The scalar pressure is $p=\tfrac13P_{ii}=nk_BT$, the ideal gas law.
+
+Take any function $\psi(\va v)$, multiply the Boltzmann equation by it, and integrate over $\va v$. The force term can be integrated by parts, since $\va a$ is independent of $\va v$:
+\[
+\pdv{}{t}\int d^3v\,\psi f + \nabla\cdot\int d^3v\,\va v\,\psi f - \int d^3v\,f\,\va a\cdot\nabla_{\va v}\psi = \int d^3v\,\psi\,C[f].
+\]
+Now the same symmetrization trick as in the H-theorem gives
+\[
+\int d^3v\,\psi\,C[f] = \frac14\int d^3v\,d^3v_2\,d^3v'\,d^3v_2'\, W\,\big(f'f_2'-ff_2\big)\big(\psi+\psi_2-\psi'-\psi_2'\big),
+\]
+which vanishes for \emph{any} $\psi$ with $\psi+\psi_2=\psi'+\psi_2'$ in every collision. These collision invariants are $\psi=1$, $\va v$ and $v^2$ (mass, momentum, energy), and nothing else. So the right-hand side drops out for exactly the three conserved quantities, and we obtain, with $D_t=\partial_t+\va u\cdot\nabla$ the material derivative:
+
+\begin{align}
+&\pdv{\rho}{t}+\nabla\cdot(\rho\va u)=0 &&(\psi=m)\\
+&\rho\,D_tu_i=-\partial_jP_{ij}+nF_i &&(\psi=mv_i)\\
+&\tfrac32 nk_B\,D_tT=-P_{ij}\,\partial_ju_i-\partial_iq_i &&(\psi=\tfrac12mv^2,\ \text{after subtracting the kinetic energy of the bulk flow}).
+\end{align}
+For the momentum equation, the only step needed is $m\int d^3v\,v_iv_jf=\rho u_iu_j+P_{ij}$, since $\int d^3v\,\va c f=0$, together with the continuity equation to turn $\partial_t(\rho u_i)+\partial_j(\rho u_iu_j)$ into $\rho D_tu_i$. The energy equation takes a few more lines of the same kind.
+% FIX/ADD: this section did not exist in the draft; it is the bridge between Boltzmann and fluid mechanics.
+
+These are exact consequences of the Boltzmann equation, and in fact they are exact consequences of the underlying mechanics too, since they only use conservation of mass, momentum and energy. But they are not a closed system. We have five equations, and unknowns that include $P_{ij}$ and $\va q$, which depend on the whole distribution $f$ and not just on $\rho$, $\va u$ and $T$. This is the same problem as in the BBGKY hierarchy, in a new place: the equation for each moment involves the next one up (the equation for $P_{ij}$ involves $q_i$ and a fourth moment, and so on). To close it, we need to say something about what $f$ looks like.
+
+\subsection{Local Equilibrium and the Euler Equations}
+
+The H-theorem tells us what $f$ looks like when collisions have had a lot of time: a Maxwellian. Suppose collisions are so frequent compared to the time and distance over which the fluid changes, i.e.\ $\mathrm{Kn}\to0$, that $f$ has \emph{locally} relaxed to the Maxwellian with the local values of $n$, $\va u$ and $T$:
+\[
+f\approx f_0(\va r,\va v,t)=n\left(\frac{m}{2\pi k_BT}\right)^{3/2}\exp\, \left[-\frac{m|\va v-\va u|^2}{2k_BT}\right],\qquad n,\va u,T\ \text{functions of }(\va r,t).
+\]
+This is called local equilibrium, and it is the closure for the moment equations. Compute the unknown moments with this $f_0$, which is an even Gaussian in $\va c$:
+\[
+P_{ij}=m\int d^3v\,c_ic_jf_0=nk_BT\,\delta_{ij}=p\,\delta_{ij},\qquad q_i=\int d^3v\,\tfrac12mc^2c_if_0=0 ,
+\]
+since the integral of an odd function of $\va c$ vanishes. Substituting into the conservation laws, we get the Euler equations for an ideal gas:
+\begin{align*}
+&\pdv{\rho}{t}+\nabla\cdot(\rho\va u)=0, \qquad \rho\,D_t\va u=-\nabla p+n\va F, \qquad \tfrac32nk_B\,D_tT=-p\,\nabla\cdot\va u,\\
+&p=nk_BT.
+\end{align*}
+One can combine the last equation with continuity to get $D_t\big(p\rho^{-5/3}\big)=0$: the gas is adiabatic with $\gamma=5/3$, as it should for a monatomic ideal gas.
+
+Notice what has happened to the arrow of time. The Euler equations have no dissipation: they are reversible again (flip $\va u\to-\va u$ and $t\to-t$). The irreversibility of the Boltzmann equation is hiding in the assumption that the gas sits in local equilibrium, which is the maximum-entropy state at fixed conserved densities, but there is nothing in Euler that \emph{produces} entropy (except shocks, which Euler cannot describe by itself). To see viscosity and heat conduction we have to look at the first correction to local equilibrium.
+
+\subsection{From Boltzmann to Navier--Stokes: Chapman--Enskog}
+
+Write the Boltzmann equation in a form that shows the small parameter. If $L$ is the scale of the flow and $\tau$ the mean time between collisions, then in units of $L$ and $L/\bar v$ the left-hand side is $O(1)$ and the collision integral is $O(1/\varepsilon)$, where $\varepsilon\sim\mathrm{Kn}=\lambda/L$:
+\[
+\mathcal D f \equiv \Big(\pdv{}{t}+\va v\cdot\nabla+\va a\cdot\nabla_{\va v}\Big)f=\frac1\varepsilon\,C[f].
+\]
+The Chapman--Enskog idea is to expand $f=f^{(0)}+\varepsilon f^{(1)}+\varepsilon^2f^{(2)}+\cdots$, where all the time dependence enters through the five hydrodynamic fields. Order by order:
+\begin{itemize}
+  \item At order $\varepsilon^{-1}$: $C[f^{(0)}]=0$. By the H-theorem, $f^{(0)}=f_0$ is the local Maxwellian. That is the Euler closure we just found.
+  \item At order $\varepsilon^{0}$: $\mathcal D f_0=\mathcal L f^{(1)}$, where $\mathcal L$ is the linearization of the collision operator about $f_0$. We solve this for $f^{(1)}$, the leading deviation from local equilibrium, which is driven by the left-hand side.
+  \item Insert $f_0+f^{(1)}$ into the exact conservation laws. The extra contribution of $f^{(1)}$ to $P_{ij}$ and $\va q$ gives the Navier--Stokes equations. (At the next order we would get the Burnett equations, and so on.)
+\end{itemize}
+
+To make this explicit with minimal machinery, I will replace the full collision operator with the simplest model that has the right properties, the BGK (Bhatnagar--Gross--Krook) model,
+\[
+C[f]\to-\frac{f-f_0}{\tau},
+\]
+where $f_0$ is the local Maxwellian with the same $n$, $\va u$, $T$ as $f$, so mass, momentum and energy are still conserved, and $\tau$ is a relaxation time of the order of the mean free time. Then $f^{(1)}=-\tau\,\mathcal Df_0$, and the whole problem is to compute $\mathcal Df_0$.
+
+Let me do this carefully since this is the heart of the matter. We have $\ln f_0=\ln n-\tfrac32\ln T-\frac{mc^2}{2k_BT}+\text{const}$, with $\va c=\va v-\va u$, so that $\nabla_{\va v}\ln f_0=-m\va c/k_BT$. Writing $\partial_t+\va v\cdot\nabla=D_t+\va c\cdot\nabla$,
+\[
+\begin{aligned}
+\mathcal D\ln f_0={}&\frac{D_tn+\va c\cdot\nabla n}{n}
++\frac{m c_j}{k_BT}\big(D_tu_j+\va c\cdot\nabla u_j\big) \\
+&+\Big(\frac{mc^2}{2k_BT}-\frac32\Big)\frac{D_tT+\va c\cdot\nabla T}{T}
+-\frac{m}{k_BT}\,\va a\cdot\va c .
+\end{aligned}
+\]
+The time derivatives $D_tn,D_tu,D_tT$ are not independent: to this order they are given by the Euler equations,
+\[
+D_tn=-n\nabla\cdot\va u,\qquad D_tu_j=a_j-\frac{1}{mn}\partial_j(nk_BT),\qquad D_tT=-\frac23T\,\nabla\cdot\va u .
+\]
+Substitute these in. Two things happen at once. The acceleration terms cancel against $-\frac{m}{k_BT}\va a\cdot\va c$, and the $\va c\cdot\nabla n$ terms cancel among themselves, so no density gradient and no external force survives: a uniform gas in a uniform force field remains in equilibrium. What is left depends only on velocity gradients and the temperature gradient, which are the two things we expect to drive transport:
+\[
+\mathcal Df_0=f_0\left[\frac{m}{2k_BT}\,c_ic_j\,\sigma_{ij}+\Big(\frac{mc^2}{2k_BT}-\frac52\Big)\frac{\va c\cdot\nabla T}{T}\right],
+\qquad
+\sigma_{ij}\equiv\partial_iu_j+\partial_ju_i-\tfrac23\delta_{ij}\nabla\cdot\va u .
+\]
+(Along the way the $\nabla\cdot\va u$ terms combine with $c_ic_j\partial_ju_i$ to form exactly the traceless symmetric combination $\sigma_{ij}$, so that the trace part cancels. That is why the result has no bulk viscosity for a monatomic gas.)
+
+Now compute the new contributions to the pressure tensor and heat flux from $f^{(1)}=-\tau\mathcal Df_0$. We need the Gaussian moments
+\[
+\int d^3v\,f_0\,c_ic_jc_kc_l=n\Big(\frac{k_BT}{m}\Big)^2\big(\delta_{ij}\delta_{kl}+\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk}\big),
+\]
+and, with $x=mc^2/2k_BT$, the averages $\langle x\rangle=\tfrac32$, $\langle x^2\rangle=\tfrac{15}4$, $\langle x^3\rangle=\tfrac{105}8$.
+
+\emph{Stress.} Only the $c_ic_j\sigma_{ij}$ term contributes to $P_{ij}$ (the temperature term is odd in $\va c$), and since $\sigma_{kl}$ is symmetric and traceless,
+\[
+P_{ij}-p\,\delta_{ij}=-\tau\,m\int d^3v\,c_ic_j\,f_0\,\frac{m}{2k_BT}\,c_kc_l\,\sigma_{kl}=-\tau\,nk_BT\,\sigma_{ij}.
+\]
+\emph{Heat flux.} Only the temperature term contributes to $\va q$ (the stress term is even in $\va c$). Using isotropy, $\int f_0\,c_ic_jg(c^2)=\tfrac13\delta_{ij}\int f_0\,c^2g$, and $\langle x^3-\tfrac52x^2\rangle=\tfrac{15}4$,
+\[
+q_i=-\frac{\tau}{3T}\,\partial_iT\int d^3v\,f_0\,\tfrac12mc^2\,c^2\Big(\frac{mc^2}{2k_BT}-\frac52\Big)=-\frac52\,\frac{nk_B^2T\tau}{m}\,\partial_iT .
+\]
+These are exactly the forms of Newton's law of viscosity and Fourier's law of heat conduction,
+\[
+P_{ij}=p\,\delta_{ij}-\mu\,\sigma_{ij},\qquad \va q=-\kappa\nabla T,
+\]
+with
+\[
+\mu=nk_BT\,\tau=p\,\tau,\qquad \kappa=\frac52\,\frac{k_B}{m}\,\mu .
+\]
+% FIX/ADD: this is the section that completes the title promise of the video.
+
+Plug them back into the exact conservation laws, and we have the Navier--Stokes--Fourier equations:
+\begin{align*}
+&\pdv{\rho}{t}+\nabla\cdot(\rho\va u)=0,\\
+&\rho\,D_t\va u=-\nabla p+\nabla\cdot\big(\mu\,\sigma\big)+n\va F,\\
+&\tfrac32nk_B\,D_tT=-p\,\nabla\cdot\va u+\tfrac12\mu\,\sigma_{ij}\sigma_{ij}+\nabla\cdot(\kappa\nabla T).
+\end{align*}
+The new terms are the viscous stress, the viscous heating $\tfrac12\mu\sigma_{ij}\sigma_{ij}\ge0$ and heat conduction. They are the dissipative terms, and they are responsible for entropy production; $\mu,\kappa\ge0$ is the H-theorem showing up in the transport coefficients. The arrow of time that Euler lacked entered at \emph{first order in the Knudsen number}, through the deviation $f^{(1)}$ from local equilibrium. For low Mach number, $\nabla\cdot\va u\approx0$ and nearly constant $\rho$, these reduce to the incompressible equations with kinematic viscosity $\nu=\mu/\rho$,
+\[
+\pdv{\va u}{t}+(\va u\cdot\nabla)\va u=-\frac{\nabla p}{\rho}+\nu\nabla^2\va u,\qquad\nabla\cdot\va u=0 .
+\]
+The incompressible limit corresponds to a scaling in which $\mathrm{Ma}\sim\mathrm{Kn}\to0$, so that the Reynolds number stays of order one, using $\mathrm{Kn}\sim\mathrm{Ma}/\mathrm{Re}$ up to numerical factors.
+
+\subsubsection*{What BGK got right, and what it got wrong}
+
+The structure is robust. For the true Boltzmann collision operator the leading correction has the same tensor form, because isotropy leaves no other possibility, and only the coefficients change: they are given by integrals involving the cross-section. The result for hard spheres at first Chapman--Enskog approximation is
+\[
+\mu=\frac{5}{16\,d^2}\sqrt{\frac{m k_BT}{\pi}},\qquad \kappa=\frac{15}{4}\frac{k_B}{m}\,\mu .
+\]
+Two things are remarkable. First, $\mu$ is independent of the density, which is Maxwell's famous prediction that the viscosity of a gas does not depend on its pressure (the density in $\mu\sim\rho\bar v\lambda$ is cancelled by $\lambda\propto1/\rho$), and it grows like $\sqrt T$. Second, as a check, for nitrogen at $300\ \mathrm{K}$ with $d\approx3.7\ \mbox{\AA}$ the formula gives $\mu\approx1.8\times10^{-5}\ \mathrm{Pa\,s}$, which is the measured viscosity of air to within a few percent. (Of course $d$ is a fitted effective diameter here, so it is a consistency check rather than a prediction.) The simple relaxation-time model, by contrast, gets $\kappa/\mu$ wrong by a factor of $2/3$, so it predicts a Prandtl number $\mathrm{Pr}=c_p\mu/\kappa=1$ where real monatomic gases have $\mathrm{Pr}=2/3$. This is a known limitation of BGK, fixed by modified models, and a reminder that a model collision term is good for structure and bad for coefficients.
+
+
+\subsection{When to Use Which Description}
+
+We now have three descriptions, so how do we choose? Each is a tradeoff between how much it keeps and how much it costs.
+
+\begin{itemize}
+  \item \textbf{Hamiltonian / molecular dynamics.} Always correct for classical particles, with no assumptions about density or correlations. The cost is that you follow every particle, and you can only reach small systems and short times. This is the tool when the gas is dense, the system is nanoscale, or the correlations between particles matter.
+  \item \textbf{Boltzmann.} Keeps the velocity distribution, so it captures non-equilibrium states, but needs a dilute gas ($nd^3\ll1$, binary collisions) with short-range interactions and molecular chaos. The unknown $f$ lives in six dimensions plus time, and the collision integral is a five-dimensional integral at each point, so it is expensive. In practice it is solved by Monte Carlo particle methods, such as direct simulation Monte Carlo (DSMC), or by discrete-velocity methods.
+  \item \textbf{Navier--Stokes.} Five fields in three dimensions. It is cheap, but needs local equilibrium: the distribution must be close to a Maxwellian everywhere, which means $\mathrm{Kn}\ll1$.
+\end{itemize}
+
+The Knudsen number organizes the choice, with the usual rules of thumb (the boundaries are not sharp, and depend on the quantity you care about):
+\begin{center}
+{\small\setlength{\tabcolsep}{4pt}\begin{tabular}{lll}
+\hline
+$\mathrm{Kn}=\lambda/L$ & Regime & Appropriate description\\
+\hline
+$\lesssim 10^{-3}$ & continuum & Navier--Stokes (Euler away from boundary layers)\\
+$10^{-3}$--$10^{-1}$ & slip flow & Navier--Stokes with slip and temperature-jump boundary conditions\\
+$10^{-1}$--$10$ & transitional & Boltzmann (e.g.\ DSMC)\\
+$\gtrsim10$ & free molecular & collisionless Boltzmann (ballistic particles)\\
+\hline
+\end{tabular}}
+\end{center}
+Some familiar places where the label ``fluid'' stops being safe:
+\begin{itemize}
+  \item \emph{Rarefied flow.} At $100\ \mathrm{km}$ altitude the mean free path in air is of order $0.1\ \mathrm{m}$, comparable to a spacecraft, so re-entry vehicles pass through the transitional regime.
+  \item \emph{Microchannels and nanofluidics.} In a channel one micron across, $\mathrm{Kn}\approx0.07$ at atmospheric pressure, which is in the slip regime, and the no-slip condition of ordinary fluid mechanics fails.
+  \item \emph{Shock waves.} A shock is only a few mean free paths thick, so the gradients are steep enough that the Navier--Stokes closure becomes unreliable inside it.
+  \item \emph{High-frequency sound.} When the period of the sound wave is comparable to the collision time, the gas does not have time to relax to local equilibrium, and Navier--Stokes mispredicts attenuation and dispersion.
+\end{itemize}
+The relevant $L$ is the \emph{local gradient length}, $L=Q/|\nabla Q|$ for density, temperature or velocity, rather than the size of the container. A commonly quoted rule of thumb is that continuum equations begin to fail when $\lambda|\nabla Q|/Q$ exceeds a few percent.
