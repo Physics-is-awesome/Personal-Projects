@@ -28,11 +28,11 @@ nsteps    = 1000000
 out_every = 100
 hz_every = 100
 ko_eps    = 0.2   #0.2 is what it was   # Kreiss-Oliger dissipation strength, typical 0.1-0.5
-r_excise  = 1.0      # keep the excision boundary well inside the Kerr horizon
-excision_order = 2   # bounded inner-boundary extension
+r_excise  = 1.5      # route-C trumpet surface: R0 < r_excise < r_+
+excision_order = 3   # bounded inner-boundary extension
 excision_sat = false # guarded until exact BSSN characteristic data are available.
-                    # NOTE: the test-verified SAT does damp the inner boundary
-                    # slightly (lower max|H| than the off case), but the run
-                    # still dies because the puncture gauge is not actually
-                    # driving anything - see the Gamma-driver notes in
-                    # integrators/bssn_rhs.F90 and init/init_data.F90.
+                    # The reduced SAT remains diagnostic-only; it is not a
+                    # complete characteristic treatment for production BSSN.
+initial_data_mode = 1 # Dennison-Baumgarte-Montero route-C trumpet data
+slicing_mode = 3       # tabulated stationary Kerr slicing
+gamma_driver_mode = 4  # matching non-advective Gamma driver

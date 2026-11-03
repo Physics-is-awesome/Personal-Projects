@@ -31,7 +31,8 @@
 !   convergence; it only reports numbers.
 !
 ! USAGE
-!   diagnose_momentum_point [parfile] [Nx] [Nz] [target_z]
+!   diagnose_momentum_point [parfile] [target_x] [target_z]
+!   A negative target_x selects the first positive grid point (i=2).
 !===============================================================================
 program diagnose_momentum_point
   use kinds_mod, only: dp
@@ -60,7 +61,11 @@ program diagnose_momentum_point
   logical :: ex
 
   par_file = 'parameter_files/vacuum_kerr.par'
-  target_x = 0.0628272251309_dp
+  ! A negative x argument means the first positive grid point.  The previous
+  ! hard-coded Nx=192 coordinate was exactly halfway between x=0 and x=dx on
+  ! the 96x192 production grid, so the nearest-point search silently chose the
+  ! axis and made the advertised near-axis comparison vacuous.
+  target_x = -1.0_dp
   target_z = -1.535248_dp
 
   call get_command_argument(1, buf)
@@ -80,6 +85,7 @@ program diagnose_momentum_point
   end if
 
   call init_params(trim(par_file))
+  if (target_x < 0.0_dp) target_x = dx
   slicing_mode    = 2        ! frozen lapse
   gamma_driver_mode = 2      ! frozen shift  (diagnostic only; no RHS here)
   call setup_grid()
@@ -111,7 +117,7 @@ program diagnose_momentum_point
   write(*,'(A,I0,A,I0,A,F10.6,A,F12.8)') &
        ' Nx=',Nx,' Nz=',Nz,' dx=',dx,' dz=',dz
   write(*,'(A,2(1X,I0),A)') ' target grid index (i,k)=', i, k, &
-       '  (requested x=dx, z=-1.535248)'
+       '  (first positive x if requested x < 0)'
   write(*,'(A,F12.8,A,F12.8)') ' grid x= ',xg(i),'  z= ',zg(k)
   write(*,'(A,F10.6,A,F12.8)') ' Kerr radius r_KS=',target_r,'   a=',bh_spin
   write(*,'(A,I0)') ' excision mask at this point = ',excision_status(i,k)
@@ -269,7 +275,7 @@ contains
   subroutine adm_momentum(st, ii, kk)
     real(dp), intent(in) :: st(:,:,:)
     integer, intent(in) :: ii, kk
-    real(dp) :: gphys(3,3), ginv(3,3), detg
+    real(dp) :: gphys(3,3), gtilde(3,3), ginv(3,3), detg
     real(dp) :: e4, Ktr, Kij(3,3), S(3,3), Sx(3,3), Sy(3,3), Sz(3,3)
     real(dp) :: Gconn(3,3,3)
     real(dp) :: vp(NVARS), vm(NVARS)
@@ -283,9 +289,12 @@ contains
        return
     end if
 
-    ! physical metric and its inverse at the point
+  ! Physical metric and inverse at the point.  Reconstruct K_ij from the
+  ! conformal variables using gtilde_ij in the trace term; using gphys_ij
+  ! there would multiply the conformal factor twice and corrupt the ADM check.
     e4  = exp(4.0_dp*st(ii,kk,IPHI))
-    gphys = e4*unpack_gt(st(ii,kk,:))
+    gtilde = unpack_gt(st(ii,kk,:))
+    gphys = e4*gtilde
     call sym3_inverse(gphys, ginv, detg)
     Ktr = st(ii,kk,IK)
     ! physical extrinsic curvature
@@ -298,7 +307,7 @@ contains
        case (5); p = 2; q = 3
        case (6); p = 3; q = 3
        end select
-       Kij(p,q) = e4*(st(ii,kk,8+ig) + gphys(p,q)*Ktr/3.0_dp)
+       Kij(p,q) = e4*(st(ii,kk,8+ig) + gtilde(p,q)*Ktr/3.0_dp)
        Kij(q,p) = Kij(p,q)
     end do
     ! S^{ij} = K^{ij} - gamma^{ij} K

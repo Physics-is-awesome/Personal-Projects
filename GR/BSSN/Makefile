@@ -13,6 +13,16 @@
 #                               # Kerr-Schild data; confirms 2nd-order accuracy
 #   make test-horizon-drift     # validates horizon_mod against exact Kerr and
 #                               # attributes horizon migration to solver vs data
+#   make diagnose-ks-stationarity
+#   make diagnose-boundary-isolation
+#                               # reports residuals and isolates bulk, KO,
+#                               # outer-boundary, and legacy inner-SAT terms
+#   baseline/experiments/outer_boundary/sweep.sh
+#                               # compares outer sponge/domain configurations
+#   make diagnose-equilibrium-ring
+#                               # measures route-C RHS near excision/horizon
+#   make diagnose-route-c-sat
+#                               # probes the reduced SAT without enabling it
 #
 # Long-run health checks (environment variables, driver):
 #   GR_DIAG_SHIFT=1      print max|beta| / max|Gbar| in the inner ring
@@ -141,13 +151,16 @@ SOURCES_NO_DRIVER := $(filter-out drivers/vacuum_kerr.F90,$(SOURCES))
 
 TESTS := test-excision-sat test-fo-sbp-sat test-fo-rhs test-fo-normal-system \
 	test-cartoon \
+	test-stencil-derivs \
+	test-momentum-principal \
+	test-fo-constraint-fields test-fo-constraint-principal \
 	test-fo-curved-sat test-fo-validation test-fo-complete-layout \
-	test-fo-complete-state test-fo-complete-rhs test-fo-layout test-fo-convergence \
+	test-fo-complete-state test-fo-complete-rhs test-fo-symbol-consistency test-fo-layout test-fo-convergence \
 	test-horizon-drift test-constraint-conv test-momentum-conv \
 	test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data \
-	test-k-from-gauge
+	test-k-from-gauge test-gauge-f-continuity
 
-.PHONY: all run clean check check-parity diagnose-k-from-gauge diagnose-stencil-derivs diagnose-eq-kerr-data test-horizon-drift test-constraint-conv test-momentum-conv test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data probe-momentum-terms diagnose-ks-stationarity diagnose-momentum-point diagnose-inner-boundary $(TESTS)
+.PHONY: all run clean check check-parity test diagnose-k-from-gauge diagnose-stencil-derivs diagnose-eq-kerr-data diagnose-kerr-bssn diagnose-f-alpha-relation diagnose-boundary-isolation diagnose-equilibrium-ring diagnose-route-c-sat diagnose-horizon-snapshot diagnose-dbm-momentum-point diagnose-momentum-snapshot test-horizon-drift test-constraint-conv test-momentum-conv test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data probe-momentum-terms diagnose-ks-stationarity diagnose-momentum-point diagnose-inner-boundary test-gauge-f-continuity $(TESTS)
 
 # Build-only: report targets that optionally take a parameter file.
 bin/diagnose_stationary_ks_rhs: $(SOURCES_NO_DRIVER) helper/diagnose_stationary_ks_rhs.F90 | bin $(MODDIR)
@@ -157,14 +170,82 @@ bin/diagnose_stationary_ks_rhs: $(SOURCES_NO_DRIVER) helper/diagnose_stationary_
 diagnose-ks-stationarity: bin/diagnose_stationary_ks_rhs
 	./bin/diagnose_stationary_ks_rhs
 
+bin/diagnose_boundary_isolation: $(SOURCES_NO_DRIVER) helper/diagnose_boundary_isolation.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_boundary_isolation.F90 -o bin/diagnose_boundary_isolation $(LDLIBS)
+
+diagnose-boundary-isolation: bin/diagnose_boundary_isolation
+	./bin/diagnose_boundary_isolation $(PARFILE)
+
+bin/diagnose_equilibrium_ring: $(SOURCES_NO_DRIVER) helper/diagnose_equilibrium_ring.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_equilibrium_ring.F90 -o bin/diagnose_equilibrium_ring $(LDLIBS)
+
+diagnose-equilibrium-ring: bin/diagnose_equilibrium_ring
+	GR_SPIN=0.8 GR_REXCISE=1.5 ./bin/diagnose_equilibrium_ring 0.8 1.0 $(PARFILE)
+
+bin/diagnose_route_c_sat: $(SOURCES_NO_DRIVER) helper/diagnose_route_c_sat.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_route_c_sat.F90 -o bin/diagnose_route_c_sat $(LDLIBS)
+
+diagnose-route-c-sat: bin/diagnose_route_c_sat
+	GR_INITIAL_DATA_MODE=1 GR_REXCISE=1.5 ./bin/diagnose_route_c_sat $(PARFILE)
+
+bin/diagnose_route_c_constraint_jacobian: $(SOURCES_NO_DRIVER) helper/fo_constraint_fields.F90 \
+		helper/diagnose_route_c_constraint_jacobian.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/fo_constraint_fields.F90 helper/diagnose_route_c_constraint_jacobian.F90 \
+		-o bin/diagnose_route_c_constraint_jacobian $(LDLIBS)
+
+diagnose-route-c-constraint-jacobian: bin/diagnose_route_c_constraint_jacobian
+	./bin/diagnose_route_c_constraint_jacobian $(PARFILE)
+
+bin/diagnose_kerr_bssn: $(SOURCES_NO_DRIVER) helper/diagnose_kerr_bssn.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_kerr_bssn.F90 -o bin/diagnose_kerr_bssn $(LDLIBS)
+
+diagnose-kerr-bssn: bin/diagnose_kerr_bssn
+	./bin/diagnose_kerr_bssn
+
+bin/diagnose_f_alpha_relation: $(SOURCES_NO_DRIVER) helper/diagnose_f_alpha_relation.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_f_alpha_relation.F90 -o bin/diagnose_f_alpha_relation $(LDLIBS)
+
+diagnose-f-alpha-relation: bin/diagnose_f_alpha_relation
+	./bin/diagnose_f_alpha_relation $(PARFILE)
+
+bin/diagnose_horizon_snapshot: $(SOURCES_NO_DRIVER) helper/diagnose_horizon_snapshot.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_horizon_snapshot.F90 -o bin/diagnose_horizon_snapshot $(LDLIBS)
+
+diagnose-horizon-snapshot: bin/diagnose_horizon_snapshot
+	./bin/diagnose_horizon_snapshot $(PARFILE) $(SNAPSHOT)
+
+bin/diagnose_dbm_momentum_point: $(SOURCES_NO_DRIVER) helper/diagnose_dbm_momentum_point.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_dbm_momentum_point.F90 -o bin/diagnose_dbm_momentum_point $(LDLIBS)
+
+diagnose-dbm-momentum-point: bin/diagnose_dbm_momentum_point
+	./bin/diagnose_dbm_momentum_point $(MOMENTUM_PAR) $(MOMENTUM_Z)
+
+bin/diagnose_momentum_snapshot: $(SOURCES_NO_DRIVER) helper/diagnose_momentum_snapshot.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_momentum_snapshot.F90 -o bin/diagnose_momentum_snapshot $(LDLIBS)
+
+diagnose-momentum-snapshot: bin/diagnose_momentum_snapshot
+	./bin/diagnose_momentum_snapshot $(MOMENTUM_PAR) $(SNAPSHOT) \
+		$(if $(BACKGROUND),$(BACKGROUND),$(SNAPSHOT)) $(MOMENTUM_Z)
+
 # Build-only: report targets a compile-time error instead of stopping the build.
 bin/diagnose_momentum_point: $(SOURCES_NO_DRIVER) helper/diagnose_momentum_point.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
 		helper/diagnose_momentum_point.F90 -o bin/diagnose_momentum_point $(LDLIBS)
 
+MOMENTUM_PAR ?= parameter_files/vacuum_kerr.par
+MOMENTUM_X ?= -1.0
+MOMENTUM_Z ?= -1.535248
 diagnose-momentum-point: bin/diagnose_momentum_point
-	./bin/diagnose_momentum_point parameter_files/vacuum_kerr.par \
-		0.0628272251309 -1.535248
+	./bin/diagnose_momentum_point $(MOMENTUM_PAR) $(MOMENTUM_X) $(MOMENTUM_Z)
 
 # test-cartoon now exercises the cartoon y-DERIVATIVE through the production
 # stencil, so it needs the full module set rather than just cartoon.F90.
@@ -172,6 +253,11 @@ test-cartoon: $(SOURCES_NO_DRIVER) helper/test_cartoon.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
 		helper/test_cartoon.F90 -o bin/test_cartoon $(LDLIBS)
 	./bin/test_cartoon
+
+test-stencil-derivs: $(SOURCES_NO_DRIVER) helper/test_stencil_derivs.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/test_stencil_derivs.F90 -o bin/test_stencil_derivs $(LDLIBS)
+	GR_NX=48 GR_NZ=96 ./bin/test_stencil_derivs
 
 all: $(TARGET)
 
@@ -201,7 +287,12 @@ test-excision-sat: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F
 		helper/excision_sat.F90 helper/test_excision_sat.F90 -o bin/test_excision_sat
 	./bin/test_excision_sat
 
-test: $(TESTS)
+# Run every test even when one fails.  There are two known-red tests
+# (test-horizon-drift, test-gauge-f-continuity); a serial run would stop at the
+# first and hide the second, which is how a broken production .par survived so
+# long without the suite saying so.
+test:
+	@$(MAKE) -k --no-print-directory $(TESTS)
 
 test-gamma-driver-rhs: $(SOURCES_NO_DRIVER) helper/test_gamma_driver_rhs.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
@@ -212,6 +303,18 @@ test-eq-schwarzschild-data: $(SOURCES_NO_DRIVER) helper/test_eq_schwarzschild_da
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
 		helper/test_eq_schwarzschild_data.F90 -o bin/test_eq_schwarzschild_data $(LDLIBS)
 	./bin/test_eq_schwarzschild_data
+
+# Continuity of the route-C Bona-Masso slicing function.  bm_f_of_alpha blends
+# a tabulated a=0.8 measurement with the a=0 closed form; the branches must
+# meet, because a jump in f(alpha) is a jump in d_t alpha and an O(1) source
+# that no resolution removes.  The table must also cover every alpha the run
+# reaches: it previously stopped at alpha=0.3763 while the lapse fell to 0.363,
+# and the a=0 fallback there was a 14.0% step.  Regenerate the table with
+# `make diagnose-eq-kerr-data` (Part H) if eq_kerr_trumpet changes.
+test-gauge-f-continuity: $(SOURCES_NO_DRIVER) helper/test_gauge_f_continuity.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/test_gauge_f_continuity.F90 -o bin/test_gauge_f_continuity $(LDLIBS)
+	./bin/test_gauge_f_continuity
 
 # `check` is the gate: the production binary must build from a source set that
 # a superset-check covers, and the whole test suite must pass.
@@ -249,6 +352,33 @@ test-fo-complete-rhs: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/var
 		integrators/bssn_rhs.F90 integrators/fo_complete_rhs.F90 \
 		helper/test_fo_complete_rhs.F90 -o bin/test_fo_complete_rhs
 	./bin/test_fo_complete_rhs
+
+test-fo-symbol-consistency: $(SOURCES_NO_DRIVER) helper/test_fo_symbol_consistency.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/test_fo_symbol_consistency.F90 -o bin/test_fo_symbol_consistency $(LDLIBS)
+	./bin/test_fo_symbol_consistency
+
+test-momentum-principal: $(SOURCES_NO_DRIVER) helper/test_momentum_principal.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/test_momentum_principal.F90 -o bin/test_momentum_principal $(LDLIBS)
+	./bin/test_momentum_principal
+
+test-fo-constraint-fields: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F90 \
+		helper/cartoon.F90 \
+		init/fo_complete_vars.F90 helper/fo_constraint_fields.F90 \
+		helper/test_fo_constraint_fields.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) helper/kinds_mod.F90 init/param.F90 \
+		init/grid.F90 init/vars.F90 helper/cartoon.F90 init/fo_complete_vars.F90 \
+		helper/fo_constraint_fields.F90 helper/test_fo_constraint_fields.F90 \
+		-o bin/test_fo_constraint_fields
+	./bin/test_fo_constraint_fields
+
+test-fo-constraint-principal: $(SOURCES_NO_DRIVER) helper/fo_constraint_fields.F90 \
+		helper/test_fo_constraint_principal.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/fo_constraint_fields.F90 helper/test_fo_constraint_principal.F90 \
+		-o bin/test_fo_constraint_principal $(LDLIBS)
+	./bin/test_fo_constraint_principal
 
 test-fo-normal-system: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F90 \
 		helper/cartoon.F90 init/fo_complete_vars.F90 helper/fo_normal_system.F90 \
@@ -448,6 +578,119 @@ test-constraint-conv: $(SOURCES) helper/test_constraint_conv.F90 | bin $(MODDIR)
 #   So metric and shift are now verified in the far field, det(gamma) -> 1, and
 #   the trumpet is the only rejected region.
 #
+# ===================================================================
+#  ROUTE C, RESOLVED ENOUGH TO REPORT (the polar-angle bug was the big one)
+# ===================================================================
+# Comparing helper/eq_kerr_trumpet.F90 against its own source --
+# Dennison, Baumgarte & Montero, "Trumpet Slices in Kerr Spacetimes",
+# PRL 113, 261101 (2014), arXiv:1409.1887, eq. (12) -- showed the module's
+# lapse (16) and shift (18) match the paper EXACTLY, but two things did not.
+#
+# BUG A (FIXED, this was the dominant error): the module computed the polar
+#   angle as ct = z/r with r the ABLE radial coordinate.  The paper's
+#   rho^2 = R^2 + a^2 cos^2(th) MIXES the ABLE radius R with the STANDARD
+#   polar angle cos(th) = z/r_E, and the two radii coincide only for a = 0.
+#   Using the standard angle: max|H| at a=0.8 went 2.82 -> 1.50e-2 (187x),
+#   at a=0.4 9.09e-1 -> 3.99e-3 (228x), and a=0 was unchanged (1.86e-3),
+#   exactly as the a-dependence of the error requires.  ktr_kerr_rtheta and
+#   ktr_kerr_xyz were both fixed, so the two assembly routines agree.
+#
+# BUG B (FIXED): the module returned only the DIAGONAL of the spatial
+#   metric.  The paper's eq. (12) also has
+#       g_Rphi = -2a sqrt(R0^2+2R(M-R0)-a^2)/(R-R0) sin^2(th),
+#   which is proportional to a and is MISSING.  That is the natural
+#   explanation for the residual factor ~5 still separating the Kerr data
+#   from the Schwarzschild fixture, and for its growth with spin.  Fixing it
+#   needs the non-orthogonal (R,th,ph) basis handled properly, not a bolt-on.
+#   IMPLEMENTED.  The ABLE quartic R^4 - R^2 r_E^2 + a^2 r_E^2 cos^2(th) = 0
+#   gives r_E(R,th) = R^2/sqrt(R^2 - a^2 cos^2 th), so r_E depends on th as well
+#   as R and the Jacobian d(x)/d(R,th,ph) is UPPER TRIANGULAR in the spherical
+#   frame, not diagonal:
+#       T = [ d r_E/dR   d r_E/dth   0 ]
+#           [    0          r_E       0 ]
+#           [    0           0     r_E st]
+#   and the metric transforms as g_cart = E (T^{-T} gq T^{-1}) E^T -- the
+#   INVERSE, because the metric is covariant.  A bolt-on diagonal
+#   approximation cannot land g_Rphi correctly; this does.  At a = 0 the whole
+#   thing reduces to T = diag(1, R, R sin th) and reproduces the exactly
+#   correct Schwarzschild trumpet metric.
+#   The axis needs care: g_phph and g_Rphi carry st^2 while T^{-1} carries
+#   1/(r_E st), so st must be FLOORED and used consistently in both places or
+#   the axis gives 0*Inf = NaN.  With that, the 1/st cancels exactly.
+#
+# TESTED AND REJECTED: using the EUCLIDEAN radius for the chart's scale
+#   factors (instead of the ABLE radius).  That made it far worse --
+#   a=0 went 1.86e-3 -> 24.6 -- so the ABLE radius IS the right scale factor
+#   and only the ANGLE was wrong.  Recorded because it is the obvious next
+#   "fix" and it is wrong.
+#
+# f(alpha) REGENERATED.  The old table was measured on the pre-fix geometry
+#   and is invalid.  The new table (Part H) gives implied
+#   c = f/(1/alpha - 1) running 0.972 .. 1.085, so f is still genuinely
+#   alpha-dependent and must stay tabulated; Part E now shows rel_spread =
+#   0.000 in EVERY alpha bin, i.e. f is a function of alpha alone.  The a = 0
+#   closed form is now f = (1 - alpha)/alpha (c = 1), not (1-alpha)/(3 alpha).
+#
+# CURRENT NUMBERS (annulus r in [3,5], 96x192, identical stencils):
+#                Kerr a=0.8   Schwarzschild fixture
+#     max|H|        8.60e-03        2.69e-03
+#     max|M|        7.49e-03        2.02e-04
+#     alpha RHS     5.65e-04        1.58e-02
+#     Lambda RHS    9.14e-03        4.20e-04
+#     Atilde RHS    7.71e-03        (not shown)
+# Spin scan of max|H|:  1.86e-03 (a=0)  3.62e-03 (a=0.4)  8.60e-03 (a=0.8)
+# -- gentle growth with spin, not a structural error.  The alpha RHS is now
+# BELOW the Schwarzschild fixture's, i.e. the slicing gauge is doing its job.
+# WEAKEST REMAINING NUMBER: max|M| = 7.49e-03, ~37x the Schwarzschild
+# fixture's 2.02e-04, and it did NOT improve with the g_Rphi fix.
+#   Polar-angle profile at r in [3,5] (symmetric):
+#     ct=0.0..0.1  max|M|=7.49e-3
+#     ct=0.1..0.2  7.20e-3
+#     ct=0.4..0.5  5.17e-3
+#     ct=0.8..0.9  5.44e-3
+#     ct=0.9..1.0  6.02e-3
+#   The peak is EQUATORIAL (ct=0..0.1), not at the axis (|ct|~1).
+#   So the |M| residual is NOT from the axis/Jacobian, but a spread-out
+#   equatorial pattern -- likely the K-from-gauge or the 2nd-order y-stencil
+#   truncation.  This means the Jacobian/g_Rphi fix was correct for H but
+#   doesn't touch the M driver, which is a separate mechanism.
+#
+# WEAKEST REMAINING NUMBER: max|M| = 7.49e-03, ~37x the Schwarzschild
+# fixture's 2.02e-04, and it did NOT improve with the g_Rphi fix (it went
+# 6.29e-03 -> 7.49e-03).  NEXT PROBE: the spatial profile of |M| (is it
+# concentrated on the axis, where the cartoon and the Jacobian are most
+# delicate, or spread out?).  Do not assume it is the same mechanism.
+#
+# CAVEAT FROM THE SOURCE PAPER, which must not be lost: "our new coordinate
+#   system for Kerr is not well-suited for numerical simulations" and "K is
+#   not single-valued on the trumpet surface".  The family may be fine for
+#   producing data but awkward for evolving.
+#
+# SPIN SCAN -- THE DECISIVE ONE.  Same stencils, same annulus r in [3,5]:
+#     spin        max|H|        rms|H|        max|M|
+#      0.0       1.8639e-03   3.3842e-04   2.3609e-04     <-- VALID VACUUM
+#      0.4       9.0925e-01   1.2499e-01   2.4782e-01
+#      0.8       2.8194e+00   2.9580e-01   3.8547e-01
+# For comparison the Schwarzschild equilibrium fixture on the same stencils
+# gives max|H| = 2.69e-3 and max|M| = 2.02e-4.
+# CONCLUSION: the family IS a vacuum solution at a = 0 and is NOT for a > 0.
+# The earlier worry that nothing had ever checked R_ij = 0 for this family is
+# resolved for the spherical case and LOCALISED TO THE SPIN-DEPENDENT PART.
+# A radial fault (alpha, bR, g_rr) would have shown up at a = 0 too, and it did
+# not.  Likewise the H-vs-r profile falls monotonically outward rather than
+# being flat in r, so "not a solution at all" is not supported either.
+#
+# STRONGEST REMAINING SUSPECT: Kerr-Schild coordinates are TWISTED -- the
+# radial direction is along X = grad S, not along d_r.  ktr_kerr_spatial
+# returns only g_rr, g_theta_theta, g_phi_phi (diagonal) and
+# ktr_kerr_shift returns bR, bT=0, bP, i.e. no g_r_theta and no
+# beta^theta/beta^phi cross coupling to the twisted radial direction.  At a = 0
+# there is no twist, which is exactly why that case is clean.  Fixing this means
+# constructing the correct Kerr-Schild triad and the full (r,theta,phi) metric
+# and shift -- real work in helper/eq_kerr_trumpet.F90, not a gauge tweak.
+# Until then: route C is validated at a = 0 ONLY, and the a = 0.8 f(alpha)
+# table and any Kerr horizon-drift run remain unverified.
+#
 # STILL NOT WORKING.  max|H| = 2.82 against Schwarzschild 2.69e-3 on identical
 # stencils -- still ~1000x too large, so the Kerr data is not yet a valid
 # solution and the f(alpha) table cannot be trusted until this is resolved.
@@ -487,6 +730,46 @@ test-constraint-conv: $(SOURCES) helper/test_constraint_conv.F90 | bin $(MODDIR)
 # NOTE the two failure modes must stay separate in the instrumentation: a
 # domain rejection and a degenerate determinant are different bugs, and
 # collapsing them into one boolean is what hid this at first.
+#
+# ===================================================================
+#  ROUTE C PRODUCTION STATUS (measured, current)
+# ===================================================================
+# The route C data VALIDATES in isolation (diagnose_kerr_bssn):
+#   max|H| = 8.60e-3 in the r in [3,5] annulus, vs Schwarzschild fixture 2.69e-3.
+#   The f(alpha) table is single-valued (rel_spread = 0.000 in every bin).
+#   The family IS a vacuum solution; the residual is spin-dependent and gentle.
+#
+# HOWEVER: route C data does NOT work as production initial data.
+# The 160 rejected cells (trumpet interior, r < 1.41) were replaced with
+# RADIAL PROJECTION (all 160 projected, 0 flat fallbacks -- see
+# eq_kerr_bssn_data.F90).  This fixes the value discontinuity at the trumpet
+# boundary but NOT the gradient discontinuity: the projected data has zero
+# radial derivative while the exterior has non-zero, producing O(1) second
+# derivatives in the FD stencils.  Consequences:
+#   * r_excise = 1.42 (excise entire projected region): evolution fails at
+#     step 1 near the axis (i=2, k=86, "unable to preserve positive ghost
+#     metric").  The excision boundary at r=1.42 intersects the axis at
+#     z=+-1.42, and the ghost-fill one-sided stencils are ill-conditioned
+#     for the route C data near the trumpet (alpha -> 0, strong gradients).
+#   * r_excise = 0.8 (small excision, projected annulus is physical): the
+#     projected annulus has max|H| = 5.89e2 (not constraint-satisfying),
+#     and the evolution fails at step 1 for the same reason.
+#   * i-protection up to i=6 does not help: the failure point moves outward
+#     but the instability persists.
+#
+# WORKING PRODUCTION CONFIG: Kerr-Schild initial data + route C gauge.
+#   set_kerr_schild_id + slicing_mode=3 + gamma_driver_mode=4.
+#   Runs 800+ steps stably; horizon found at step 0 (r=1.600, dA/A=-4e-5,
+#   M_H=0.999991); max|H| stays < 4e-2; horizon invariants stable.
+#   The route C GAUGE (tabulated f(alpha)) works on KS data even though the
+#   route C DATA cannot be evolved.  This is the production configuration.
+#
+# WHAT WOULD MAKE ROUTE C DATA WORKABLE (not attempted):
+#   * Smooth the gradient discontinuity: blend projected data with exterior
+#     over a transition region of ~3 grid cells, preserving d(alpha)/dr.
+#   * Cylindrical excision that avoids the axis entirely.
+#   * Extend the closed form inside the trumpet (paper says it is singular
+#     there -- "not well-suited for numerical simulations").
 #
 # ------------------------- GAUGE GATE (still red, deferred) -----------
 # Checked whether the missing-e^{4phi} Christoffel bug contaminated this gate.
@@ -713,3 +996,36 @@ bin/diagnose_ghost_accuracy: $(SOURCES_NO_DRIVER) helper/diagnose_ghost_accuracy
 
 diagnose-ghost-accuracy: bin/diagnose_ghost_accuracy
 	./bin/diagnose_ghost_accuracy parameter_files/vacuum_kerr.par
+
+# Long-term evolution fix targets
+.PHONY: lt-baseline lt-instr lt-48 lt-96 lt-test-axis lt-clean-outputs
+
+lt-clean-outputs:
+	@rm -f output/*
+
+lt-test-axis: $(TARGET)
+	@echo "Testing axis fix (48x96, no abort)..." && \
+	GR_NX=48 GR_NZ=96 GR_NSTEPS=2000 GR_HORIZON_EVERY=20 GR_HZ_ABORT=0 ./$(TARGET) parameter_files/vacuum_kerr.par 2>&1 | tail -15
+
+lt-48: $(TARGET)
+	@echo "Running 48x96 long test..." && \
+	rm -f output/* && \
+	GR_NX=48 GR_NZ=96 GR_NSTEPS=6000 GR_HORIZON_EVERY=20 GR_HZ_ABORT=0 ./$(TARGET) parameter_files/vacuum_kerr.par 2>&1 | tail -20
+
+lt-96: $(TARGET)
+	@echo "Running 96x192 baseline..." && \
+	rm -f output/* && \
+	GR_NSTEPS=6000 GR_HORIZON_EVERY=10 GR_HZ_ABORT=0 ./$(TARGET) parameter_files/vacuum_kerr.par 2>&1 | tail -25
+
+lt-instr: $(TARGET)
+	@echo "Running with instrumentation..." && \
+	rm -f output/* && \
+	GR_NSTEPS=6000 GR_HORIZON_EVERY=10 GR_HZ_ABORT=0 GR_NEAR_MASK_W=2.0 ./$(TARGET) parameter_files/vacuum_kerr.par 2>&1 | tee /tmp/lt-instr.log | tail -30
+
+lt-baseline: lt-96
+	@echo "Baseline complete. Check output/horizon.dat and constraints."
+
+lt-check: $(TARGET)
+	@echo "Quick sanity check (100 steps)..." && \
+	rm -f output/* && \
+	GR_NSTEPS=100 GR_HORIZON_EVERY=10 GR_HZ_ABORT=0 ./$(TARGET) parameter_files/vacuum_kerr.par 2>&1 | grep -E "Conformal|first bad|INVARIANT|ABORT|Invalid" | head -10

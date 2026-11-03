@@ -492,6 +492,124 @@ independent Cartesian comparison of these seven pieces at this exact point is
 still pending; no production stencil or evolution equation should be changed
 until that comparison distinguishes data conversion from derivative assembly.
 
+### 13.8 Follow-up: DBM route-C point comparison (2026-11-03)
+
+The large residual above belongs to the earlier Kerr-Schild diagnostic path;
+the current long-term configuration uses DBM route-C data. To avoid carrying
+that result across initial-data families, `helper/diagnose_dbm_momentum_point.F90`
+now evaluates the actual route-C initializer at the same near-axis region and
+compares it with the closed-form `state_at` data and a separate physical ADM
+divergence. At 96×192, 192×384, and 384×768 the stored-state errors are at most
+`4.5e-13`; the production BSSN momentum norms are `8.05e-4`, `1.79e-4`, and
+`2.81e-5`. The seven pieces sum to the production vector at both the
+near-axis and same-radius off-axis points. The independent ADM-form norms are
+`4.6e-8`, `2.8e-8`, and `2.0e-7`, with the last value dominated by nested
+fixed-step finite-difference noise. This DBM point error decreases strongly
+under refinement and is far below the stale Kerr-Schild `~1e-1` report value;
+it does not support changing the production constraint algebra.
+
+The remaining momentum follow-up is to record this same DBM comparison on
+evolved snapshots at early and late times, so any amplification during gauge
+drift can be distinguished from the convergent initial-data discretization
+error. The earlier Kerr-Schild report above remains historical evidence for
+that separate configuration, not a measurement of the current DBM run.
+
+### 13.9 Follow-up: evolved momentum residual localization (2026-11-03)
+
+`helper/diagnose_momentum_snapshot.F90` now re-evaluates the production
+momentum constraint on saved states, using the run's step-zero state as the
+excision-fill background. It reports Kerr-radius bands, near-excision
+angular bins, an axis/off-axis comparison, seven additive constraint pieces,
+and the x/y/z directional contributions to the raised-A divergence.
+
+The DBM initial-data point comparison was convergent, but the evolved
+momentum residual grows at both the near-axis point and a same-radius
+off-axis control. At 192x384 and `t≈2.66`, their norms are `7.02e-3` and
+`1.17e-2`. The maximum is immediately outside excision (`r_KS≈1.515`,
+`|M|=2.27e-2`); at 96x192 and the same time this inner-band maximum is
+`1.29e-1`. Angular maxima shift between bins and resolutions, so the current
+evidence does not identify a polar-axis defect.
+
+The bulk `r_KS=3..8` residual decreases with refinement. The outermost band
+does not: for `r_KS>12`, the 192x384 maximum/RMS are `1.56e-2` / `2.00e-3`,
+above the 96x192 values `9.41e-3` / `1.49e-3`. Term decomposition points to
+the raised-A divergence near excision and mostly its x/z directional pieces
+at outermost maxima. The next stage is a frozen-state stencil isolation at
+the mask-adjacent and outermost cells, comparing production derivatives with
+interior/one-sided alternatives across resolutions. Make a boundary-operator
+change only if that controlled comparison follows the corresponding stencil.
+
+### 13.10 Follow-up: masked gauge evolution and horizon drift (2026-11-03)
+
+To separate a horizon-finder failure from an actual change in the evolved
+geometry, `diagnose_horizon_snapshot` was run independently on 192x384 states
+at steps 0, 4000, 8000, and 12000. Every fit order 8--24 converges with
+residuals below `2.1e-12`, and the fitted area is stable across fit orders to
+about `0.04%`. The area relative to Kerr moves from approximately `-0.004%`
+initially to `-0.30%`, `-0.48%`, and `-0.64%`. Thus the horizon remains
+well-defined; the area change is real and is not caused by the finder.
+
+The snapshot diagnostic now also reports lapse and conformal-factor extrema
+over physical cells only (the Kerr excision mask excludes filled interior
+values). On the same checkpoints:
+
+| Step | Physical `alpha` min/max | Physical `phi` min/max |
+|---:|---:|---:|
+| 0 | `0.2651 / 0.9399` | `0.01032 / 0.22125` |
+| 4000 | `0.2694 / 0.9402` | `0.01052 / 0.22127` |
+| 8000 | `0.2731 / 0.9406` | `0.01083 / 0.22103` |
+| 12000 | `0.2766 / 0.9409` | `0.01114 / 0.22044` |
+
+The inner lapse and conformal factor move monotonically while the horizon area
+drifts, consistent with continued gauge/geometry adjustment. The min/max
+summary does not identify the responsible evolution term, and the `f(alpha)`
+residual is known to have an off-equatorial continuum mismatch. The next
+engineering step is a controlled gauge-law study: quantify the best scalar
+`f(alpha)` fit across angle and radius, compare its stationary RHS and horizon
+drift against the current equatorial table, and retain it only if it reduces
+the full-domain residual without worsening constraints. Do not start the
+50,000-step acceptance run until that mismatch or a bounded nonstationary
+transition has been demonstrated.
+
+### 13.11 Follow-up: all-angle scalar slicing-law fit
+
+`helper/diagnose_f_alpha_relation.F90` now also fits a scalar `f(alpha)` to
+the pointwise DBM relation over `R=1.55..8M`, `|cos(theta)|=0..1`, and
+`alpha=0.25..0.85`. It bins in lapse and minimizes the volume-weighted
+continuum lapse residual, using weights `(alpha^2 K)^2 R^2`. At spin `0.8`,
+the present equatorial table gives weighted RMS `5.53e-2`; a piecewise
+constant binned fit gives `2.43e-2` with 48 bins and `2.28e-2` with 96 bins.
+The angular pointwise spread remains large (RMS `6.52e-2`, maximum `0.617`).
+Although the aggregate continuum score improves, a smooth 96-bin candidate
+was checked in the production semidiscrete RHS and rejected: in the `[3M,5M]`
+annulus its lapse RHS max/RMS is about `5.19e-3` / `2.34e-3` at 192x384 and
+`5.19e-3` / `2.34e-3` at 384x768, compared with `4.36e-4` / `1.03e-4` for
+the existing table. The degradation persists under refinement, so it is not
+finite-difference noise. No experimental production mode was retained.
+
+A separate fit restricted to `[3M,5M]` lowers the sampled weighted lapse
+residual RMS only from `4.57e-3` to `4.09e-3` (about 11%). This small
+continuum gain has not been shown to reduce the full discrete RHS and does
+not justify a gauge change.
+
+The shell comparison shows why the global fit fails as a scalar law:
+
+| Radius | Current table RMS | Global-fit RMS | Independently fit shell RMS |
+|---|---:|---:|---:|
+| `1.55..3M` | `1.23e-1` | `5.00e-2` | `5.00e-2` |
+| `3..5M` | `4.71e-3` | `4.09e-3` | `3.96e-3` |
+| `5..8M` | `1.25e-3` | `3.07e-3` | `3.05e-3` |
+
+The fitted law helps close to excision but sacrifices accuracy at larger
+radii. A separate best fit in each radial shell gives nearly the same
+tradeoff, so the mismatch is not solved by refining one global `f(alpha)`
+curve. The next research step is to compare two viable formulations: construct
+Kerr data compatible with one scalar Bona-Masso law, or derive and test a
+smooth spatially dependent lapse coefficient/source for this DBM background.
+For either route, require a convergent full RHS and bounded horizon/constraint
+measures before starting a long production run.
+The aggregate weighted fit alone is not a valid gauge acceptance measure.
+
 ## 14. Bottom-line status
 
 The code builds and the current test suite passes. The recorded short baseline is reproducible. The system still does not have a demonstrated long-term stable Kerr evolution. The preferred repair is a verified stationary Kerr data/gauge pair plus a boundary treatment derived for the exact production system. If that route stalls, Plan B isolates bulk equations, formulation, gauge transition, and boundary discretization one at a time. Both paths require equal-physical-time convergence and the same full acceptance gates. Until those gates pass, any apparent gain in lifetime is an experiment, not a total fix.

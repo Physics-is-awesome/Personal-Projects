@@ -1,5 +1,11 @@
 # Near-mask constraint diagnostic
 
+> **SUPERSEDED 2026-10-30 by `CONSTRAINT_SHELLS.md`.** The band analysed here
+> was keyed to `r_excise` and therefore straddled the horizon (`r_+ = 1.6`).
+> The large values reported below are inside-horizon junk, not mask-edge
+> error, and the `r_excise` comparison in this file is invalid. Kept for
+> history only.
+
 **Date:** 2026-10-17
 **Motivated by:** `DRIVER_FILTER_BUG.md`
 

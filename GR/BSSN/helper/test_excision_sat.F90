@@ -6,8 +6,15 @@ program test_excision_sat
   use excision_mod, only: set_excision_background, extrapolate_excised
   use excision_sat_mod, only: apply_characteristic_sat, apply_legacy_excision_sat, &
                               exact_excision_characteristics, apply_kerr_excision_sat
+  use fo_normal_system_mod, only: fo_normal_block_eigensystem, FO_BLOCK_LAPSE, &
+                                  FO_BLOCK_GRAVITY, FO_BLOCK_SHIFT, FO_MAX_BLOCK
   implicit none
   real(dp) :: state(3), target(3), speed(3), rhs(3)
+  real(dp) :: amat(FO_MAX_BLOCK,FO_MAX_BLOCK), lambda(FO_MAX_BLOCK)
+  real(dp) :: rmat(FO_MAX_BLOCK,FO_MAX_BLOCK), lmat(FO_MAX_BLOCK,FO_MAX_BLOCK)
+  real(dp) :: modal_rhs(FO_MAX_BLOCK), modal_target(FO_MAX_BLOCK), modal_zero(FO_MAX_BLOCK)
+  character(len=32) :: labels(FO_MAX_BLOCK)
+  integer :: n_modes, block, mode
   real(dp), allocatable :: u(:,:,:), legacy_rhs(:,:,:)
   integer :: i, k
 
@@ -15,12 +22,41 @@ program test_excision_sat
   state = 1.0_dp; target = 0.0_dp; speed = [-1.0_dp, 1.0_dp, 0.0_dp]
   rhs = 0.0_dp
   call apply_characteristic_sat(state, target, speed, 1.0_dp, 0.5_dp, rhs)
-  if (abs(rhs(1)-2.0_dp) > 1.0e-14_dp) error stop 'incoming SAT mismatch'
-  if (maxval(abs(rhs(2:3))) > 1.0e-14_dp) error stop 'outgoing SAT was applied'
+  if (abs(rhs(1)) > 1.0e-14_dp) error stop 'outgoing SAT was applied'
+  if (abs(rhs(2)+2.0_dp) > 1.0e-14_dp) error stop 'incoming SAT mismatch'
+  if (abs(rhs(3)) > 1.0e-14_dp) error stop 'zero-speed SAT was applied'
 
-  ! 2. The Kerr penalty now provides a fully coupled BSSN+gauge characteristic
-  !    transform for the production second-order state and is marked exact.
-  if (.not. exact_excision_characteristics) error stop 'fully coupled SAT not marked exact'
+  ! 1b. Exercise every reduced normal block with manufactured modal data.
+  !     This checks the sign convention and the R/L transforms independently
+  !     of the production second-order RHS.
+  do block = FO_BLOCK_LAPSE, FO_BLOCK_SHIFT
+    call fo_normal_block_eigensystem(block, 1.2_dp, 0.15_dp, 0.9_dp, 0.1_dp, &
+                                     n_modes, amat, lambda, rmat, lmat, labels)
+    if (maxval(abs(matmul(lmat(1:n_modes,1:n_modes), &
+                          rmat(1:n_modes,1:n_modes)) - &
+                identity_matrix(n_modes))) > 1.0e-14_dp) then
+      error stop 'normal block characteristic transforms are not inverse'
+    end if
+    do mode = 1, n_modes
+      modal_rhs = 0.0_dp
+      modal_zero = 0.0_dp
+      modal_target = 0.0_dp
+      modal_target(mode) = 1.0_dp
+      call apply_characteristic_sat(modal_target, modal_zero, lambda, &
+                                    1.0_dp, 1.0_dp, modal_rhs)
+      if (lambda(mode) > 0.0_dp) then
+        if (abs(modal_rhs(mode)+lambda(mode)) > 1.0e-14_dp) &
+          error stop 'incoming manufactured mode was not damped'
+      else
+        if (maxval(abs(modal_rhs)) > 1.0e-14_dp) &
+          error stop 'outgoing or zero manufactured mode was damped'
+      end if
+    end do
+  end do
+
+  ! 2. The current Kerr penalty is intentionally reduced/experimental.  It
+  !    must not be advertised as an exact characteristic treatment.
+  if (exact_excision_characteristics) error stop 'reduced SAT incorrectly marked exact'
 
   ! 3. Check inert behavior when enabled = .false.
   call init_params('missing-excision-sat.par')
@@ -73,4 +109,16 @@ program test_excision_sat
   end if
   write(*,'(A,ES12.4)') 'excision SAT: propagating K mode damped, max d(K)/dt = ', &
     maxval(legacy_rhs(:,:,IK))
+contains
+
+  function identity_matrix(n) result(a)
+    integer, intent(in) :: n
+    real(dp) :: a(n,n)
+    integer :: j
+    a = 0.0_dp
+    do j = 1, n
+      a(j,j) = 1.0_dp
+    end do
+  end function identity_matrix
+
 end program test_excision_sat

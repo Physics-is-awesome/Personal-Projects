@@ -8,6 +8,7 @@ module bssn_rhs_mod
   use stencil_mod, only: stencil_t, compute_stencil
   use geometry_mod, only: conformal_geometry_t, compute_conformal_geometry, pack6, pack6A
   use excision_mod, only: is_excised, excision_status
+  use eq_kerr_bssn_data_mod, only: get_kerr_f_cache
   implicit none
   private
   public :: compute_rhs_interior, compute_rhs_point, bm_f_of_alpha
@@ -69,6 +70,8 @@ contains
     real(dp) :: Gpun(3)
     real(dp) :: dBx, dBy, dBz, lbeta_gam1, lbeta_gam2, lbeta_gam3
     real(dp) :: lbeta_B1, lbeta_B2, lbeta_B3
+    real(dp) :: f_lapse
+    logical :: f_lapse_ok
     integer  :: a, b, c
 
     call compute_stencil(u, i, k, excision_status, S)
@@ -248,7 +251,7 @@ contains
       rhs_out(IALPHA) = 0.0_dp
     else if (slicing_mode == 1) then
       rhs_out(IALPHA) = -alpha*Ktr + sum(beta*dalpha_l)
-    else if (slicing_mode == 3) then
+    else if (slicing_mode == 3 .or. slicing_mode == 4) then
       ! Stationary Kerr slicing (route C).  Bona-Masso d_perp alpha =
       ! -alpha^2 f(alpha) K, with f(alpha) TABULATED, not closed form: the
       ! Kerr trumpet family is not 1+log and not maximal at any R0, but it IS
@@ -256,7 +259,12 @@ contains
       ! helper/eq_kerr_trumpet.F90 and helper/test_eq_kerr_data.F90 Parts
       ! D-H.  The alpha-dependence of f is REAL, not a finite-difference
       ! artefact: the spread is converged by h=1e-2 and settles at 4.3e-2.
-      rhs_out(IALPHA) = -alpha*alpha*bm_f_of_alpha(alpha,bh_spin)*Ktr &
+      f_lapse=bm_f_of_alpha(alpha,bh_spin)
+      if (slicing_mode==4) then
+        call get_kerr_f_cache(i,k,f_lapse,f_lapse_ok)
+        if (.not.f_lapse_ok) f_lapse=bm_f_of_alpha(alpha,bh_spin)
+      end if
+      rhs_out(IALPHA) = -alpha*alpha*f_lapse*Ktr &
                        + sum(beta*dalpha_l)
     else
       rhs_out(IALPHA) = -2.0_dp*alpha*Ktr + sum(beta*dalpha_l)
@@ -383,8 +391,8 @@ contains
   ! (1-alpha)/alpha -- at alpha = 0.99 the held value is ~20x too large.
   pure function bm_f_tab(alpha) result(f)
     real(dp), intent(in) :: alpha
-    real(dp) :: f
     integer, parameter :: NTAB = 23
+    real(dp) :: f
     real(dp), parameter :: tab_a(NTAB) = [ &
          0.03013707_dp, 0.05951513_dp, 0.08806287_dp, 0.11572751_dp, &
          0.14247283_dp, 0.16827705_dp, 0.21703470_dp, 0.26203762_dp, &

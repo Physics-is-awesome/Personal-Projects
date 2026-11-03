@@ -14,6 +14,7 @@ module params_mod
   public :: initial_data_mode
   public :: cfl, nsteps, out_every, hz_every_par
   public :: ko_eps
+  public :: outer_sponge_width, outer_sponge_strength
   public :: r_excise
   public :: excision_order
   public :: excision_sat
@@ -46,6 +47,7 @@ module params_mod
   ! mode 2 freezes the Kerr-Schild lapse; pair with gamma_driver_mode=2.
   ! The Kerr-Schild initial data is a static gauge, so evolving it with
   ! maximal slicing produces a much smaller gauge transient than 1+log.
+  ! 4 = experimental spatial DBM lapse profile; requires route-C initial data.
   integer  :: slicing_mode = 3
   ! 0 = legacy: d_t Gbar = RHS_Gam - eta*Gbar   (Gbar is coupled to the
   !     Gtilde equations and is only damped towards ZERO -- no puncture)
@@ -77,6 +79,8 @@ module params_mod
   integer  :: out_every = 10
   integer  :: hz_every_par = 10
   real(dp) :: ko_eps = 0.2_dp   ! Kreiss-Oliger dissipation strength, typical 0.1-0.5
+  real(dp) :: outer_sponge_width = 0.0_dp
+  real(dp) :: outer_sponge_strength = 0.0_dp
   real(dp) :: r_excise = 1.0_dp ! keep the excision boundary well inside the Kerr horizon
   logical  :: excision_sat = .false. ! requires a complete BSSN characteristic map
   integer  :: excision_order = 2     ! bounded ghost extrapolation near the inner boundary
@@ -125,6 +129,8 @@ contains
     call override_int("GR_HORIZON_EVERY", hz_every_par)
     call override_real("GR_CFL", cfl)
     call override_real("GR_KO_EPS", ko_eps)
+    call override_real("GR_OUTER_SPONGE_WIDTH", outer_sponge_width)
+    call override_real("GR_OUTER_SPONGE_STRENGTH", outer_sponge_strength)
     call override_real("GR_REXCISE", r_excise)
     call override_logical("GR_EXCISION_SAT", excision_sat)
     call override_int("GR_EXCISION_ORDER", excision_order)
@@ -136,11 +142,20 @@ contains
     if (out_every <= 0) error stop 'Parameter error: out_every must be positive'
     if (hz_every_par < 0) error stop 'Parameter error: hz_every must be non-negative'
     if (r_excise <= 0.0_dp) error stop 'Parameter error: r_excise must be positive'
+    if (outer_sponge_width < 0.0_dp) error stop 'Parameter error: outer_sponge_width must be non-negative'
+    if (outer_sponge_strength < 0.0_dp) error stop 'Parameter error: outer_sponge_strength must be non-negative'
     if (excision_order < 1 .or. excision_order > 4) then
       error stop 'Parameter error: excision_order must be in [1,4]'
     end if
     r_horizon = bh_mass + sqrt(bh_mass**2 - bh_spin**2)
     if (r_excise >= r_horizon) error stop 'Parameter error: r_excise must lie inside the Kerr outer horizon'
+    ! Route-C DBM data exist only for the areal radius R > R0.  The driver
+    ! uses R0 = bh_mass, so the excision surface must cover the entire
+    ! non-existent trumpet interior; otherwise invalid projected data remain
+    ! in the nominally evolved region between r_excise and R0.
+    if (initial_data_mode == 1 .and. r_excise <= bh_mass) then
+      error stop 'Parameter error: route-C requires r_excise > bh_mass (the trumpet radius R0)'
+    end if
 
     dx = xmax / real(Nx - 1, dp)
     dz = 2.0_dp * zmax / real(Nz - 1, dp)
@@ -214,6 +229,8 @@ contains
         case ('nsteps');         read(value, *, iostat=val_ios) nsteps
         case ('out_every');      read(value, *, iostat=val_ios) out_every
         case ('ko_eps');         read(value, *, iostat=val_ios) ko_eps
+        case ('outer_sponge_width'); read(value, *, iostat=val_ios) outer_sponge_width
+        case ('outer_sponge_strength'); read(value, *, iostat=val_ios) outer_sponge_strength
         case ('r_excise');       read(value, *, iostat=val_ios) r_excise
         case ('excision_order'); read(value, *, iostat=val_ios) excision_order
         case ('excision_sat');    read(value, *, iostat=val_ios) excision_sat

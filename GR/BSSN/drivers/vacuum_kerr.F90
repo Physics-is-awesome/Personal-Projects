@@ -6,9 +6,10 @@ program main
   use kinds_mod, only: dp
   use params_mod
   use grid_mod, only: xg, zg, setup_grid
-  use vars_mod, only: NVARS, IALPHA, IPHI, IK, IBETAX, IBX, alloc_state, ICONFMET, IATILDE
+  use vars_mod, only: NVARS, IALPHA, IPHI, IK, IBETAX, IBETAZ, IBX, &
+                      IGXX, IGXZ, IGZZ, alloc_state, ICONFMET, IATILDE
   use initial_data_mod, only: set_kerr_schild_id, compute_conformal_connections
-  use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id
+  use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id, initialize_kerr_f_cache
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use timestep_mod, only: rk4_step
   use excision_mod, only: extrapolate_excised, is_excised, set_excision_background, &
@@ -16,17 +17,23 @@ program main
   use output_mod, only: output_init, output_write_snapshot, &
     output_write_diagnostics, output_finalize, OUT_NHZ
   use deriv_stencils_mod
+  use fo_normal_system_mod, only: fo_published_speeds, FO_NG_NGAUGE, FO_NN_NGAUGE
+  use fo_curved_sat_mod, only: kerr_schild_excision_normal
   use horizon_mod, only: horizon_t, horizon_init_grid, horizon_init, &
     horizon_adm_from_state, find_horizon, horizon_log_header, &
-    horizon_log_line, horizon_inside_excision
+    horizon_log_line, horizon_inside_excision, horizon_set_excision
 
   implicit none
 
-  real(dp), allocatable :: u(:,:,:), Hgrid(:,:), Mgrid(:,:,:)
+  real(dp), allocatable :: u(:,:,:), Hgrid(:,:), Mgrid(:,:,:), Mterms(:,:,:,:)
   integer :: imin, imax, kmin, kmax
   real(dp) :: Hmax, Hrms, Mmax
   integer :: n, npts
   real(dp) :: dt, t
+  real(dp) :: published_gauge(FO_NG_NGAUGE), published_nongauge(FO_NN_NGAUGE)
+  real(dp) :: shell_alpha, shell_phi, shell_beta_n, shell_gamma_nn
+  real(dp) :: shell_nx, shell_nz, shell_gnorm
+  integer :: incoming_gauge, incoming_nongauge
   integer :: axis_k, i, k
   ! Constraint shells, keyed to the apparent horizon (see the note below).
   real(dp) :: near_mask_w        ! horizon-shell width, in cells
@@ -67,6 +74,7 @@ program main
   ! baseline/INNER_BOUNDARY_FINDINGS.md.
   logical :: refresh_bg = .false.
   logical :: hz_eqsym
+  logical :: write_hdf5_output
   ! Vacuum run: metric-only output
   ! Horizon switch is read BEFORE output_init so the hz_* columns can be created.
   hz_every = 0
@@ -117,18 +125,32 @@ program main
   call get_environment_variable("GR_HORIZON_EVERY", buf, status=envstat)
   if (envstat == 0) read(buf,*) hz_every
 
+  ! Optional text-only mode for isolated evolution diagnostics. The default
+  ! remains full HDF5 output.
+  write_hdf5_output = .true.
+  call get_environment_variable("GR_WRITE_HDF5", buf, status=envstat)
+  if (envstat == 0) write_hdf5_output = (trim(buf) /= '0')
+
   call output_init('output', has_horizon=(hz_every > 0))
 
   ! Horizon finder setup (needs xg/zg from setu p_grid and the output/ directory)
   if (hz_every > 0) then
     hz_eqsym = (zg(1) > -1.0e-12_dp)          ! z>=0 only  ->  equatorial symmetry
+    ! The grid spans both hemispheres, but the centered Kerr horizon is still
+    ! reflection-symmetric. Keep both z hemispheres for interpolation while
+    ! constraining the surface fit to even Legendre modes.
     hz_nl = 8
-    if (.not. hz_eqsym) hz_nl = 10
     ! requires xg(1) = 0 or dx/2 (and zg(1) = 0 or dz/2 if hz_eqsym); the
     ! first interior point is array index (1,1) -- change the last two
     ! arguments of horizon_adm_from_state below if you have low-side ghosts.
     call horizon_init_grid(xg(1), zg(1), dx, dz, Nx, Nz, hz_eqsym)
-    call horizon_init(hz, hz_nl, 0.0_dp, hz_eqsym)
+    ! The finder's 4th-order stencil must not read the frozen interior.
+    ! The evolution excision and horizon mask are distinct. The horizon
+    ! module extends its mask outward by 1.5 cells; offset its mask inward by
+    ! two cells so the extension ends half a cell inside the true excision
+    ! surface, rather than covering the physical horizon at high resolution.
+    call horizon_set_excision(max(0.0_dp, r_excise-2.0_dp*max(dx,dz)), bh_spin)
+    call horizon_init(hz, hz_nl, 0.0_dp, .true.)
     open(newunit=hz_unit, file='output/horizon.dat', status='replace', action='write')
     call horizon_log_header(hz_unit)
   end if
@@ -167,6 +189,11 @@ program main
   else
     call set_kerr_schild_id(u)
   end if
+  if (slicing_mode == 4) then
+    if (initial_data_mode /= 1) error stop 'slicing_mode=4 requires DBM route-C initial data'
+    call initialize_kerr_f_cache()
+    print *, " Lapse gauge: experimental cached DBM position-dependent profile"
+  end if
   call compute_conformal_connections(u)
   call set_excision_background(u)
   call init_deriv_stencils()
@@ -182,8 +209,9 @@ program main
 
   allocate(Hgrid(Nx,Nz))
   allocate(Mgrid(Nx,Nz,3))
+  allocate(Mterms(Nx,Nz,3,7))
   call hamiltonian_constraint(u, Hgrid, imin, imax, kmin, kmax)
-  call momentum_constraint(u, Mgrid)
+  call momentum_constraint(u, Mgrid, Mterms)
 
   ! Shells keyed to the horizon, not to r_excise -- see the note near
   ! near_mask_w above.  At t=0 the horizon has not been found yet, so
@@ -257,8 +285,10 @@ program main
 
   ! t=0 diagnostics/snapshot, using the whole-domain Hmax/Hrms already
   ! computed above (step 0 has no exterior-only recomputation).
-  call output_write_diagnostics(0, t, dt, Nx, Nz, u, Hmax, Hrms, horizon_vals=hz_vals)
-  call output_write_snapshot(0, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
+  if (write_hdf5_output) then
+    call output_write_diagnostics(0, t, dt, Nx, Nz, u, Hmax, Hrms, horizon_vals=hz_vals)
+    call output_write_snapshot(0, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
+  end if
 
   do n = 1, nsteps
     if (refresh_bg) call set_excision_background(u)
@@ -375,7 +405,7 @@ program main
         if (hz_last_step /= n) call update_horizon(n, t)
       end if
       call hamiltonian_constraint(u, Hgrid, imin, imax, kmin, kmax)
-      call momentum_constraint(u, Mgrid)
+      call momentum_constraint(u, Mgrid, Mterms)
 
       ! Shells keyed to the apparent horizon.  r_excise sits inside r_+, so
       ! anchoring the exterior at r_excise + margin hides the only region in
@@ -384,6 +414,10 @@ program main
       r_ah = shell_radius()
       shell_w = near_mask_w*max(dx,dz)
 
+      ! shell_stats leaves output indices untouched when the requested shell
+      ! has no cells (notably GR_NEAR_MASK_W=0). Initialize them before each
+      ! scan so optional per-cell diagnostics never consume stale stack data.
+      hor_i=-1; hor_k=-1; ext_i=-1; ext_k=-1
       call shell_stats(r_excise, r_ah, junk_H, junk_R, junk_M, junk_n, skip_i, skip_k)
       call shell_stats(r_ah, r_ah + shell_w, hor_H, hor_R, hor_M, hor_n, hor_i, hor_k)
       call shell_stats(r_ah + shell_w, huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
@@ -415,6 +449,29 @@ program main
           "  max|H|=", hor_H, "  max|M|=", hor_M, &
           "  worst r=", sqrt(kerr_radius_squared(xg(hor_i), zg(hor_k)))
       end if
+      if (hor_i > 0 .and. hor_k > 0) then
+        write(*,'(A,7(1X,ES11.3))') "    momentum terms at worst shell H [1..7]=", &
+          Mterms(hor_i,hor_k,1,:)
+        shell_alpha = u(hor_i,hor_k,IALPHA)
+        shell_phi = u(hor_i,hor_k,IPHI)
+        call kerr_schild_excision_normal(xg(hor_i), zg(hor_k), bh_spin, r_excise, &
+                                         shell_nx, shell_nz, shell_gnorm)
+        shell_beta_n = u(hor_i,hor_k,IBETAX)*shell_nx + &
+          u(hor_i,hor_k,IBETAZ)*shell_nz
+        shell_gamma_nn = exp(-4.0_dp*shell_phi) * &
+          (u(hor_i,hor_k,IGXX)*shell_nx*shell_nx + &
+           2.0_dp*u(hor_i,hor_k,IGXZ)*shell_nx*shell_nz + &
+           u(hor_i,hor_k,IGZZ)*shell_nz*shell_nz)
+        if (shell_alpha > 0.0_dp .and. shell_gamma_nn > 0.0_dp) then
+          call fo_published_speeds(shell_alpha, shell_phi, shell_gamma_nn, &
+                                   shell_beta_n, published_gauge, published_nongauge)
+          incoming_gauge = count(published_gauge > 0.0_dp)
+          incoming_nongauge = count(published_nongauge > 0.0_dp)
+          write(*,'(A,I0,A,I0,A)') "    published normal modes entering exterior: gauge=", &
+            incoming_gauge, " non-gauge=", incoming_nongauge, &
+            " (diagnostic; not a production characteristic map)"
+        end if
+      end if
       ! Everything from r_excise out to r_+ is inside the horizon: no
       ! characteristic leaves it, so a large residual there is expected and is
       ! not a pass/fail criterion.  It is reported so that growth toward the
@@ -425,8 +482,10 @@ program main
           "  max|H|=", junk_H, "  max|M|=", junk_M, "  (not gated)"
       end if
 
-      call output_write_diagnostics(n, t, dt, Nx, Nz, u, Hmax, Hrms, horizon_vals=hz_vals)
-      call output_write_snapshot(n, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
+      if (write_hdf5_output) then
+        call output_write_diagnostics(n, t, dt, Nx, Nz, u, Hmax, Hrms, horizon_vals=hz_vals)
+        call output_write_snapshot(n, t, 'output', Nx, Nz, xg, zg, u, horizon_vals=hz_vals)
+      end if
     end if
   end do
 
@@ -484,7 +543,8 @@ contains
     integer,  intent(in) :: step
     real(dp), intent(in) :: tnow
     real(dp), parameter :: pi_ = 3.141592653589793238462643383279502884_dp
-    real(dp) :: area_ex, j_ex, rejected_hmin, rejected_hmax, reject_limit
+    real(dp) :: area_ex, j_ex, rejected_hmin, rejected_hmax, rejected_rmin_ks
+    real(dp) :: reject_limit
 
     hz_last_step = step
     hz_vals = 0.0_dp                       ! found = 0 unless the solve succeeds below
@@ -500,8 +560,15 @@ contains
     if (hz_ierr /= 0) then
       call horizon_log_line(hz_unit, step, tnow, hz)
       flush(hz_unit)
-      print '(A,I0,A,I0,A,ES9.2)', " [horizon] step ", step, ": NOT FOUND (ierr=", &
-        hz_ierr, ")  last max|Theta|=", hz%resid
+      print '(A,I0,A,I0,A,ES9.2,A,ES9.2)', " [horizon] step ", step, &
+        ": NOT FOUND (ierr=", hz_ierr, ")  last max|Theta|=", hz%resid, &
+        "  best rejected r_KS,min=", hz%rmin_ks
+      print '(A,ES12.4,A,ES12.4)', "            marginal probe Theta(in/out)=", &
+        hz%theta_in, "/", hz%theta_out
+      if (hz%rmin_ks > 0.0_dp) then
+        print '(A,ES12.4,A,ES12.4)', "            rejected candidate residual/coverage limit=", &
+          hz%rejected_resid, "/", r_excise + 0.5_dp*max(dx,dz)
+      end if
       return
     end if
 
@@ -509,9 +576,10 @@ contains
     ! converged surface is not physical if it enters the excision/interpolation
     ! buffer, where the state is ghost-filled rather than evolved.
     reject_limit = r_excise + 0.5_dp*max(dx,dz)
-    if (hz%hmin <= reject_limit) then
+    if (hz%rmin_ks <= reject_limit) then
       rejected_hmin = hz%hmin
       rejected_hmax = hz%hmax
+      rejected_rmin_ks = hz%rmin_ks
       hz_vals = 0.0_dp
       hz%found = .false.
       hz%area = 0.0_dp
@@ -525,7 +593,7 @@ contains
       call horizon_log_line(hz_unit, step, tnow, hz)
       flush(hz_unit)
       print '(A,I0,A,F9.5,A,F9.5)', " [horizon] step ", step, &
-        ": rejected surface inside excision buffer (r_min=", rejected_hmin, &
+        ": rejected surface inside excision buffer (r_KS,min=", rejected_rmin_ks, &
         ", limit=", reject_limit, ")"
       return
     end if
@@ -579,7 +647,7 @@ contains
     print '(A,F9.6,A,F9.6,A,F9.6)', "            M_irr=", hz%m_irr, &
       "  J=", hz%j_spin, "  M_H=", hz%m_h
     if (horizon_inside_excision(hz, r_excise)) &
-      print '(A,F7.4,A,F7.4)', "            WARNING: horizon r_min=", hz%hmin, &
+      print '(A,F7.4,A,F7.4)', "            WARNING: horizon r_KS,min=", hz%rmin_ks, &
         " is within 1.2*r_excise =", 1.2_dp*r_excise
   end subroutine update_horizon
 

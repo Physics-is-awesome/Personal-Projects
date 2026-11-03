@@ -31,7 +31,7 @@ module excision_sat_mod
   ! the production RHS has no complete first-order principal symbol or full
   ! characteristic transform.  This penalty is experimental and is NOT an
   ! exact characteristic boundary treatment for the production system.
-  logical, parameter, public :: exact_excision_characteristics = .true.
+  logical, parameter, public :: exact_excision_characteristics = .false.
 
   public :: apply_legacy_excision_sat
   public :: apply_characteristic_sat
@@ -77,7 +77,10 @@ contains
     if (tau < 0.0_dp .or. h <= 0.0_dp) &
       error stop 'apply_characteristic_sat: invalid penalty parameters'
 
-    rhs = rhs - tau*min(speed, 0.0_dp)*(state-target)/h
+    ! The excision normal points from the excised region into the evolved
+    ! exterior.  Positive characteristic speed therefore carries data into
+    ! the evolved domain and is the incoming family to penalize.
+    rhs = rhs - tau*max(speed, 0.0_dp)*(state-target)/h
   end subroutine apply_characteristic_sat
 
   subroutine apply_kerr_excision_sat(u, rhs, tau_in, hx_in, hz_in)
@@ -307,6 +310,10 @@ contains
     requested = .false.
     if (present(enabled)) requested = enabled
     if (.not. requested) return
+
+    if (.not. exact_excision_characteristics) then
+      error stop 'apply_fo_complete_excision_sat: complete characteristic map is not validated'
+    end if
 
     if (size(q,1) /= size(rhs,1) .or. size(q,2) /= size(rhs,2) .or. &
         size(q,3) < NFO_COMPLETE_VARS .or. size(rhs,3) < NFO_COMPLETE_VARS .or. &

@@ -38,6 +38,23 @@ module cartoon_mod
   !! converge".  A 2nd-order truncation error converges under refinement; it
   !! sets a floor, it cannot produce a plateau.  See the momentum-constraint
   !! note in the Makefile.
+  !! At y=0, the rotation formulas give the following transverse principal
+  !! identities for x>0.  For a scalar S and z-directed vector Vz,
+  !!
+  !!     d2_y S  = (d_x S)/x,       d2_y Vz = (d_x Vz)/x.
+  !!
+  !! For the x-directed vector component and the xy tensor block,
+  !!
+  !!     d2_y Vx  = (d_x Vx)/x - Vx/x^2,
+  !!     d2_y Txx = (d_x Txx)/x + 2(Tyy-Txx)/x^2,
+  !!     d2_y Tyy = (d_x Tyy)/x + 2(Txx-Tyy)/x^2.
+  !!
+  !! The corresponding odd components have zero pure d2_y at the axis plane,
+  !! while their first y derivatives carry the rotation couplings, e.g.
+  !! d_y Txy=(Txx-Tyy)/x and d_y Tyz=Txz/x.  Any Ricci principal-symbol
+  !! derivation on the Cartoon plane must retain these identities; treating
+  !! d2_y as an independent normal second derivative produces a false
+  !! mismatch with the production geometry operator.
   implicit none
   private
   public :: get_neighbor

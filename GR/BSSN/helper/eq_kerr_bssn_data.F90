@@ -34,24 +34,103 @@
 module eq_kerr_bssn_data_mod
   use kinds_mod, only: dp
   use vars_mod
-  use params_mod, only: bh_mass, bh_spin
+  use params_mod, only: bh_mass, bh_spin, r_excise
   use grid_mod, only: xg, zg
   use eq_kerr_trumpet_mod, only: ktr_kerr_xyz, ktr_trumpet_valid
+  use excision_mod, only: kerr_radius_squared
 
   implicit none
   private
   public :: set_eq_kerr_trumpet_id, kerr_bssn_deriv_step, state_at
+  public :: initialize_kerr_f_cache, get_kerr_f_cache
 
   ! Fixed derivative step, independent of the grid spacing.  Central
   ! differences have error ~ eps/h + h^2/6, so this is near the double-
   ! precision optimum and small h makes it WORSE, not better.
   real(dp), parameter :: HSTEP = 1.0e-4_dp
+  ! Minimum lapse for the interior fill.  The old threshold (1e-6) accepted the
+  ! first point just outside the trumpet, where g_rr ~ rho^2/(r-R0)^2 is still
+  ! enormous (phi ~ 2, gt_xx ~ 1e8).  That "projected" fill was therefore
+  ! singular junk.  A finite fraction of the horizon lapse gives a bounded,
+  ! smooth extension suitable for the frozen interior.
+  real(dp), parameter :: FILL_ALPHA = 0.2_dp
+  real(dp), allocatable, save :: kerr_f_cache(:,:)
+  logical, save :: kerr_f_cache_ready = .false.
 
 contains
 
   pure real(dp) function kerr_bssn_deriv_step() result(h)
     h = HSTEP
   end function kerr_bssn_deriv_step
+
+  ! Precompute the position-dependent Bona-Masso coefficient required to make
+  ! the exact DBM data stationary under its lapse equation.  This is an
+  ! experimental coordinate-dependent gauge profile, cached once per run.
+  subroutine initialize_kerr_f_cache()
+    integer :: i,k
+    real(dp) :: f
+    logical :: ok
+    if (allocated(kerr_f_cache)) deallocate(kerr_f_cache)
+    allocate(kerr_f_cache(size(xg),size(zg)))
+    kerr_f_cache=0.0_dp
+    do k=1,size(zg)
+      do i=1,size(xg)
+        if (sqrt(kerr_radius_squared(xg(i),zg(k)))<r_excise) cycle
+        call required_bm_f(xg(i),zg(k),bh_mass,bh_spin,bh_mass,f,ok)
+        if (ok) kerr_f_cache(i,k)=f
+      end do
+    end do
+    kerr_f_cache_ready=.true.
+  end subroutine initialize_kerr_f_cache
+
+  subroutine get_kerr_f_cache(i,k,f,ok)
+    integer,intent(in)::i,k
+    real(dp),intent(out)::f
+    logical,intent(out)::ok
+    ok=kerr_f_cache_ready .and. allocated(kerr_f_cache)
+    if (ok) then
+      ok=i>=1 .and. i<=size(kerr_f_cache,1) .and. k>=1 .and. k<=size(kerr_f_cache,2)
+    end if
+    if (ok) then
+      f=kerr_f_cache(i,k)
+      ok=f>0.0_dp
+    else
+      f=0.0_dp
+    end if
+  end subroutine get_kerr_f_cache
+
+  subroutine required_bm_f(x,z,m,a,r0,f,ok)
+    real(dp),intent(in)::x,z,m,a,r0
+    real(dp),intent(out)::f
+    logical,intent(out)::ok
+    real(dp)::phi,gt(3,3),at(3,3),ktr,alpha,beta(3),ap,am
+    real(dp)::btmp(3),g(3,3),grad,q
+    call state_at(x,0.0_dp,z,m,a,r0,phi,gt,at,ktr,alpha,beta,ok)
+    q=alpha*alpha*ktr
+    if (.not.ok .or. abs(q)<1.0e-14_dp) then
+      ok=.false.;f=0.0_dp;return
+    end if
+    call ktr_kerr_xyz(x+HSTEP,0.0_dp,z,m,a,r0,ap,btmp,g,ok)
+    if (.not.ok) then
+      f=0.0_dp;return
+    end if
+    call ktr_kerr_xyz(x-HSTEP,0.0_dp,z,m,a,r0,am,btmp,g,ok)
+    if (.not.ok) then
+      f=0.0_dp;return
+    end if
+    grad=beta(1)*(ap-am)/(2.0_dp*HSTEP)
+    call ktr_kerr_xyz(x,0.0_dp,z+HSTEP,m,a,r0,ap,btmp,g,ok)
+    if (.not.ok) then
+      f=0.0_dp;return
+    end if
+    call ktr_kerr_xyz(x,0.0_dp,z-HSTEP,m,a,r0,am,btmp,g,ok)
+    if (.not.ok) then
+      f=0.0_dp;return
+    end if
+    grad=grad+beta(3)*(ap-am)/(2.0_dp*HSTEP)
+    f=grad/q
+    ok=(f>0.0_dp .and. f==f)
+  end subroutine required_bm_f
 
   !--------------------------------------------------------------------------
   ! Evaluate the BSSN state at one Cartesian point, with exact-enough
@@ -101,11 +180,15 @@ contains
     end do
 
     ! ---- K_ij = L_beta gamma_ij / (2 alpha), LIE form
+    ! dbeta(i,dir) = d_dir beta^i, so gamma_{kq} d_p beta^k is
+    ! sum(g(:,q)*dbeta(:,p)) -- note the SECOND index of dbeta is the
+    ! derivative direction.  Using dbeta(p,:) here instead would be correct
+    ! only for a curl-free shift, which a rotating hole does not have.
     Lg = 0.0_dp
     do p = 1, 3
       do q = 1, 3
         Lg(p,q) = sum(beta*dg(:,p,q)) &
-                 + sum(g(q,:)*dbeta(p,:)) + sum(g(p,:)*dbeta(q,:))
+                 + sum(g(:,q)*dbeta(:,p)) + sum(g(:,p)*dbeta(:,q))
       end do
     end do
     Kij = Lg/(2.0_dp*alpha)
@@ -186,11 +269,11 @@ contains
               zp_proj = zg(k) * r_hi / rr2
               call state_at(xp_proj, 0.0_dp, zp_proj, mm, aa, rr, &
                             phi, gt, at, Ktr, alpha, beta, ok2)
-              if (ok2 .and. alpha > 1.0e-6_dp) exit
+              if (ok2 .and. alpha > FILL_ALPHA) exit
               r_lo = r_hi
               r_hi = r_hi * 1.5_dp
             end do
-            if (ok2 .and. alpha > 1.0e-6_dp) then
+            if (ok2 .and. alpha > FILL_ALPHA) then
               ! Binary search for the nearest valid radius
               do iter = 1, 60
                 r_mid = 0.5_dp * (r_lo + r_hi)
@@ -198,7 +281,7 @@ contains
                 zp_proj = zg(k) * r_mid / rr2
                 call state_at(xp_proj, 0.0_dp, zp_proj, mm, aa, rr, &
                               phi, gt, at, Ktr, alpha, beta, ok2)
-                if (ok2 .and. alpha > 1.0e-6_dp) then
+                if (ok2 .and. alpha > FILL_ALPHA) then
                   r_hi = r_mid
                 else
                   r_lo = r_mid
@@ -209,7 +292,7 @@ contains
               zp_proj = zg(k) * r_hi / rr2
               call state_at(xp_proj, 0.0_dp, zp_proj, mm, aa, rr, &
                             phi, gt, at, Ktr, alpha, beta, ok2)
-              if (ok2 .and. alpha > 1.0e-6_dp) then
+              if (ok2 .and. alpha > FILL_ALPHA) then
                 projected = .true.
                 nproj = nproj + 1
               end if

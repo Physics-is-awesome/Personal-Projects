@@ -206,10 +206,12 @@ contains
   !     g_RR   = rho^2/(R-R0)^2
   !     g_thth = rho^2
   !     g_phph = sin^2(th) xi1 / rho^2
-  !     g_Rphi = -2a sqrt(R0^2+2R(M-R0)-a^2)/(R-R0) sin^2(th)
-  ! The last one is proportional to a and is exactly the term that was
-  ! missing; the module returned only the diagonal, which is why the family
-  ! was clean at a = 0 and wrong for a > 0.
+  !     g_Rphi = -a sqrt(R0^2+2R(M-R0)-a^2)/(R-R0) sin^2(th)
+  ! NOTE the factor: eq. (12) writes the cross term as
+  !     -2a s/(R-R0) sin^2(th) dR dphi
+  ! in the LINE ELEMENT, whose coefficient is 2*g_Rphi.  The metric component
+  ! itself therefore carries a SINGLE factor a (this was an off-by-two that
+  ! left an O(a) constraint violation concentrated near the equator).
   pure subroutine ktr_kerr_spatial_full(r,ct,st2,m,a,r0,gq)
     real(dp),intent(in) :: r,ct,st2,m,a,r0
     real(dp),intent(out) :: gq(3,3)
@@ -222,7 +224,7 @@ contains
     gq(1,1) = rho2/(rm*rm)
     gq(2,2) = rho2
     gq(3,3) = st2/rho2*xi1
-    gq(1,3) = -2.0_dp*a*s*st2/rm
+    gq(1,3) = -a*s*st2/rm
     gq(3,1) = gq(1,3)
   end subroutine ktr_kerr_spatial_full
 
@@ -328,7 +330,7 @@ contains
     real(dp),intent(out) :: alpha,bcart(3),gcart(3,3)
     logical,intent(out)   :: ok
     real(dp) :: varpi, phi, r, ct, st, bR, bT, bP, gq(3,3), E(3,3)
-    real(dp) :: sum2, disc, cp, sp, re, mu2, dreR, dreT, a11, a12, a22, a33
+    real(dp) :: sum2, disc, cp, sp, re, Aval, detT, a11, a12, a21, a22, a33
     real(dp) :: Minv(3,3), tmp(3,3), h(3,3)
     integer :: p, q, i, q2
 
@@ -341,8 +343,12 @@ contains
     ! rho = 2a|cos(th)| where drho/dr = 0; at a = 0.8 that landed on the horizon.
     disc = max((sum2-a*a)*(sum2-a*a) + 4.0_dp*a*a*z*z, 0.0_dp)
     r  = sqrt(max(0.5_dp*(sum2 - a*a + sqrt(disc)), 0.0_dp))
+    ! The DBM metric is written in Boyer-Lindquist (r,theta,phi), embedded as
+    !   x = sqrt(r^2+a^2) sin(theta) cos(phi),  z = r cos(theta).
+    ! Hence cos(theta) = z/r (the areal radius), NOT z/rho_E.  Using the
+    ! Euclidean polar angle here mixes two charts and breaks stationarity.
     ct = 1.0_dp
-    if (sum2 > 0.0_dp) ct = z/sqrt(sum2)
+    if (r > 0.0_dp) ct = z/r
     ok = ktr_trumpet_valid(r,m,a,r0)
     if (.not. ok) then
       alpha = 0.0_dp
@@ -390,33 +396,38 @@ contains
     !  i.e. T = diag(1, R, R sin th), which reproduces the exactly-correct
     !  Schwarzschild trumpet metric.
     ! ---------------------------------------------------------------------
-    mu2 = r*r - a*a*ct*ct
     re = sqrt(sum2)
     if (re <= 0.0_dp) then
       ok = .false.
       alpha = 0.0_dp;  bcart = 0.0_dp;  gcart = 0.0_dp
       return
     end if
-    ! rho^2 = r^2 + a^2 sin^2(th) gives
-    !   d rho / d r   = r/rho,
-    !   d rho / d th  = a^2 sin(th) cos(th) / rho.
-    dreR = r/re
-    dreT = a*a*ct*st/re
-
-    a11 = dreR
-    a12 = dreT
-    a22 = re
-    a33 = re*st
-    if (a11 == 0.0_dp) then
+    ! Boyer-Lindquist embedding Jacobian in the orthonormal BL frame:
+    !   j_r = d(x,y,z)/dr,  j_th = d(x,y,z)/dth,  j_ph = d(x,y,z)/dph.
+    ! With A = sqrt(r^2+a^2),
+    !   T = [ (r/A)st^2+ct^2   st ct (A-r)    0 ]
+    !       [ st ct (r/A-1)    A ct^2+r st^2  0 ]
+    !       [ 0                0               A st ]
+    ! The (r,th) block is NOT triangular (unlike the Euclidean-angle chart),
+    ! so the full 2x2 inverse is required.
+    Aval = sqrt(r*r + a*a)
+    a11 = (r/Aval)*st*st + ct*ct
+    a21 = st*ct*(r/Aval - 1.0_dp)
+    a12 = st*ct*(Aval - r)
+    a22 = Aval*ct*ct + r*st*st
+    a33 = Aval*st
+    detT = a11*a22 - a12*a21
+    if (abs(detT) <= tiny(1.0_dp) .or. a33 == 0.0_dp) then
       ok = .false.
       alpha = 0.0_dp;  bcart = 0.0_dp;  gcart = 0.0_dp
       return
     end if
 
     Minv = 0.0_dp
-    Minv(1,1) = 1.0_dp/a11
-    Minv(1,2) = -a12/(a11*a22)
-    Minv(2,2) = 1.0_dp/a22
+    Minv(1,1) =  a22/detT
+    Minv(1,2) = -a12/detT
+    Minv(2,1) = -a21/detT
+    Minv(2,2) =  a11/detT
     Minv(3,3) = 1.0_dp/a33
 
     ! h = M^T gq M
@@ -448,10 +459,12 @@ contains
       end do
     end do
 
-    ! The shift is a vector: beta^i = beta^R dx^i/dR + beta^th dx^i/dth
-    !                             + beta^ph dx^i/dph.
+    ! The shift is a vector: beta^i = beta^r dx^i/dr + beta^th dx^i/dth
+    !                             + beta^ph dx^i/dph.  Use the same full
+    ! Jacobian columns as the metric transform.
     do i = 1, 3
-      bcart(i) = bR*a11*E(i,1) + bT*(dreT*E(i,1) + a22*E(i,2)) &
+      bcart(i) = bR*(a11*E(i,1) + a21*E(i,2)) &
+               + bT*(a12*E(i,1) + a22*E(i,2)) &
                + bP*a33*E(i,3)
     end do
   end subroutine ktr_kerr_xyz

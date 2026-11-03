@@ -34,7 +34,7 @@ program test_fo_validation
   ! Scalar-wave-style incoming penalty sanity check.
   state = [2.0_dp, 2.0_dp]; target = 1.0_dp; speed = [-1.0_dp, 1.0_dp]; rhs = 0.0_dp
   call apply_curved_characteristic_sat(state,target,speed,1.0_dp,0.25_dp,0.5_dp,nx,nz,rhs)
-  if (rhs(1) <= 0.0_dp .or. abs(rhs(2)) > 1.0e-14_dp) &
+  if (abs(rhs(1)) > 1.0e-14_dp .or. rhs(2) >= 0.0_dp) &
     error stop 'incoming SAT validation failed'
   write(*,'(A,2(1X,ES12.4))') 'first-order validation building blocks passed:', nx, nz
 contains

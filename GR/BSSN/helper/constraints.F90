@@ -66,7 +66,7 @@ contains
   !
   ! Range: i in [2, Nx-1], k in [2, Nz-1] (one layer of derivatives needed).
   ! ---------------------------------------------------------------------------
-  subroutine momentum_constraint(u, Mout, Mterms)
+  subroutine momentum_constraint(u, Mout, Mterms, Mdir)
     real(dp), intent(in)  :: u(:,:,:)
     real(dp), intent(out) :: Mout(:,:,:)
     ! Optional diagnostic decomposition, last index (each summed over j):
@@ -78,6 +78,8 @@ contains
     !   6 = Gamma^i_{jk} S^{kj}      (physical connection)
     !   7 = Gamma^j_{jk} S^{ik}      (physical connection)
     real(dp), intent(out), optional :: Mterms(:,:,:,:)
+    ! Optional directional pieces of term 1, shape (Nx,Nz,free-index,direction).
+    real(dp), intent(out), optional :: Mdir(:,:,:,:)
     integer, parameter :: IA(6) = [1,1,1,2,2,3]
     integer, parameter :: IB(6) = [1,2,3,2,3,3]
     type(stencil_t) :: S
@@ -93,6 +95,7 @@ contains
 
     Mout = 0.0_dp
     if (present(Mterms)) Mterms = 0.0_dp
+    if (present(Mdir)) Mdir = 0.0_dp
     do k = 2, Nz - 1
       do i = 2, Nx - 1
         call compute_stencil(u, i, k, excision_status, S)
@@ -242,6 +245,7 @@ contains
           pieces = 0.0_dp
           do j2 = 1, 3                  ! summed index j
             pieces(1) = pieces(1) + e4m*dAbup(j2,jf,j2)
+             if (present(Mdir)) Mdir(i,k,jf,j2) = e4m*dAbup(j2,jf,j2)
             pieces(2) = pieces(2) -(2.0_dp/3.0_dp)*e4m*Ktr*dgtinv(j2,jf,j2)
             pieces(3) = pieces(3) -(2.0_dp/3.0_dp)*e4m*gtinv(j2,jf)*dKtr(j2)
             pieces(4) = pieces(4) -4.0_dp*e4m*dphi(j2)*Abup(j2,jf)

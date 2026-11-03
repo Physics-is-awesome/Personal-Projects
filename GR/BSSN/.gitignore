@@ -5,6 +5,7 @@ build/
 
 # Run output
 output/
+run_archive/
 *.h5
 *.hdf5
 horizon.png

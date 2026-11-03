@@ -6,7 +6,8 @@
 module fo_normal_system_mod
   use kinds_mod, only: dp
   use vars_mod, only: NVARS, IPHI, IGXX, IGXY, IGXZ, IGYY, IGYZ, IGZZ, &
-                      IK, IALPHA, IBETAX, IBETAY, IBETAZ
+                      IK, IAXX, IAXY, IAXZ, IAYY, IAYZ, IAZZ, IGTX, IGTY, IGTZ, &
+                      IALPHA, IBETAX, IBETAY, IBETAZ, IBX, IBY, IBZ
   use fo_complete_vars_mod, only: NFO_COMPLETE_VARS, fo_complete_index
   implicit none
   private
@@ -268,7 +269,9 @@ contains
     character(len=32), intent(out) :: labels(NFO_COMPLETE_VARS)
     logical, intent(out) :: supported(NFO_COMPLETE_VARS)
     real(dp) :: nn(3), nrm, beta_n, gnn, ginv_nn, c_lapse
-    integer :: j, d
+    integer :: j, d, i, k, v
+    real(dp) :: g(3,3), gi(3,3), at(3,3), aup(3,3), det
+    real(dp) :: beta(3), n(3), bn, gn
 
     nrm = sqrt(sum(normal*normal))
     if (nrm <= tiny(1.0_dp)) error stop 'complete normal matrix: zero normal'
@@ -320,7 +323,121 @@ contains
       lambda(fo_complete_index(IALPHA,d)) = -beta_n
     end do
     if (.not. (c_lapse > 0.0_dp)) error stop 'complete normal matrix: invalid gauge speed'
+    ! Principal couplings directly read from rhs_point().  These are the
+    ! first-order transport/Lie terms and the constraint terms in RHS_Gam.
+    n = nn
+    beta = q(IBETAX:IBETAZ)
+    bn = dot_product(beta,n)
+    g = reshape([q(IGXX),q(IGXY),q(IGXZ),q(IGXY),q(IGYY),q(IGYZ), &
+                 q(IGXZ),q(IGYZ),q(IGZZ)],[3,3])
+    det = g(1,1)*(g(2,2)*g(3,3)-g(2,3)*g(2,3)) &
+        - g(1,2)*(g(1,2)*g(3,3)-g(2,3)*g(1,3)) &
+        + g(1,3)*(g(1,2)*g(2,3)-g(2,2)*g(1,3))
+    if (det <= 0.0_dp) error stop 'complete normal matrix: singular conformal metric'
+    gi(1,1)=(g(2,2)*g(3,3)-g(2,3)*g(2,3))/det
+    gi(1,2)=(g(1,3)*g(2,3)-g(1,2)*g(3,3))/det
+    gi(1,3)=(g(1,2)*g(2,3)-g(1,3)*g(2,2))/det
+    gi(2,1)=gi(1,2); gi(2,2)=(g(1,1)*g(3,3)-g(1,3)*g(1,3))/det
+    gi(2,3)=(g(1,2)*g(1,3)-g(1,1)*g(2,3))/det
+    gi(3,1)=gi(1,3); gi(3,2)=gi(2,3); gi(3,3)=(g(1,1)*g(2,2)-g(1,2)*g(1,2))/det
+    at = reshape([q(IAXX),q(IAXY),q(IAXZ),q(IAXY),q(IAYY),q(IAYZ), &
+                  q(IAXZ),q(IAYZ),q(IAZZ)],[3,3])
+    aup = matmul(gi,matmul(at,gi))
+    gn = exp(-4.0_dp*q(IPHI))
+
+    do v = 1, NVARS
+      do d = 1, 3
+        A(v,fo_complete_index(v,d)) = A(v,fo_complete_index(v,d)) - bn*n(d)
+      end do
+    end do
+    do d = 1, 3
+      A(IPHI,fo_complete_index(IBETAX,d)) = A(IPHI,fo_complete_index(IBETAX,d)) + n(d)*n(1)/3.0_dp
+      A(IPHI,fo_complete_index(IBETAY,d)) = A(IPHI,fo_complete_index(IBETAY,d)) + n(d)*n(2)/3.0_dp
+      A(IPHI,fo_complete_index(IBETAZ,d)) = A(IPHI,fo_complete_index(IBETAZ,d)) + n(d)*n(3)/3.0_dp
+    end do
+    do i = 1, 3
+      do k = i, 3
+        v = metric_var(i,k)
+        do d = 1, 3
+          A(v,fo_complete_index(v,d)) = A(v,fo_complete_index(v,d)) + 0.0_dp
+          A(v,fo_complete_index(IBETAX,d)) = A(v,fo_complete_index(IBETAX,d)) + &
+               n(d)*(merge(g(i,1),0.0_dp,k==1) + merge(g(k,1),0.0_dp,i==1))
+          A(v,fo_complete_index(IBETAY,d)) = A(v,fo_complete_index(IBETAY,d)) + &
+               n(d)*(merge(g(i,2),0.0_dp,k==2) + merge(g(k,2),0.0_dp,i==2))
+          A(v,fo_complete_index(IBETAZ,d)) = A(v,fo_complete_index(IBETAZ,d)) + &
+               n(d)*(merge(g(i,3),0.0_dp,k==3) + merge(g(k,3),0.0_dp,i==3))
+          A(v,fo_complete_index(IBETAX,d)) = A(v,fo_complete_index(IBETAX,d)) - &
+               (2.0_dp/3.0_dp)*g(i,k)*n(d)*n(1)
+          A(v,fo_complete_index(IBETAY,d)) = A(v,fo_complete_index(IBETAY,d)) - &
+               (2.0_dp/3.0_dp)*g(i,k)*n(d)*n(2)
+          A(v,fo_complete_index(IBETAZ,d)) = A(v,fo_complete_index(IBETAZ,d)) - &
+               (2.0_dp/3.0_dp)*g(i,k)*n(d)*n(3)
+        end do
+      end do
+    end do
+
+    do i = 1, 3
+      v = gamma_var(i)
+      do d = 1, 3
+        A(v,fo_complete_index(IALPHA,d)) = A(v,fo_complete_index(IALPHA,d)) - &
+             2.0_dp*sum(aup(i,:)*n(:))*n(d)
+        A(v,fo_complete_index(IK,d)) = A(v,fo_complete_index(IK,d)) - &
+             (4.0_dp/3.0_dp)*q(IALPHA)*sum(gi(i,:)*n(:))*n(d)
+        A(v,fo_complete_index(IPHI,d)) = A(v,fo_complete_index(IPHI,d)) + &
+             12.0_dp*q(IALPHA)*sum(aup(i,:)*n(:))*n(d)
+      end do
+    end do
+
+    do i = 1, 3
+      v = gamma_var(i)
+      do d = 1, 3
+        do k = 1, 3
+          if (k == i) A(v,fo_complete_index(IBETAX+k-1,d)) = &
+               A(v,fo_complete_index(IBETAX+k-1,d)) - &
+               dot_product(q(IGTX:IGTZ),n)*n(d)
+          A(v,fo_complete_index(IBETAX+k-1,d)) = &
+               A(v,fo_complete_index(IBETAX+k-1,d)) + &
+               (2.0_dp/3.0_dp)*q(IGTX+i-1)*n(k)*n(d)
+        end do
+      end do
+    end do
+
+    do j = 1, NFO_COMPLETE_VARS
+      labels(j) = 'derived-principal'
+      supported(j) = .true.
+    end do
+    ! The Ricci and Gamma-driver second-derivative blocks are not represented
+    ! by the entries above.  Leave those geometric modes explicitly marked
+    ! unsupported until their differentiated production equations are added.
+    do v = IAXX, IAZZ
+      supported(v) = .false.; labels(v) = 'unsupported-ricci'
+      do d = 1, 3
+        supported(fo_complete_index(v,d)) = .false.
+        labels(fo_complete_index(v,d)) = 'unsupported-ricci'
+      end do
+    end do
+    do v = IBX, IBZ
+      supported(v) = .false.; labels(v) = 'unsupported-driver'
+      do d = 1, 3
+        supported(fo_complete_index(v,d)) = .false.
+        labels(fo_complete_index(v,d)) = 'unsupported-driver'
+      end do
+    end do
   end subroutine fo_complete_normal_matrix
+
+  integer function metric_var(i,k) result(v)
+    integer, intent(in) :: i,k
+    integer, parameter :: tab(3,3) = reshape([IGXX,IGXY,IGXZ,IGXY,IGYY,IGYZ,IGXZ,IGYZ,IGZZ],[3,3])
+    v = tab(i,k)
+  end function metric_var
+
+  integer function gamma_var(i) result(v)
+    integer, intent(in) :: i
+    integer, parameter :: tab(3) = [IGTX,IGTY,IGTZ]
+    v = tab(i)
+  end function gamma_var
+
+
 
   integer function fo_normal_mode_class(label) result(mode)
     character(len=*), intent(in) :: label

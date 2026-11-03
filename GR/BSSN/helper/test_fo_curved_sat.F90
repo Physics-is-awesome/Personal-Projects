@@ -13,7 +13,7 @@ program test_fo_curved_sat
   rhs = 0.0_dp
   call apply_curved_characteristic_sat(state, target, speed, 1.0_dp, 0.25_dp, &
                                        0.5_dp, nx, nz, rhs)
-  if (rhs(1) <= 0.0_dp .or. abs(rhs(2)) > 1.0e-14_dp .or. abs(rhs(3)) > 1.0e-14_dp) &
+  if (abs(rhs(1)) > 1.0e-14_dp .or. abs(rhs(2)) > 1.0e-14_dp .or. rhs(3) >= 0.0_dp) &
     error stop 'curved SAT penalty test failed'
   write(*,'(A,3(1X,ES12.4))') 'curved SAT passed:', nx, nz, rhs(1)
 end program test_fo_curved_sat

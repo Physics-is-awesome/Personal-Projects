@@ -77,6 +77,52 @@ near-mask regression is recorded here as an accepted cost, not glossed over.
 
 Order 4 remains reachable via `GR_EXCISION_ORDER=4`.
 
+## Route-C follow-up
+
+A matched route-C sweep was run at 96x192, `a=0.8`, `r_excise=1.5`,
+`excision_sat=false`, with 1000 steps (`t=0.4443`):
+
+| order | exterior max/RMS H | horizon-shell max H | horizon-shell max M | inside-horizon max H |
+|---|---:|---:|---:|---:|
+| 2 | 4.4315e-2 / 2.0803e-3 | 2.2607e-1 | 4.5388e-2 | 5.1848e-1 |
+| 3 | 4.3897e-2 / 2.0801e-3 | 2.0264e-1 | 4.1213e-2 | 5.4715e-1 |
+| 4 | 4.3817e-2 / 2.0813e-3 | 1.9930e-1 | 3.8478e-2 | 5.3909e-1 |
+
+Order 4 was then run to 2000 steps (`t=0.8885`) and completed without a
+determinant failure:
+
+```text
+exterior max/RMS H       = 5.2185e-2 / 2.7354e-3
+horizon-shell max H      = 2.2223e-1
+horizon-shell max M      = 6.0889e-2
+inside-horizon max H     = 5.4264e-1
+```
+
+Relative to order 3 at the same endpoint, order 4 lowers the shell Hamiltonian
+residual by about 3.6% and the shell momentum residual by about 8.5%, while
+the exterior and ungated interior values are effectively unchanged. This
+makes order 4 the best current fill candidate for route-C, but the improvement
+is modest and does not yet justify changing the production default: the
+existing order-3 lifetime evidence covers a different baseline and order 4
+still uses extrapolation rather than a characteristic boundary condition.
+
+### Refinement check
+
+The same route-C settings were tested at 192x384 for 300 steps
+(`t=0.0665`), with order 3 and order 4:
+
+| order | exterior max/RMS H | horizon-shell max H | horizon-shell max M | inside-horizon max H |
+|---|---:|---:|---:|---:|
+| 3 | 2.0487e-2 / 6.8462e-4 | 5.6315e-2 | 2.2017e-3 | 1.2417e-1 |
+| 4 | 2.0487e-2 / 6.8461e-4 | 5.6428e-2 | 2.2017e-3 | 1.2595e-1 |
+
+At this refined, short-time checkpoint, order 4 is very slightly worse in
+Hamiltonian residuals and indistinguishable in momentum residuals. The
+comparison is not a same-physical-time lifetime test—the 96x192 runs require
+approximately 2000 steps to reach the same `t`—but it is enough to reject the
+idea that order 4 is uniformly superior. Keep the production default at order
+3 until a matched-time refinement study shows a durable benefit.
+
 ## Caveat on all of the above
 
 Even the best near-mask value anywhere in this study is ~1.1, against a

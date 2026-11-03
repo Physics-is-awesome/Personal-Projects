@@ -1,6 +1,7 @@
 module sommerfeld_mod
   use kinds_mod, only: dp
-  use params_mod, only: Nx, Nz, dx, dz
+  use params_mod, only: Nx, Nz, dx, dz, xmax, zmax, outer_sponge_width, &
+                        outer_sponge_strength
   use grid_mod, only: xg, zg
   use vars_mod
   implicit none
@@ -79,9 +80,28 @@ contains
     real(dp), intent(in)    :: u(:,:,:)
     real(dp), intent(inout) :: rhs(:,:,:)
     integer :: i, k, ivar
-    real(dp) :: r, f0, dfdr, f1, f2, f3, pw
+    real(dp) :: r, f0, dfdr, f1, f2, f3, pw, dist, taper, sigma
 
     call sommerfeld_read_env()
+
+    ! Optional buffer damping.  It is deliberately disabled by default:
+    ! unlike a characteristic condition, this is an empirical reflection
+    ! control and must be validated by domain and resolution sweeps.
+    if (outer_sponge_width > 0.0_dp .and. outer_sponge_strength > 0.0_dp) then
+      do k = 2, Nz - 1
+        do i = 2, Nx - 1
+          dist = min(xmax - xg(i), zmax - abs(zg(k)))
+          if (dist < outer_sponge_width) then
+            taper = (outer_sponge_width - max(dist, 0.0_dp)) / outer_sponge_width
+            sigma = outer_sponge_strength*taper*taper
+            do ivar = 1, NVARS
+              f0 = asymptotic_value(ivar)
+              rhs(i,k,ivar) = rhs(i,k,ivar) - sigma*(u(i,k,ivar) - f0)
+            end do
+          end if
+        end do
+      end do
+    end if
 
     ! --- z = -zmax boundary (k=1): outward direction is -z ---
     k = 1

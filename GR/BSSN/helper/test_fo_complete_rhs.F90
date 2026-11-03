@@ -1,6 +1,6 @@
 program test_fo_complete_rhs
   use kinds_mod, only: dp
-  use params_mod, only: Nx, Nz, dx, dz, init_params
+  use params_mod, only: Nx, Nz, dx, dy, dz, init_params
   use grid_mod, only: setup_grid
   use vars_mod, only: NVARS, IPHI, IGXX, IGYY, IGZZ, IALPHA
   use bssn_rhs_mod, only: compute_rhs_interior
@@ -8,10 +8,11 @@ program test_fo_complete_rhs
   use deriv_stencils_mod, only: init_deriv_stencils
   use fo_complete_vars_mod
   use fo_complete_rhs_mod
+  use cartoon_mod, only: get_neighbor
   implicit none
   real(dp), allocatable :: u(:,:,:), q(:,:,:), rhs(:,:,:), ru(:,:,:)
-  real(dp) :: norms(3), x
-  integer :: i, k, st
+  real(dp) :: norms(3), x, yp(NVARS), ym(NVARS), maxerr
+  integer :: i, k, v, st
 
   call init_params('missing-complete-rhs-test.par')
   call setup_grid()
@@ -43,12 +44,31 @@ program test_fo_complete_rhs
   ru = 0.0_dp
   call compute_rhs_interior(u, ru)
   call compute_complete_state_rhs(q, rhs, st)
-  if (st /= FO_STATUS_Y_UNSUPPORTED) error stop 'unsupported y RHS was not reported'
+  if (st /= FO_STATUS_OK) error stop 'Cartoon y RHS was not reported supported'
   if (maxval(abs(rhs(:,:,1:NVARS)-ru)) > 1.0e-12_dp) error stop 'base RHS mismatch'
   if (abs(rhs(3,3,fo_complete_index(IPHI,1)) - &
       (ru(4,3,IPHI)-ru(2,3,IPHI))/(2.0_dp*dx)) > 1.0e-12_dp) &
     error stop 'differentiated x RHS mismatch'
-  if (maxval(abs(rhs(:,:,fo_complete_index(IPHI,2)))) > 0.0_dp) &
-    error stop 'unsupported y RHS was fabricated'
+  yp = get_neighbor(ru, 3, 3, 0, 0, dy)
+  ym = get_neighbor(ru, 3, 3, 0, 0, -dy)
+  if (abs(rhs(3,3,fo_complete_index(IPHI,2)) - (yp(IPHI)-ym(IPHI))/(2.0_dp*dy)) > 1.0e-12_dp) &
+    error stop 'Cartoon y RHS mismatch'
+  maxerr = 0.0_dp
+  do k = 2, Nz-1
+    do i = 2, Nx-1
+      yp = get_neighbor(ru, i, k, 0, 0, dy)
+      ym = get_neighbor(ru, i, k, 0, 0, -dy)
+      do v = 1, NVARS
+        maxerr = max(maxerr, abs(rhs(i,k,fo_complete_index(v,1)) - &
+          (ru(i+1,k,v)-ru(i-1,k,v))/(2.0_dp*dx)))
+        maxerr = max(maxerr, abs(rhs(i,k,fo_complete_index(v,2)) - &
+          (yp(v)-ym(v))/(2.0_dp*dy)))
+        maxerr = max(maxerr, abs(rhs(i,k,fo_complete_index(v,3)) - &
+          (ru(i,k+1,v)-ru(i,k-1,v))/(2.0_dp*dz)))
+      end do
+    end do
+  end do
+  if (maxerr > 1.0e-12_dp) error stop 'complete differentiated RHS reduction mismatch'
+  write(*,'(A,ES10.3)') 'complete differentiated RHS max error:', maxerr
   write(*,'(A,3(1X,ES10.3))') 'complete RHS reduction norms:', norms
 end program test_fo_complete_rhs

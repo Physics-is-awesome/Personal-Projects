@@ -70,7 +70,10 @@ contains
     ! The inverse normal grid spacing is the metric used by the diagonal
     ! SBP norm for a Cartesian grid cut by a level-set interface.
     h_normal = 1.0_dp/sqrt((nx/dx)**2 + (nz/dz)**2)
-    rhs = rhs - tau*min(speed, 0.0_dp)*(state-target)/h_normal
+    ! The normal points from the excised region into the evolved exterior.
+    ! Positive-speed modes therefore enter the evolved domain and are the
+    ! incoming family to penalize.
+    rhs = rhs - tau*max(speed, 0.0_dp)*(state-target)/h_normal
   end subroutine apply_curved_characteristic_sat
 
 end module fo_curved_sat_mod

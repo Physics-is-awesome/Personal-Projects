@@ -2,7 +2,9 @@ program test_fo_normal_system
   use kinds_mod, only: dp
   use fo_normal_system_mod
   use fo_complete_vars_mod, only: NFO_COMPLETE_VARS, fo_complete_index
-  use vars_mod, only: IGXX, IGYY, IGZZ, IALPHA, IK, IPHI
+  use vars_mod, only: IGXX, IGXY, IGXZ, IGYY, IGYZ, IGZZ, IALPHA, IK, IPHI, &
+                      IBETAX, IBETAY, IBETAZ, IGTX, IGTY, IGTZ, IAXX, IAXY, &
+                      IAXZ, IAYY, IAYZ, IAZZ, IBX
   implicit none
   integer :: b, n
   real(dp) :: A(FO_MAX_BLOCK,FO_MAX_BLOCK), lam(FO_MAX_BLOCK)
@@ -14,6 +16,7 @@ program test_fo_normal_system
   logical :: supported(FO_NSTATE)
   real(dp) :: qc(NFO_COMPLETE_VARS), Ac(NFO_COMPLETE_VARS,NFO_COMPLETE_VARS)
   real(dp) :: lc(NFO_COMPLETE_VARS)
+  real(dp) :: wn(NFO_COMPLETE_VARS), flux(NFO_COMPLETE_VARS), normal3(3)
   character(len=32) :: clabels(NFO_COMPLETE_VARS)
   logical :: csupported(NFO_COMPLETE_VARS)
   do b=FO_BLOCK_LAPSE,FO_BLOCK_SHIFT
@@ -45,6 +48,7 @@ program test_fo_normal_system
   qc = 0.0_dp
   qc(IGXX) = 1.0_dp; qc(IGYY) = 1.0_dp; qc(IGZZ) = 1.0_dp
   qc(IALPHA) = 1.2_dp
+  qc(IBETAX:IBETAZ) = [0.2_dp, -0.1_dp, 0.05_dp]
   call fo_complete_normal_matrix(qc, [0.6_dp,0.0_dp,0.8_dp], Ac, lc, clabels, csupported)
   if (maxval(abs(Ac - transpose(Ac))) <= 0.0_dp) then
     error stop 'complete normal matrix was not populated'
@@ -52,6 +56,34 @@ program test_fo_normal_system
   if (.not. csupported(IK)) error stop 'fully coupled K gauge coupling was misclassified'
   if (.not. csupported(fo_complete_index(IPHI,1))) &
     error stop 'reduction transport mode was not classified'
+  if (.not. csupported(IGXX) .or. .not. csupported(IGTX)) &
+    error stop 'geometric support classification failed'
+  if (csupported(IAXX) .or. csupported(fo_complete_index(IBX,1))) &
+    error stop 'unsupported geometric/driver mode was classified as supported'
+  normal3 = [0.6_dp, 0.0_dp, 0.8_dp]
+  wn = 0.0_dp
+  wn(fo_complete_index(IPHI,1)) = normal3(1)
+  wn(fo_complete_index(IPHI,2)) = normal3(2)
+  wn(fo_complete_index(IPHI,3)) = normal3(3)
+  flux = matmul(Ac, wn)
+  if (abs(flux(IPHI) + (0.2_dp*normal3(1)-0.1_dp*normal3(2)+ &
+                        0.05_dp*normal3(3))) > 1.0e-12_dp) &
+    error stop 'manufactured outgoing transport mode mismatch'
+  wn = 0.0_dp
+  wn(fo_complete_index(IBETAX,1)) = normal3(1)
+  wn(fo_complete_index(IBETAX,2)) = normal3(2)
+  wn(fo_complete_index(IBETAX,3)) = normal3(3)
+  wn(fo_complete_index(IBETAY,1)) = normal3(1)
+  wn(fo_complete_index(IBETAY,2)) = normal3(2)
+  wn(fo_complete_index(IBETAY,3)) = normal3(3)
+  wn(fo_complete_index(IBETAZ,1)) = normal3(1)
+  wn(fo_complete_index(IBETAZ,2)) = normal3(2)
+  wn(fo_complete_index(IBETAZ,3)) = normal3(3)
+  flux = matmul(Ac, wn)
+  if (abs(flux(IGXX)) < 1.0e-12_dp .or. abs(flux(IGYY)) < 1.0e-12_dp) &
+    error stop 'manufactured metric Lie mode did not propagate'
+  write(*,'(A,2(1X,ES12.4))') 'manufactured geometric outgoing modes: ', &
+    flux(IGXX), flux(IGYY)
   write(*,'(A,ES12.4)') 'complete normal matrix gauge coupling: ', &
     abs(Ac(IK,fo_complete_index(IALPHA,1)))
 

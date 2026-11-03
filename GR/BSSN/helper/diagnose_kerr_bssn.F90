@@ -34,13 +34,15 @@ program diagnose_kerr_bssn
                        IAXX, IAXY, IAXZ, IAYY, IAYZ, IAZZ, &
                        IGTX, IGTY, IGTZ
   use initial_data_mod, only: compute_conformal_connections
-  use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id, state_at
+  use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id, state_at, kerr_bssn_deriv_step, &
+                                   initialize_kerr_f_cache, get_kerr_f_cache
+  use eq_kerr_trumpet_mod, only: ktr_kerr_xyz
   use eq_schwarzschild_data_mod, only: set_eq_schwarzschild_id
   use excision_mod, only: extrapolate_excised, set_excision_background, &
                          excision_reset_geometry, excision_status, PHYSICAL
   use deriv_stencils_mod, only: init_deriv_stencils
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
-  use bssn_rhs_mod, only: compute_rhs_point
+  use bssn_rhs_mod, only: compute_rhs_point, bm_f_of_alpha
 
   implicit none
   real(dp), allocatable :: u(:,:,:), rhs(:), H(:,:), M(:,:,:)
@@ -48,6 +50,7 @@ program diagnose_kerr_bssn
   real(dp) :: hmx_s, hrms_s, mmx_s, rgam_s, ralp_s
   integer :: i, k, ilo, ihi, klo, khi, hmi, hmk, nprobe, rsn_p, nb, nbth
   integer, parameter :: NRBIN = 7, NTH_BIN = 10
+  integer, parameter :: NGR = 4
   real(dp) :: cth, cth_cell, cth_lo, cth_hi, cth_mid, mmax, msum, mcnt
   real(dp) :: spin, r0in
   character(len=64) :: argbuf
@@ -56,6 +59,13 @@ program diagnose_kerr_bssn
   logical :: ok_p
   real(dp) :: hmr, hmalpha, hmphi, hmgxx, hmgyy
   real(dp) :: npts
+  real(dp) :: al0, alxp, alxm, alzp, alzm, b0(3), btmp(3), gtmp(3,3)
+  real(dp) :: f_req, f_tab, f_cache, lapse_resid, lapse_resid_max, lapse_resid_sum
+  real(dp) :: f_diff_max, beta_grad_alpha, hs
+  real(dp) :: rhs_tab_max(NGR),rhs_spatial_max(NGR),rhs_tab_sum(NGR),rhs_spatial_sum(NGR)
+  real(dp) :: f_req_min(NGR),f_req_max(NGR),rhs_spatial,rhs_tab
+  integer :: rhs_count(NGR),ig
+  logical :: ok0
 
   ! Optional argv: spin, then R0.  Comparing H across spin is the test that
   ! separates a radial fault (alpha, bR, g_rr) from a spin-dependent one
@@ -67,7 +77,6 @@ program diagnose_kerr_bssn
   call get_command_argument(2, argbuf); if (len_trim(argbuf) > 0) read(argbuf,*) r0in
   call init_params('parameter_files/vacuum_kerr.par')
   bh_spin = spin
-  slicing_mode = 3
   gamma_driver_mode = 4
   ilo=2; ihi=Nx-1; klo=2; khi=Nz-1
   call setup_grid()
@@ -75,12 +84,13 @@ program diagnose_kerr_bssn
   allocate(rhs(NVARS), H(Nx,Nz), M(Nx,Nz,3))
 
   write(*,'(A)') '============================================================'
-  write(*,'(A)') ' Kerr trumpet BSSN data, slicing_mode=3 (tabulated f(alpha)),'
+  write(*,'(A,I0,A)') ' Kerr trumpet BSSN data, slicing_mode=',slicing_mode,' (route-C lapse),'
   write(*,'(A)') ' gamma_driver_mode=4 (B=0 fixed point).  annulus r in [3,5].'
   write(*,'(A)') '------------------------------------------------------------'
 
   ! ---------------- Kerr trumpet ----------------
   call set_eq_kerr_trumpet_id(u, 1.0_dp, spin, r0in)
+  if (slicing_mode==4) call initialize_kerr_f_cache()
   call compute_conformal_connections(u)
   call set_excision_background(u)
   call init_deriv_stencils()
@@ -156,6 +166,10 @@ program diagnose_kerr_bssn
   hmi=0; hmk=0; hmr=0.0_dp; hmalpha=0.0_dp; hmphi=0.0_dp; hmgxx=0.0_dp; hmgyy=0.0_dp
   rgam=0.0_dp; rktr=0.0_dp; rbet=0.0_dp; rB=0.0_dp
   rat=0.0_dp; ralp=0.0_dp; rphi=0.0_dp
+  ! Evaluate the exact DBM lapse/shift/K at each sample independently of the
+  ! evolution stencil. This isolates the gauge-law residual from grid RHS error.
+  lapse_resid_max=0.0_dp; lapse_resid_sum=0.0_dp; f_diff_max=0.0_dp
+  hs=kerr_bssn_deriv_step()
   do k=3,Nz-2
     do i=2,Nx-1
       r=sqrt(xg(i)**2+zg(k)**2)
@@ -168,6 +182,25 @@ program diagnose_kerr_bssn
       hrms=hrms+H(i,k)**2;  npts=npts+1.0_dp
       mmx=max(mmx,sqrt(sum(M(i,k,:)**2)))
       call compute_rhs_point(u,i,k,rhs)
+      call state_at(xg(i),0.0_dp,zg(k),1.0_dp,bh_spin,r0in,phi_p,gt_p,at_p, &
+                    Ktr_p,alpha_p,beta_p,ok_p)
+      al0=alpha_p; b0=beta_p; ok0=ok_p
+      if (ok0) then
+        call ktr_kerr_xyz(xg(i)+hs,0.0_dp,zg(k),1.0_dp,bh_spin,r0in,alxp,btmp,gtmp,ok0)
+        call ktr_kerr_xyz(xg(i)-hs,0.0_dp,zg(k),1.0_dp,bh_spin,r0in,alxm,btmp,gtmp,ok0)
+        call ktr_kerr_xyz(xg(i),0.0_dp,zg(k)+hs,1.0_dp,bh_spin,r0in,alzp,btmp,gtmp,ok0)
+        call ktr_kerr_xyz(xg(i),0.0_dp,zg(k)-hs,1.0_dp,bh_spin,r0in,alzm,btmp,gtmp,ok0)
+        beta_grad_alpha=b0(1)*(alxp-alxm)/(2.0_dp*hs) &
+                       +b0(3)*(alzp-alzm)/(2.0_dp*hs)
+        if (abs(al0*al0*Ktr_p)>1.0e-14_dp) then
+          f_req=beta_grad_alpha/(al0*al0*Ktr_p)
+          f_tab=bm_f_of_alpha(al0,bh_spin)
+          lapse_resid=beta_grad_alpha-al0*al0*f_tab*Ktr_p
+          lapse_resid_max=max(lapse_resid_max,abs(lapse_resid))
+          lapse_resid_sum=lapse_resid_sum+lapse_resid*lapse_resid
+          f_diff_max=max(f_diff_max,abs(f_tab-f_req))
+        end if
+      end if
       rgam=max(rgam,maxval(abs(rhs(IGTX:IGTZ))))
       rktr=max(rktr,abs(rhs(IK)))
       rbet=max(rbet,maxval(abs(rhs(IBETAX:IBETAZ))))
@@ -239,7 +272,75 @@ program diagnose_kerr_bssn
   write(*,'(A,ES12.4)') '                   max|M|=', mmx
   write(*,'(A,7ES12.4)') ' Kerr   RHS max [Lambda,K,beta,B,Atilde,alpha,phi]:', &
        rgam, rktr, rbet, rB, rat, ralp, rphi
+  write(*,'(A,3ES12.4)') ' analytic f-table residual max/rms, max|f-f_required|:', &
+       lapse_resid_max, sqrt(lapse_resid_sum/max(npts,1.0_dp)), f_diff_max
   write(*,'(A,I0)') '         annulus cells =', int(npts)
+
+  ! Compare the actual production finite-difference lapse RHS against a
+  ! diagnostic position-dependent coefficient f_required(x,z).  This uses
+  ! the same discrete beta.grad(alpha) already present in RHS_alpha and only
+  ! replaces its Bona-Masso source term; it does not modify production state.
+  rhs_tab_max=0.0_dp;rhs_spatial_max=0.0_dp
+  rhs_tab_sum=0.0_dp;rhs_spatial_sum=0.0_dp;rhs_count=0
+  f_req_min=huge(1.0_dp);f_req_max=-huge(1.0_dp)
+  do k=3,Nz-2
+    do i=2,Nx-1
+      r=sqrt(xg(i)**2+zg(k)**2)
+      if (r<1.55_dp .or. r>8.0_dp) cycle
+      if (excision_status(i,k)/=PHYSICAL) cycle
+      if (r<2.0_dp) then
+        ig=1
+      else if (r<3.0_dp) then
+        ig=2
+      else if (r<5.0_dp) then
+        ig=3
+      else
+        ig=4
+      end if
+      call compute_rhs_point(u,i,k,rhs)
+      call state_at(xg(i),0.0_dp,zg(k),1.0_dp,bh_spin,r0in,phi_p,gt_p,at_p, &
+                    Ktr_p,alpha_p,beta_p,ok_p)
+      if (.not.ok_p .or. abs(alpha_p*alpha_p*Ktr_p)<1.0e-14_dp) cycle
+      call ktr_kerr_xyz(xg(i)+hs,0.0_dp,zg(k),1.0_dp,bh_spin,r0in,alxp,btmp,gtmp,ok_p)
+      call ktr_kerr_xyz(xg(i)-hs,0.0_dp,zg(k),1.0_dp,bh_spin,r0in,alxm,btmp,gtmp,ok_p)
+      call ktr_kerr_xyz(xg(i),0.0_dp,zg(k)+hs,1.0_dp,bh_spin,r0in,alzp,btmp,gtmp,ok_p)
+      call ktr_kerr_xyz(xg(i),0.0_dp,zg(k)-hs,1.0_dp,bh_spin,r0in,alzm,btmp,gtmp,ok_p)
+      if (.not.ok_p) cycle
+      beta_grad_alpha=beta_p(1)*(alxp-alxm)/(2.0_dp*hs) &
+                     +beta_p(3)*(alzp-alzm)/(2.0_dp*hs)
+      f_req=beta_grad_alpha/(alpha_p*alpha_p*Ktr_p)
+      f_tab=bm_f_of_alpha(alpha_p,bh_spin)
+      call get_kerr_f_cache(i,k,f_cache,ok_p)
+      if (slicing_mode==4 .and. ok_p) then
+        rhs_tab=rhs(IALPHA)+alpha_p*alpha_p*(f_cache-f_tab)*Ktr_p
+        rhs_spatial=rhs(IALPHA)
+      else
+        rhs_tab=rhs(IALPHA)
+        rhs_spatial=rhs(IALPHA)+alpha_p*alpha_p*(f_tab-f_req)*Ktr_p
+      end if
+      rhs_tab_max(ig)=max(rhs_tab_max(ig),abs(rhs_tab))
+      rhs_spatial_max(ig)=max(rhs_spatial_max(ig),abs(rhs_spatial))
+      rhs_tab_sum(ig)=rhs_tab_sum(ig)+rhs_tab**2
+      rhs_spatial_sum(ig)=rhs_spatial_sum(ig)+rhs_spatial**2
+      f_req_min(ig)=min(f_req_min(ig),f_req);f_req_max(ig)=max(f_req_max(ig),f_req)
+      rhs_count(ig)=rhs_count(ig)+1
+    end do
+  end do
+  write(*,'(A)') ' exact-data lapse RHS: current scalar table vs spatial f_required'
+  write(*,'(A)') ' radial band    max(table) rms(table) max(spatial) rms(spatial) f_required min/max'
+  do ig=1,NGR
+    if (rhs_count(ig)==0) cycle
+    select case(ig)
+    case(1);rlo=1.55_dp;rhi=2.0_dp
+    case(2);rlo=2.0_dp;rhi=3.0_dp
+    case(3);rlo=3.0_dp;rhi=5.0_dp
+    case default;rlo=5.0_dp;rhi=8.0_dp
+    end select
+    write(*,'(F5.2,A,F4.1,4ES13.5,2ES13.5,I8)') rlo,'..',rhi, &
+         rhs_tab_max(ig),sqrt(rhs_tab_sum(ig)/rhs_count(ig)), &
+         rhs_spatial_max(ig),sqrt(rhs_spatial_sum(ig)/rhs_count(ig)), &
+         f_req_min(ig),f_req_max(ig),rhs_count(ig)
+  end do
 
   ! ---------------- Schwarzschild reference on the same stencils --------------
   bh_spin = 0.0_dp

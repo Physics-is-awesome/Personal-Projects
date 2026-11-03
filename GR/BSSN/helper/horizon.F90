@@ -58,22 +58,30 @@ module horizon_mod
      real(hdp) :: resid = 0.0_hdp                       ! max |Theta| at collocation pts
      real(hdp) :: area = 0.0_hdp, m_irr = 0.0_hdp, j_spin = 0.0_hdp
      real(hdp) :: m_h = 0.0_hdp, hmin = 0.0_hdp, hmax = 0.0_hdp
+     real(hdp) :: rmin_ks = 0.0_hdp
+     real(hdp) :: theta_in = 0.0_hdp, theta_out = 0.0_hdp
+     real(hdp) :: rejected_resid = 0.0_hdp
   end type horizon_t
 
   ! ---- module state: grid + ADM copies ---------------------------------------
   integer   :: nx = 0, nz = 0, ioff_x = 0, ioff_z = 0
-  real(hdp), public :: rho_dbg = 0, z_dbg = 0
   real(hdp) :: x0 = 0, z0 = 0, dxg = 1, dzg = 1
   logical   :: eqsym = .true.
   real(hdp), allocatable :: gam(:,:,:), kex(:,:,:)
   real(hdp) :: ksign  = 1.0_hdp
   real(hdp) :: fd_frac = 0.5_hdp                         ! FD step = fd_frac*min(dx,dz)
   integer   :: n_quad = 96                               ! quadrature pts in theta
+  ! Optional mask: cells with kerr r < r_exc are frozen/excised and must not be
+  ! interpolated.  0 disables the mask (e.g. analytic test data).
+  real(hdp) :: r_exc = 0.0_hdp
+  real(hdp) :: as    = 0.0_hdp
 
   public :: horizon_init_grid, horizon_load_adm, horizon_adm_from_bssn
   public :: horizon_adm_from_state
   public :: horizon_init, find_horizon, horizon_diagnostics
   public :: horizon_inside_excision, horizon_set_k_sign
+  public :: horizon_set_excision
+  public :: horizon_min_ks_radius
   public :: horizon_log_header, horizon_log_line
   public :: interp_metric, expansion
 
@@ -84,6 +92,58 @@ contains
     real(hdp), intent(in) :: s
     ksign = s
   end subroutine horizon_set_k_sign
+
+  !-----------------------------------------------------------------------------
+  ! Declare the excision radius and spin so the interpolating stencil never
+  ! reads the frozen interior.  Inside r_exc the data is either the near-singular
+  ! trumpet fill or the (never evolved) initial junk; both are meaningless for
+  ! the apparent-horizon equation.  We replace them by a constant radial
+  ! extension of the first physical point outside the mask.
+  subroutine horizon_set_excision(r_excise, spin)
+    real(hdp), intent(in) :: r_excise, spin
+    r_exc = max(r_excise, 0.0_hdp)
+    as    = spin
+  end subroutine horizon_set_excision
+
+  real(hdp) function ks_radius2(x, z)
+    real(hdp), intent(in) :: x, z
+    real(hdp) :: rho2, a2
+    rho2 = x*x + z*z
+    a2 = as*as
+    ks_radius2 = 0.5_hdp*(rho2 - a2 + sqrt((rho2-a2)**2 + 4.0_hdp*a2*z*z))
+  end function ks_radius2
+
+  subroutine mask_excised_interior()
+    integer :: i, k, i2, k2, it
+    real(hdp) :: rho, zz, re, ux, uz, tstep, t, x2, z2, rlim2, xg2, zg2
+    if (r_exc <= 0.0_hdp) return
+    rlim2 = (r_exc + 1.5_hdp*max(dxg,dzg))**2
+    tstep = 0.25_hdp*min(dxg,dzg)
+    do k = 1, nz
+       zz = z0 + real(k-1,hdp)*dzg
+       do i = 1, nx
+          rho = x0 + real(i-1,hdp)*dxg
+          if (ks_radius2(rho,zz) >= r_exc*r_exc) cycle
+          re = sqrt(rho*rho + zz*zz)
+          if (re <= 0.0_hdp) cycle
+          ux = rho/re; uz = zz/re
+          x2 = rho; z2 = zz
+          do it = 1, 4000
+             t  = re + real(it,hdp)*tstep
+             x2 = t*ux; z2 = t*uz
+             if (ks_radius2(x2,z2) >= rlim2) exit
+          end do
+          i2 = max(1,min(nx, nint((x2 - x0)/dxg) + 1))
+          k2 = max(1,min(nz, nint((z2 - z0)/dzg) + 1))
+          xg2 = x0 + real(i2-1,hdp)*dxg
+          zg2 = z0 + real(k2-1,hdp)*dzg
+          ! Rounding can land back inside; then skip rather than copy junk.
+          if (ks_radius2(xg2,zg2) < r_exc*r_exc) cycle
+          gam(:,i,k) = gam(:,i2,k2)
+          kex(:,i,k) = kex(:,i2,k2)
+       end do
+    end do
+  end subroutine mask_excised_interior
 
   !-----------------------------------------------------------------------------
   subroutine horizon_init_grid(x0_, z0_, dx_, dz_, nx_, nz_, eq_sym)
@@ -102,7 +162,6 @@ contains
             error stop 'horizon_mod: z0 must be 0 or a half-integer multiple of dz'
     end if
     x0 = x0_; z0 = z0_; dxg = dx_; dzg = dz_; nx = nx_; nz = nz_; eqsym = eq_sym
-    write(*,'(A,2ES12.4,A,2I5,A,ES12.4,A,L1)') ' [hzG] x0,dx=',x0,dxg,' nx,nz=',nx,nz,' z0=',z0,' eq=',eqsym
     if (allocated(gam)) deallocate(gam)
     if (allocated(kex)) deallocate(kex)
     allocate(gam(6,nx,nz), kex(6,nx,nz))
@@ -127,6 +186,7 @@ contains
        gam(c,:,:) = e4phi*gt(c,:,:)
        kex(c,:,:) = e4phi*(At(c,:,:) + gt(c,:,:)*Ktr/3.0_hdp)
     end do
+    call mask_excised_interior()
   end subroutine horizon_adm_from_bssn
 
 
@@ -153,6 +213,7 @@ contains
           end do
        end do
     end do
+    call mask_excised_interior()
   end subroutine horizon_adm_from_state
 
   !-----------------------------------------------------------------------------
@@ -182,6 +243,9 @@ contains
     hh%niter = 0;  hh%resid = 0.0_hdp
     hh%area = 0.0_hdp;  hh%m_irr = 0.0_hdp;  hh%j_spin = 0.0_hdp
     hh%m_h = 0.0_hdp;  hh%hmin = 0.0_hdp;  hh%hmax = 0.0_hdp
+    hh%rmin_ks = 0.0_hdp
+    hh%theta_in = 0.0_hdp; hh%theta_out = 0.0_hdp
+    hh%rejected_resid = 0.0_hdp
   end subroutine clear_results
 
   !-----------------------------------------------------------------------------
@@ -202,7 +266,6 @@ contains
        s  = s*SGN(c)
     end if
     if (ii < 1 .or. ii > nx .or. jj < 1 .or. jj > nz) then
-       write(*,'(A,2ES11.3,A,2I4,A,2I4,A,2I4)') ' [hznv] rho,z=',rho_dbg,z_dbg,' in=',i,j,' out=',ii,jj,' lim=',nx,nz
        ok = .false.
        v = 0.0_hdp
        return
@@ -227,13 +290,10 @@ contains
     logical,   intent(inout) :: ok
     real(hdp) :: fx, fz, tx, tz, wx(-1:2), wz(-1:2), w
     integer   :: ifx, ifz, i0, j0, a, b, c
-    rho_dbg = rho; z_dbg = z
     fx = (rho - x0)/dxg;  ifx = floor(fx);  tx = fx - ifx;  i0 = ifx + 1
     fz = (z   - z0)/dzg;  ifz = floor(fz);  tz = fz - ifz;  j0 = ifz + 1
-    if (rho > 1.40_hdp .and. rho < 1.50_hdp .and. z > 0.20_hdp .and. z < 0.28_hdp) &
-       write(*,'(A,3ES12.4,A,2I5,A,ES12.4)') ' [hzI] rho,z=',rho,z,' x0,dx=',x0,dxg,' i0,j0=',i0,j0,' tx=',tx
     call lag4(tx, wx);  call lag4(tz, wz)
-    g = 0.0_hdp;  k = 0.0_hdp
+    g = 0.0_hdp; k = 0.0_hdp
     do b = -1, 2
        do a = -1, 2
           w = wx(a)*wz(b)
@@ -309,13 +369,9 @@ contains
     real(hdp) :: g(6), det, zp, r, mu, h, hmu, fr, fz, nn2, nn
     wx = 0; wz = 0; s = 0; dens = 1; gi = 0
     call interp_metric(rho, z, g, k, ok)
-    if (.not. ok) then
-       write(*,'(A,2ES11.3)') ' [hzw] interp fail rho,z=',rho,z
-       return
-    end if
+    if (.not. ok) return
     call sym_inv(g, gi, det)
     if (det <= 0.0_hdp) then
-       write(*,'(A,2ES11.3,A,ES11.3,A,6ES9.1)') ' [hzw] det<=0 rho,z=',rho,z,' det=',det,' g=',g
        ok = .false.; return
     end if
     dens = sqrt(det)
@@ -330,7 +386,6 @@ contains
     fz  = zp/r  - hmu*rho*rho/r**3         ! dF/dz
     nn2 = fr*(gi(1)*fr + gi(3)*fz) + fz*(gi(3)*fr + gi(6)*fz)
     if (nn2 <= 0.0_hdp) then
-       write(*,'(A,2ES11.3,A,ES11.3)') ' [hzw] nn2<=0 rho,z=',rho,z,' nn2=',nn2
        ok = .false.; return
     end if
     nn   = sqrt(nn2)
@@ -372,8 +427,6 @@ contains
        call w_vector(hh, rho, z + m*eps, dum2, wz(m), sd, ddum, gd, kd, ok)
     end do
     if (.not. ok .or. rho <= 1.0e-12_hdp) then
-       if (hh%coef(1) > 1.5_hdp .and. hh%coef(1) < 1.7_hdp) &
-          write(*,'(A,4ES11.3,A,L1)') ' [hze] mu,rho,z,h=',mu,rho,z,h,' ok=',ok
        ok = .false.; theta = 1.0e30_hdp; return
     end if
     dwx = (-wx(2) + 8*wx(1) - 8*wx(-1) + wx(-2))/(12*eps)
@@ -502,10 +555,16 @@ contains
     integer :: s, nscan, nseed, ntry, ierr1, biter
     real(hdp) :: cprev(HZ_MAXL)
     logical :: had_prev
-    real(hdp) :: bresid
+    real(hdp) :: bresid, rejected_max_rks, rejected_theta_in, rejected_theta_out
+    real(hdp) :: rejected_resid
 
     ierr = 0
     best_r = -huge(1.0_hdp)
+    bresid = huge(1.0_hdp)
+    rejected_max_rks = -huge(1.0_hdp)
+    rejected_theta_in = 0.0_hdp
+    rejected_theta_out = 0.0_hdp
+    rejected_resid = huge(1.0_hdp)
     had_prev = hh%found
     cprev = hh%coef
     nseed = 0
@@ -517,8 +576,20 @@ contains
        hh%coef = cprev
        call newton_from(hh, 0.0_hdp, .false., ierr1)
        if (ierr1 == 0 .and. marginal(hh)) then
-          best_r = hh%hmin
-          bc = hh%coef; bl = hh%lval; biter = hh%niter; bresid = hh%resid
+          if (candidate_has_valid_coverage(hh)) then
+             best_r = hh%rmin_ks
+             bc = hh%coef; bl = hh%lval; biter = hh%niter; bresid = hh%resid
+          else
+             if (hh%rmin_ks > rejected_max_rks) then
+                rejected_max_rks = hh%rmin_ks
+                rejected_resid = hh%resid
+             end if
+          end if
+       else if (ierr1 == 0) then
+          if (hh%rmin_ks > rejected_max_rks) then
+             rejected_max_rks = hh%rmin_ks
+             rejected_resid = hh%resid
+          end if
        end if
     end if
 
@@ -541,12 +612,24 @@ contains
     do s = 1, ntry
        g = cand(s)
        call newton_from(hh, g, .true., ierr1)
-       write(*,'(A,I3,A,ES11.3,A,I2,A,L1)') ' [hzdbg] s=',s,' g=',g,' ierr=',ierr1,' found=',hh%found
-       write(*,'(A,ES9.2,A,ES9.2)') ' [hzdbg]   resid=',hh%resid,' hmin=',hh%hmin
        if (ierr1 /= 0) cycle
-       if (.not. marginal(hh)) cycle
-       if (hh%hmin > best_r) then
-          best_r = hh%hmin
+       if (.not. marginal(hh, rejected_theta_in, rejected_theta_out)) then
+          if (hh%rmin_ks > rejected_max_rks) then
+             rejected_max_rks = hh%rmin_ks
+             rejected_resid = hh%resid
+          end if
+          cycle
+       end if
+       if (.not. candidate_has_valid_coverage(hh)) then
+          if (hh%rmin_ks > rejected_max_rks) then
+             rejected_max_rks = hh%rmin_ks
+             rejected_resid = hh%resid
+          end if
+          cycle
+       end if
+       if (hh%rmin_ks > best_r .or. &
+           (abs(hh%rmin_ks-best_r) <= 1.0e-12_hdp .and. hh%resid < bresid)) then
+          best_r = hh%rmin_ks
           bc = hh%coef
           bl = hh%lval
           biter = hh%niter
@@ -555,17 +638,18 @@ contains
     end do
 
     if (best_r <= -huge(1.0_hdp)) then
-       write(*,'(A,I3,A,ES11.3)') ' [hzdbg] NO marginal root, ntry=',ntry,' guess=',guess
-       ! No candidate gave a valid marginal surface.  Fall back to the old
-       ! behaviour -- continue from the previous fit, or start from the
-       ! caller's guess -- so the failure mode and the reported diagnostics
-       ! are unchanged from before the multi-start logic.
-       if (had_prev) then
-          hh%coef = cprev
-          call newton_from(hh, 0.0_hdp, .false., ierr)
-       else
-          call newton_from(hh, guess, .true., ierr)
-       end if
+       ! Never return a converged root known to lie in the excision buffer.
+       ! The caller can distinguish this geometry failure from a valid
+       ! horizon and continue an evolution with monitoring disabled.
+       hh%coef = cprev
+       hh%found = .false.
+       call clear_results(hh)
+       ! Preserve the best rejected coverage for the caller's diagnostic log.
+       hh%rmin_ks = rejected_max_rks
+       hh%theta_in = rejected_theta_in
+       hh%theta_out = rejected_theta_out
+       hh%rejected_resid = rejected_resid
+       ierr = 2
        return
     end if
 
@@ -616,7 +700,7 @@ contains
        ! horizon; keeping only the -/+ crossing throws away the bracket that
        ! actually seeds the marginal root, and the + /- one can converge to a
        ! spurious surface.  All brackets are kept and the marginal test plus
-       ! the largest-hmin rule below pick the right one.
+       ! candidate coverage and residual decide which root is retained.
        if (ok .and. ok_prev .and. (th_prev < 0.0_hdp) .neqv. (th < 0.0_hdp)) then
           if (nseed < size(seeds)) then
              nseed = nseed + 1
@@ -653,24 +737,39 @@ contains
   ! NOTE: scaling only the a_0 intercept (rather than every coefficient) does
   ! NOT work: it reshapes the surface instead of inflating it, and then the
   ! sign test rejects genuine horizons too.
-  logical function marginal(hh)
+  logical function marginal(hh, theta_inside, theta_outside)
     type(horizon_t), intent(in)    :: hh
-    real(hdp), parameter :: eps = 2.0e-2_hdp
+    real(hdp), intent(out), optional :: theta_inside, theta_outside
+  real(hdp) :: eps, probes(5)
+  integer :: ip
     type(horizon_t) :: s
     real(hdp) :: th_in, th_out
     logical :: ok
 
     marginal = .false.
+    if (present(theta_inside)) theta_inside = 0.0_hdp
+    if (present(theta_outside)) theta_outside = 0.0_hdp
     s = hh
     ok = .true.
-    s%coef = (1.0_hdp - eps)*hh%coef
-    th_in = expansion(s, 0.5_hdp, ok)
-    if (.not. ok) return
-    s%coef = (1.0_hdp + eps)*hh%coef
-    th_out = expansion(s, 0.5_hdp, ok)
-    if (.not. ok) return
-
-    marginal = (th_in < 0.0_hdp .and. th_out > 0.0_hdp)
+    ! Probe several local scales.  A single 2% displacement can be smaller
+    ! than the finite-difference/interpolation footprint, while a large
+    ! displacement can cross a second expansion root.
+    probes = [0.02_hdp, 0.05_hdp, 0.10_hdp, 0.20_hdp, 0.30_hdp]
+    do ip = 1, size(probes)
+       eps = probes(ip)
+       s%coef = (1.0_hdp - eps)*hh%coef
+       th_in = expansion(s, 0.5_hdp, ok)
+       if (.not. ok) cycle
+       s%coef = (1.0_hdp + eps)*hh%coef
+       th_out = expansion(s, 0.5_hdp, ok)
+       if (.not. ok) cycle
+       if (present(theta_inside)) theta_inside = th_in
+       if (present(theta_outside)) theta_outside = th_out
+       if (th_in < 0.0_hdp .and. th_out > 0.0_hdp) then
+          marginal = .true.
+          return
+       end if
+    end do
   end function marginal
 
   ! Newton solve of the Theta = 0 collocation system from a single start.
@@ -712,12 +811,9 @@ contains
        ok = .true.
        call residual(hh, mu, f, ok)
        if (.not. ok) then
-          if (reset) write(*,'(A,ES12.4,A,I3,A,ES12.4)') ' [hzn] FAIL start=',guess,' it=',it,' h=',hh%coef(1)
           ierr = 2; return
        end if
        fn = maxval(abs(f))
-       if (reset .and. guess > 1.45_hdp .and. guess < 1.47_hdp) &
-          write(*,'(A,I3,A,ES11.3,A,ES11.3,A,ES11.3)') ' [hzn] it=',it,' fn=',fn,' h=',hh%coef(1),' c2=',hh%coef(2)
        scale = max(abs(hh%coef(1)), 1.0e-3_hdp)
        delta = 1.0e-3_hdp*scale
        okj = .true.
@@ -791,6 +887,7 @@ contains
     call gauleg(n_quad, xq, wq)
     asum = 0.0_hdp; jsum = 0.0_hdp
     hh%hmin = huge(1.0_hdp); hh%hmax = 0.0_hdp
+    hh%rmin_ks = huge(1.0_hdp)
     ok = .true.
     do q = 1, n_quad
        th  = 0.5_hdp*pi*(1.0_hdp + xq(q));  wgt = 0.5_hdp*pi*wq(q)
@@ -801,6 +898,7 @@ contains
        rth = hth*sth + h*cth
        zth = hth*cth - h*sth
        hh%hmin = min(hh%hmin, h);  hh%hmax = max(hh%hmax, h)
+       hh%rmin_ks = min(hh%rmin_ks, sqrt(ks_radius2(rho,z)))
        call interp_metric(rho, z, g, k, ok)
        if (.not. ok) then
           hh%found = .false.; return
@@ -839,8 +937,35 @@ contains
     real(hdp) :: m
     m = 1.2_hdp
     if (present(margin)) m = margin
-    bad = (.not. hh%found) .or. (hh%hmin < m*r_excise)
+    bad = (.not. hh%found) .or. (hh%rmin_ks < m*r_excise)
   end function horizon_inside_excision
+
+  function horizon_min_ks_radius(hh) result(rmin)
+    type(horizon_t), intent(in) :: hh
+    real(hdp) :: rmin, mu, h, hmu, rho, z
+    integer :: q, nq
+    nq = max(2*n_quad, 64)
+    rmin = huge(1.0_hdp)
+    do q = 0, nq
+       mu = -1.0_hdp + 2.0_hdp*real(q,hdp)/real(nq,hdp)
+       call surf_h(hh, mu, h, hmu)
+       rho = h*sqrt(max(0.0_hdp, 1.0_hdp-mu*mu))
+       z = hh%zc + h*mu
+       rmin = min(rmin, sqrt(ks_radius2(rho,z)))
+    end do
+  end function horizon_min_ks_radius
+
+  logical function candidate_has_valid_coverage(hh)
+    type(horizon_t), intent(in) :: hh
+    real(hdp) :: margin
+
+    ! Keep the candidate-selection contract identical to the driver's final
+    ! safety check.  The surface must clear the Kerr-defined excision buffer;
+    ! Euclidean hmin is not comparable to r_exc for a spinning hole.
+    margin = 0.5_hdp*max(dxg, dzg)
+    candidate_has_valid_coverage = hh%found .and. &
+         (hh%rmin_ks > r_exc + margin)
+  end function candidate_has_valid_coverage
 
   !-----------------------------------------------------------------------------
   subroutine horizon_log_header(unit)

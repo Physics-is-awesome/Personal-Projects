@@ -15,7 +15,7 @@ nz   = 192       # points in z in [-zmax, zmax]
 xmax = 12.0      # in units of M
 zmax = 12.0
 
-# --- Black hole (Kerr-Schild) ---
+# --- Black hole ---
 bh_mass     = 1.0
 bh_spin     = 0.8   ! a, with 0 <= |a| < bh_mass
 bh_center_x = 0.0
@@ -29,16 +29,26 @@ star_center_z = 0.0
 gauge_eta = 2.0      # Gamma-driver damping, ~ 2/M
 
 # --- Time evolution ---
-cfl       = 0.005    # resolves the fastest 1+log/gauge characteristic
-nsteps    = 1000000
+cfl       = 0.005    # back to default
+nsteps    = 100000
 out_every = 100
 hz_every = 100
 ko_eps    = 0.2   #0.2 is what it was   # Kreiss-Oliger dissipation strength, typical 0.1-0.5
-r_excise  = 1.0      # keep the excision boundary well inside the Kerr horizon
+# Optional empirical outer buffer damping. Disabled in the production baseline;
+# enable only for a controlled domain/reflection sweep.
+outer_sponge_width    = 0.0
+outer_sponge_strength = 0.0
+r_excise  = 1.5      # route-C trumpet surface: R0 < r_excise < r_+
 excision_order = 3   # bounded inner-boundary extension (see baseline/EXCISION_ORDER_DECISION.md)
 excision_sat = false # guarded until exact BSSN characteristic data are available.
-                    # NOTE: the test-verified SAT does damp the inner boundary
-                    # slightly (lower max|H| than the off case), but the run
-                    # still dies because the puncture gauge is not actually
-                    # driving anything - see the Gamma-driver notes in
-                    # integrators/bssn_rhs.F90 and init/init_data.F90.
+                     # Do NOT enable: with KS data + DBM f the penalty target is
+                     # a frozen background that is not the solution, and it
+                     # crashes at t/M=0.62 regardless of r_excise.  See
+                     # baseline/EXCISION_SAT_CRASH.md.
+
+initial_data_mode = 1 # Dennison-Baumgarte-Montero route-C trumpet data
+slicing_mode = 3 # route C: tabulated Bona-Masso stationary Kerr slicing
+gamma_driver_mode = 4 # non-advective Gamma-driver (B=0 fixed point)
+                    # These are the matching gauge modes for the route-C data.
+                    # Do not pair them with Kerr-Schild data; that is a
+                    # different gauge/data system and develops secular drift.
