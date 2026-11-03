@@ -1,5 +1,12 @@
 # Long-Term Kerr Evolution: Fixes, Mathematics, and Current Status
 
+> **SUPERSEDED (2026-11-03):** This document describes the older
+> Kerr–Schild + `r_excise=0.8` configuration. The live production setup is
+> route-C DBM data + route-C gauge at `r_excise=1.5`; see
+> `LONG_TERM_CONTINUATION_PLAN.md` and `baseline/STEPS_1_3_CURRENT_STATUS.md`.
+> The mathematics below remains useful background; the configuration
+> statements do not.
+
 **Date:** 2026-10-23  
 **Repository:** `GR/BSSN`  
 **Build:** verified with `make -j4` after fixes  

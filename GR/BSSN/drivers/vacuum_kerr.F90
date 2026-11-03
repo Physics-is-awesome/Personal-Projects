@@ -132,6 +132,7 @@ program main
   if (envstat == 0) write_hdf5_output = (trim(buf) /= '0')
 
   call output_init('output', has_horizon=(hz_every > 0))
+  call write_run_info()
 
   ! Horizon finder setup (needs xg/zg from setu p_grid and the output/ directory)
   if (hz_every > 0) then
@@ -210,6 +211,7 @@ program main
   allocate(Hgrid(Nx,Nz))
   allocate(Mgrid(Nx,Nz,3))
   allocate(Mterms(Nx,Nz,3,7))
+  hor_i = 0; hor_k = 0; ext_i = 0; ext_k = 0
   call hamiltonian_constraint(u, Hgrid, imin, imax, kmin, kmax)
   call momentum_constraint(u, Mgrid, Mterms)
 
@@ -417,7 +419,7 @@ program main
       ! shell_stats leaves output indices untouched when the requested shell
       ! has no cells (notably GR_NEAR_MASK_W=0). Initialize them before each
       ! scan so optional per-cell diagnostics never consume stale stack data.
-      hor_i=-1; hor_k=-1; ext_i=-1; ext_k=-1
+      hor_i=0; hor_k=0; ext_i=0; ext_k=0
       call shell_stats(r_excise, r_ah, junk_H, junk_R, junk_M, junk_n, skip_i, skip_k)
       call shell_stats(r_ah, r_ah + shell_w, hor_H, hor_R, hor_M, hor_n, hor_i, hor_k)
       call shell_stats(r_ah + shell_w, huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
@@ -506,7 +508,9 @@ contains
 
   !---------------------------------------------------------------------------
   ! Constraint statistics in the radial shell rlo <= r_KS < rhi.
-  ! iw/kw receive the index of the largest |H| in the shell (pass -1 to skip).
+  ! iw/kw receive the index of the largest |H| in the shell.  Pass exactly
+  ! -1 in iw to skip recording; any other value (including the 0 reset used
+  ! before each scan) is a valid "record here" request.
   !---------------------------------------------------------------------------
   subroutine shell_stats(rlo, rhi, hmax, hrms, mmax, ns, iw, kw)
     real(dp), intent(in)    :: rlo, rhi
@@ -523,7 +527,7 @@ contains
         ns = ns + 1
         if (abs(Hgrid(ii,kk)) > hmax) then
           hmax = abs(Hgrid(ii,kk))
-          if (iw > -1) then
+          if (iw /= -1) then
             iw = ii; kw = kk
           end if
         end if
@@ -650,5 +654,94 @@ contains
       print '(A,F7.4,A,F7.4)', "            WARNING: horizon r_KS,min=", hz%rmin_ks, &
         " is within 1.2*r_excise =", 1.2_dp*r_excise
   end subroutine update_horizon
+
+  ! Write a self-describing record next to the output.  This is deliberately
+  ! written before the first step so a failed run still says exactly which
+  ! source, parameter set, and overrides produced it.
+  subroutine write_run_info()
+    integer :: u, ios, i
+    integer :: v(8)
+    character(len=32) :: envnames(16)
+    character(len=256) :: envval, line
+    character(len=32) :: stamp_date, stamp_time
+
+    call date_and_time(values=v)
+    write(stamp_date,'(I4.4,"-",I2.2,"-",I2.2)') v(1), v(2), v(3)
+    write(stamp_time,'(I2.2,":",I2.2,":",I2.2)') v(5), v(6), v(7)
+
+    ! Keep a verbatim copy of the parameter file the run actually parsed.
+    call execute_command_line('cp "'//trim(par_file)//'" output/run_params.par 2>/dev/null')
+
+    open(newunit=u, file='output/run_info.txt', status='replace', action='write', iostat=ios)
+    if (ios /= 0) return
+    write(u,'(A)') '# BSSN run metadata'
+    write(u,'(A)') 'start_date  = '//trim(stamp_date)
+    write(u,'(A)') 'start_time  = '//trim(stamp_time)
+    write(u,'(A)') 'parameter_file = '//trim(par_file)
+    write(u,'(A)') 'parameter_copy = output/run_params.par'
+    write(u,'(A)') ''
+
+    call shell_first_line('git rev-parse HEAD 2>/dev/null', 'git_hash', line)
+    write(u,'(A)') 'git_hash    = '//trim(line)
+    call shell_first_line('gfortran --version 2>/dev/null', 'compiler', line)
+    write(u,'(A)') 'compiler    = '//trim(line)
+    call shell_first_line('h5fc -show 2>/dev/null', 'hdf5_flags', line)
+    write(u,'(A)') 'hdf5_flags  = '//trim(line)
+
+    write(u,'(A)') ''
+    write(u,'(A)') '[grid]'
+    write(u,'(A,I0)') 'Nx = ', Nx
+    write(u,'(A,I0)') 'Nz = ', Nz
+    write(u,'(A,ES24.16)') 'xmax = ', xmax
+    write(u,'(A,ES24.16)') 'zmax = ', zmax
+    write(u,'(A,ES24.16)') 'dx   = ', dx
+    write(u,'(A,ES24.16)') 'dz   = ', dz
+    write(u,'(A)') ''
+    write(u,'(A)') '[physics]'
+    write(u,'(A,ES24.16)') 'bh_mass = ', bh_mass
+    write(u,'(A,ES24.16)') 'bh_spin = ', bh_spin
+    write(u,'(A,ES24.16)') 'r_excise = ', r_excise
+    write(u,'(A,I0)') 'initial_data_mode = ', initial_data_mode
+    write(u,'(A,I0)') 'slicing_mode = ', slicing_mode
+    write(u,'(A,I0)') 'gamma_driver_mode = ', gamma_driver_mode
+    write(u,'(A,ES24.16)') 'gauge_eta = ', gauge_eta
+    write(u,'(A,I0)') 'excision_order = ', excision_order
+    write(u,'(A,L1)') 'excision_sat = ', excision_sat
+    write(u,'(A,ES24.16)') 'ko_eps = ', ko_eps
+    write(u,'(A,ES24.16)') 'cfl = ', cfl
+    write(u,'(A,I0)') 'nsteps = ', nsteps
+    write(u,'(A,I0)') 'out_every = ', out_every
+    write(u,'(A,I0)') 'hz_every = ', hz_every
+    write(u,'(A,ES24.16)') 'start_t = ', 0.0_dp
+
+    write(u,'(A)') ''
+    write(u,'(A)') '[environment overrides]'
+    envnames = [character(len=32) :: 'GR_NX', 'GR_NZ', 'GR_XMAX', 'GR_ZMAX', &
+      'GR_INITIAL_DATA_MODE', 'GR_SLICING_MODE', 'GR_GAMMA_DRIVER_MODE', &
+      'GR_R_EXCISE', 'GR_KO_EPS', 'GR_CFL', 'GR_NSTEPS', 'GR_OUT_EVERY', &
+      'GR_HORIZON_EVERY', 'GR_HZ_ABORT', 'GR_WRITE_HDF5', 'GR_REFRESH_BG']
+    do i = 1, size(envnames)
+      call get_environment_variable(trim(envnames(i)), envval)
+      if (len_trim(envval) > 0) write(u,'(A,A,A)') trim(envnames(i)), ' = ', trim(envval)
+    end do
+    close(u)
+  end subroutine write_run_info
+
+  ! Capture the first line of a shell command without requiring a temp file in
+  ! the run directory naming scheme.  Failures return an empty string.
+  subroutine shell_first_line(command, label, value)
+    character(len=*), intent(in)  :: command, label
+    character(len=*), intent(out) :: value
+    integer :: u, ios
+    character(len=512) :: tmp
+    value = ''
+    tmp = 'output/.run_'//trim(label)
+    call execute_command_line(trim(command)//' > "'//trim(tmp)//'" 2>/dev/null')
+    open(newunit=u, file=trim(tmp), status='old', action='read', iostat=ios)
+    if (ios == 0) then
+      read(u,'(A)', iostat=ios) value
+      close(u, status='delete')
+    end if
+  end subroutine shell_first_line
 
 end program main

@@ -1,5 +1,11 @@
 # Long-Term Kerr Evolution Fix Plan (Detailed, Executable)
 
+> **SUPERSEDED (2026-11-03):** This is a historical checklist. Execution is
+> now governed by `LONG_TERM_CONTINUATION_PLAN.md`. The live configuration is
+> route-C DBM data + route-C gauge at `r_excise=1.5`, not the older
+> Kerr–Schild setup described below. Keep this file as evidence, not as the
+> current plan.
+
 **Date:** 2026-10-24  
 **Goal:** Achieve stable, convergent long-term evolution (>>14000 steps) of spinning Kerr in BSSN/Cartoon with the invariant horizon drift gate remaining honest (no tolerance relaxation).  
 **Current baseline:** Axis leaks removed; radius-only excision restored; runs stable to 6000 steps at 96x192 with zero axis-conformal failures. Drift is gauge-driven (crosses 5% later) — this is the target behavior to fix via better initial data/gauge/boundary, not masking.

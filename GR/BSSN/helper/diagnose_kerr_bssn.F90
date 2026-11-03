@@ -39,7 +39,8 @@ program diagnose_kerr_bssn
   use eq_kerr_trumpet_mod, only: ktr_kerr_xyz
   use eq_schwarzschild_data_mod, only: set_eq_schwarzschild_id
   use excision_mod, only: extrapolate_excised, set_excision_background, &
-                         excision_reset_geometry, excision_status, PHYSICAL
+                         excision_reset_geometry, excision_status, PHYSICAL, &
+                         kerr_radius_squared
   use deriv_stencils_mod, only: init_deriv_stencils
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use bssn_rhs_mod, only: compute_rhs_point, bm_f_of_alpha
@@ -90,7 +91,10 @@ program diagnose_kerr_bssn
 
   ! ---------------- Kerr trumpet ----------------
   call set_eq_kerr_trumpet_id(u, 1.0_dp, spin, r0in)
-  if (slicing_mode==4) call initialize_kerr_f_cache()
+  if (slicing_mode==4) then
+    call initialize_kerr_f_cache()
+    call audit_f_cache()
+  end if
   call compute_conformal_connections(u)
   call set_excision_background(u)
   call init_deriv_stencils()
@@ -374,5 +378,57 @@ program diagnose_kerr_bssn
   write(*,'(A,2ES12.4)') ' Schw    RHS max [Lambda,alpha]:', rgam_s, ralp_s
   write(*,'(A)') '============================================================'
   write(*,'(A)') ' Compare only within a column, and only across resolutions.'
+
+contains
+
+  ! P1.1 cache audit: every evolved point must have a finite positive f, and
+  ! adjacent valid points must not jump.  Excised cells are allowed to miss
+  ! the cache because the RHS never evaluates them.
+  subroutine audit_f_cache()
+    integer :: ia, ka, nbad, nvalid
+    real(dp) :: f0, f1, jump, worst_jump, r0_, r1_
+    integer :: wi0, wk0, wi1, wk1
+    logical :: ok0_, ok1_
+    nbad = 0; nvalid = 0
+    worst_jump = 0.0_dp; wi0=0; wk0=0; wi1=0; wk1=0
+    do ka = 1, Nz
+      do ia = 1, Nx
+        r0_ = sqrt(kerr_radius_squared(xg(ia), zg(ka)))
+        if (r0_ < r_excise) cycle
+        call get_kerr_f_cache(ia,ka,f0,ok0_)
+        if (.not. ok0_) then
+          nbad = nbad + 1
+          cycle
+        end if
+        nvalid = nvalid + 1
+        if (ia < Nx) then
+          r1_ = sqrt(kerr_radius_squared(xg(ia+1), zg(ka)))
+          call get_kerr_f_cache(ia+1,ka,f1,ok1_)
+          if (r1_ >= r_excise .and. ok1_) then
+            jump = abs(f1-f0)
+            if (jump > worst_jump) then
+              worst_jump=jump; wi0=ia; wk0=ka; wi1=ia+1; wk1=ka
+            end if
+          end if
+        end if
+        if (ka < Nz) then
+          r1_ = sqrt(kerr_radius_squared(xg(ia), zg(ka+1)))
+          call get_kerr_f_cache(ia,ka+1,f1,ok1_)
+          if (r1_ >= r_excise .and. ok1_) then
+            jump = abs(f1-f0)
+            if (jump > worst_jump) then
+              worst_jump=jump; wi0=ia; wk0=ka; wi1=ia; wk1=ka+1
+            end if
+          end if
+        end if
+      end do
+    end do
+    write(*,'(A,I0,A,I0,A,I0)') ' f(x,z) cache audit: valid=', nvalid, &
+      '  missing physical=', nbad, '  total physical=', nvalid+nbad
+    write(*,'(A,ES12.4,A,I0,A,I0,A,I0,A,I0)') '   worst adjacent |df|=', &
+      worst_jump, ' at (', wi0, ',', wk0, ')->(', wi1, ',', wk1, ')'
+    if (nbad > 0) write(*,'(A)') &
+      '   WARNING: physical points fall back to the scalar table; check for a seam.'
+  end subroutine audit_f_cache
 
 end program diagnose_kerr_bssn
