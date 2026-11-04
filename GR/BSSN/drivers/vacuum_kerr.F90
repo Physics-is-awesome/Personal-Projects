@@ -8,7 +8,8 @@ program main
   use grid_mod, only: xg, zg, setup_grid
   use vars_mod, only: NVARS, IALPHA, IPHI, IK, IBETAX, IBETAZ, IBX, &
                       IGXX, IGXZ, IGZZ, alloc_state, ICONFMET, IATILDE
-  use initial_data_mod, only: set_kerr_schild_id, compute_conformal_connections
+  use initial_data_mod, only: set_kerr_schild_id, compute_conformal_connections, &
+                              fill_conformal_connection_boundary
   use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id, initialize_kerr_f_cache
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use timestep_mod, only: rk4_step
@@ -196,6 +197,7 @@ program main
     print *, " Lapse gauge: experimental cached DBM position-dependent profile"
   end if
   call compute_conformal_connections(u)
+  call fill_conformal_connection_boundary(u)
   call set_excision_background(u)
   call init_deriv_stencils()
 

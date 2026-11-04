@@ -50,35 +50,40 @@ From `parameter_files/vacuum_kerr.par`:
 - **Initial data constraints improve under refinement.** Route-C DBM Hamiltonian/momentum residuals and the `K`, `Atilde`, `phi` RHS decrease at 96×192 → 192×384 → 384×768 (`baseline/STEPS_1_3_CURRENT_STATUS.md` §3). The DBM momentum point comparison also converges (`STEPS_1_3_CURRENT_STATUS.md` §2).
 - **The route-C data/gauge pair is close to stationary, but not exact.** In `[3M,5M]`, the 192×384 residuals are approximately `max|H|=6.16e-4`, `max|M|=5.90e-5`, `max|RHS_K|=4.29e-5`, `max|RHS_A|=6.95e-4`, `max|RHS_phi|=2.62e-6`, but `max|RHS_alpha|=4.36e-4` and it **plateaus** at 384×768 (`4.34e-4`). This is a gauge-law mismatch, not a stencil-convergence failure.
 - **The high-resolution horizon-finder coverage bug has a fix.** Offsetting the finder mask inward while keeping the evolution excision at `1.5M` restores the initial horizon at 384×768 (`dA/A_Kerr ≈ -9e-6` in `baseline/LAPSE_HORIZON_DIAGNOSTIC.md`).
+- **The outer `Gtilde` boundary columns were zero while the adjacent interior value was not, and have an interim consistency fix.** `compute_conformal_connections()` covered only `i=1..Nx-1`, `k=2..Nz-1`, so the production RHS saw a full jump across the last interior column (`RHS(Axx)=-1.0067e-1` on 192×384). `fill_conformal_connection_boundary()` now linearly extrapolates `Gtx,Gty,Gtz` onto the outer rows. After the fix the last-column RHS is `-1.77e-5`, the `r=12..20` band is `1.68e-5`, and a matched 2000-step 96×192 run is neutral-to-slightly-better (`max|H|=5.1304e-2` versus `5.2185e-2`, `max|M|` unchanged). The outer band still converges at only first order; this is not a characteristic boundary condition.
 - **A matched 192×384 run reaches `t=2.6586` (12,000 steps) with the horizon found throughout.** Exterior `max|H|` / RMS are `8.2846e-2` / `2.2411e-3`; the horizon area drifts from `-0.004%` to `-0.643%` relative to Kerr. This drift is real: independent re-solves at steps 0/4000/8000/12000 converge and reproduce it (`STEPS_1_3_CURRENT_STATUS.md` §3, report §13.10).
 - **The 96×192 matched baseline reaches `t=2.6655` without a determinant abort**, with exterior `max|H|=3.0323e-1`, RMS `8.6009e-3`, `max|M|=6.2315e-2`. It loses the finder late in the run. The status document records loss after step 4100; `LAPSE_HORIZON_DIAGNOSTIC.md` records an earlier rejection at step 1900 for a different finder-mask variant. Reconcile this from archived logs before quoting either number.
 - **Evolved momentum is not an axis-only defect.** At 192×384 and `t≈2.66`, the near-axis and same-radius off-axis norms are `7.02e-3` and `1.17e-2`; the maximum is immediately outside excision (`r_KS≈1.515`, `|M|=2.27e-2`). At 96×192 the inner-band maximum is `1.29e-1`. The bulk `r_KS=3..8` residual converges, but the outermost band does not (`1.56e-2`/`2.00e-3` at 192×384 versus `9.41e-3`/`1.49e-3` at 96×192).
 - **A scalar `f(alpha)` cannot fit all radii.** The dense equatorial table gives weighted lapse residual RMS `5.53e-2`; a binned fit gives `2.28e-2`, but the smooth candidate was rejected because the full `[3M,5M]` lapse RHS rose to `5.19e-3`/`2.34e-3` at both 192×384 and 384×768, against `4.36e-4`/`1.03e-4` for the current table. Shell fits trade `1.55..3M` against `5..8M` (report §13.11).
-- **A spatial lapse-coefficient experiment is already scaffolded but unvalidated.** `slicing_mode=4` uses `initialize_kerr_f_cache()`/`get_kerr_f_cache()` in `helper/eq_kerr_bssn_data.F90` to precompute the required `f(x,z)` for the DBM state. It is selected only by an environment/parameter override and has no recorded acceptance run. This is the most direct continuation of the §13.11 recommendation.
+- **The spatial lapse-coefficient experiment (`slicing_mode=4`) was measured and is not promoted.** The full `[3M,5M]` `RHS_alpha` falls to `2.47e-7` (96×192), `1.56e-8` (192×384), and `1.00e-9` (384×768), so the scalar-lapse residual is removed. However, the matched 2000-step 96×192 comparison is slightly worse than mode 3: exterior `max|H|=5.3172e-2` versus `5.2185e-2`, exterior `max|M|=1.6372e-2` versus `1.5632e-2`, horizon-shell `max|H|=2.3302e-1` versus `2.3054e-1`, and `alpha_min=0.27200` versus `0.27740`. The cached `f(x,z)` also has an adjacent-cell jump near `r_KS≈1.53` (`|Δf|=5.67e-1` at 96×192, `1.80e-1` at 384×768) just outside excision, with no flat fallback. Retain mode 3; revisit mode 4 only after the seam and boundary work.
 
 ### 1.3 Current gate status
 
-At the time of this examination:
+As of 2026-11-04 the production tree builds and the full `make check` exits 0
+(`CHECK_EXIT:0`, archived with the Phase 0 run record). `check-parity` reports
+`production SOURCES covers every tested module`; `test-fo-rhs`,
+`test-fo-complete-rhs`, and `test-fo-constraint-principal` pass, as do the
+constraint/momentum convergence targets, the gauge-driver checks,
+`test-horizon-drift`, and `test-gauge-f-continuity`.
 
-- The production binary builds, but **`make check` is red at `check-parity`**: `helper/fo_constraint_fields.F90` is compiled by test/diagnostic targets but is missing from `SOURCES`. The module is used only by `test-fo-constraint-fields`, `test-fo-constraint-principal`, and `diagnose_route_c_constraint_jacobian`; production does not `use` it.
-- **`make -k test` has two further build failures**, both caused by the same drift: `integrators/bssn_rhs.F90` now uses `get_kerr_f_cache` from `eq_kerr_bssn_data_mod`, but the explicit source lists for `test-fo-rhs` and `test-fo-complete-rhs` omit `helper/eq_kerr_bssn_data.F90` (and its dependency `helper/eq_kerr_trumpet.F90`).
-  - `test-fo-rhs` fails to compile: `Error: Symbol ‘get_kerr_f_cache’ referenced at (1) not found in module ‘eq_kerr_bssn_data_mod’`.
-  - `test-fo-complete-rhs` compiles against a stale module, then fails to link: `undefined reference to __eq_kerr_bssn_data_mod_MOD_get_kerr_f_cache`.
-  - Either way the failure is a missing dependency in the `Makefile`, not a physics failure.
-- The rest of `make -k test` passes, including `test-horizon-drift` (~8 min at 96×192), the constraint/momentum convergence targets, the gauge-driver RHS checks, and `test-gauge-f-continuity`. The two link failures above are therefore the complete current test-gate breakage, not a symptom of a wider suite failure.
-- `make check` must be green again before any long run is treated as a baseline. Fix by (a) adding `helper/fo_constraint_fields.F90` to `SOURCES` in module order (it has no production callers but the parity rule deliberately requires every tested non-driver module to be in the production source set), and (b) adding `helper/eq_kerr_trumpet.F90` and `helper/eq_kerr_bssn_data.F90` to the explicit source lists for `test-fo-rhs` and `test-fo-complete-rhs`. Do not bypass the gate silently or leave a stale `.mod` as the only reason a target links.
+The earlier red gate was a Makefile/source-list drift, not a physics failure:
+`helper/fo_constraint_fields.F90` was missing from `SOURCES`, and
+`test-fo-rhs`/`test-fo-complete-rhs` omitted `eq_kerr_bssn_data.F90` and
+`eq_kerr_trumpet.F90`. Those entries are now present in production order, and
+the duplicate-source link failure in `test-fo-constraint-principal` is fixed.
+Do not bypass `check-parity` or rely on a stale `.mod`; keep the gate green
+before any run is called a baseline.
 
-### 1.4 Documentation is not a reliable current baseline
+### 1.4 Documentation consolidation
 
-The live parameter file and the newest status files have moved ahead of the reference documents. In particular:
-
-- `docs/bsssn-kerr-axi.tex` still says production is Kerr–Schild data + route-C gauge at `r_excise=0.8`, and still states that route-C data cannot be initial data. That is no longer the live configuration.
-- `LONG_TERM_EVOLUTION_FIX.md` still describes the older Kerr–Schild + `r_excise=0.8` production configuration.
-- `LONG_TERM_FIX_PLAN.md` is an unfinished checklist.
-- `MOMENTUM_FINDINGS.md` concludes that `constraints.F90` should be rewritten; later work fixed the two momentum-assembly bugs and validated the DBM initial residual. Mark the earlier conclusion as historical.
-- `STEPS_1_3_CURRENT_STATUS.md` is the best current status, but its horizon-loss step and initial-area numbers need reconciliation with `LAPSE_HORIZON_DIAGNOSTIC.md` and the archived output.
-
-Documentation consolidation is part of Phase 0, not an afterthought: otherwise the next run will again be configured from a stale statement.
+The route-C configuration is now described in `docs/bsssn-kerr-axi.tex`, and
+`STEPS_1_3_CURRENT_STATUS.md` is the current numerical status. The older
+`LONG_TERM_EVOLUTION_FIX.md` and `LONG_TERM_FIX_PLAN.md` remain the historical
+evidence trail; where they conflict with the live parameter files, the
+parameter files and `STEPS_1_3_CURRENT_STATUS.md` win. `MOMENTUM_FINDINGS.md`
+retains its earlier conclusion as history but now records the two
+momentum-assembly fixes. The horizon-loss numbers are reconciled in
+`STEPS_1_3_CURRENT_STATUS.md` §1.
 
 ---
 

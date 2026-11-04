@@ -8,7 +8,7 @@ program diagnose_momentum_snapshot
   use excision_mod, only: set_excision_background, excision_reset_geometry, &
                           extrapolate_excised, excision_status, PHYSICAL
   use deriv_stencils_mod, only: init_deriv_stencils
-  use constraints_mod, only: momentum_constraint
+  use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use hdf5
   implicit none
 
@@ -17,9 +17,11 @@ program diagnose_momentum_snapshot
        'phi', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz', 'K', &
        'Axx', 'Axy', 'Axz', 'Ayy', 'Ayz', 'Azz', &
        'Gamx', 'Gamy', 'Gamz', 'alpha', 'betax', 'betay', 'betaz', 'Bx', 'By', 'Bz']
-  real(dp), allocatable :: u(:,:,:),ubg(:,:,:),M(:,:,:),Mterms(:,:,:,:),Mdir(:,:,:,:)
+  real(dp), allocatable :: u(:,:,:),ubg(:,:,:),M(:,:,:),Mterms(:,:,:,:),Mdir(:,:,:,:),H(:,:)
   real(dp) :: redges(10),bandmax(9),bandsum2(9),ctmax(5)
+  real(dp) :: bandterm(9,7),banddir(9,3),bandhmax(9),bandhsum2(9)
   integer :: bandcount(9),ctcount(5),band_i(9),band_k(9),ib,probe_bins(4)
+  integer :: bandhcount(9),imin,imax,kmin,kmax
   integer :: i,k,ii,kk,ios,ic,kc,max_i,max_k,ia,ka
   real(dp) :: target_z,r_target,best_dr,r_here,dr,mnorm,max_m
   real(dp) :: alpha_min,alpha_max,phi_min,phi_max
@@ -39,7 +41,7 @@ program diagnose_momentum_snapshot
   call init_params(trim(par_file))
   call setup_grid()
   allocate(u(Nx,Nz,NVARS),ubg(Nx,Nz,NVARS),M(Nx,Nz,3),Mterms(Nx,Nz,3,7), &
-           Mdir(Nx,Nz,3,3))
+           Mdir(Nx,Nz,3,3),H(Nx,Nz))
   call read_snapshot(trim(snapshot),u)
   if (trim(background_file)==trim(snapshot)) then
     ubg=u
@@ -52,11 +54,13 @@ program diagnose_momentum_snapshot
   call extrapolate_excised(u)
   call init_deriv_stencils()
   call momentum_constraint(u,M,Mterms,Mdir)
+  call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
 
   redges=[r_excise,r_excise+0.05_dp,r_excise+0.10_dp,r_excise+0.30_dp, &
           r_excise+0.50_dp,r_excise+1.50_dp,r_excise+3.50_dp, &
           r_excise+6.50_dp,r_excise+10.50_dp,huge(1.0_dp)]
   bandmax=0.0_dp;bandsum2=0.0_dp;bandcount=0;band_i=0;band_k=0
+  bandterm=0.0_dp;banddir=0.0_dp;bandhmax=0.0_dp;bandhsum2=0.0_dp;bandhcount=0
   ctmax=0.0_dp;ctcount=0
   ia=min(2,Nx-1); ka=minloc(abs(zg-target_z),dim=1)
   r_target=sqrt(xg(ia)**2+zg(ka)**2)
@@ -80,6 +84,11 @@ program diagnose_momentum_snapshot
           end if
           bandsum2(ios)=bandsum2(ios)+mnorm*mnorm
           bandcount(ios)=bandcount(ios)+1
+          bandterm(ios,:)=max(bandterm(ios,:),maxval(abs(Mterms(ii,kk,:,:)),dim=1))
+          banddir(ios,:)=max(banddir(ios,:),maxval(abs(Mdir(ii,kk,:,:)),dim=1))
+          bandhmax(ios)=max(bandhmax(ios),abs(H(ii,kk)))
+          bandhsum2(ios)=bandhsum2(ios)+H(ii,kk)**2
+          bandhcount(ios)=bandhcount(ios)+1
           exit
         end if
       end do
@@ -105,6 +114,12 @@ program diagnose_momentum_snapshot
     else if (bandcount(i)>0) then
       write(*,'(A,F7.3,A,2ES13.5,I9)') ' ',redges(i),'+',bandmax(i), &
            sqrt(bandsum2(i)/real(bandcount(i),dp)),bandcount(i)
+    end if
+    if (bandcount(i)>0) then
+      write(*,'(A,7ES11.3)') '    |M| pieces (1..7)=',bandterm(i,:)
+      write(*,'(A,3ES11.3)') '    dAup dir (x,y,z)=',banddir(i,:)
+      write(*,'(A,2ES11.3)') '    |H| max/rms=',bandhmax(i), &
+           sqrt(bandhsum2(i)/real(max(bandhcount(i),1),dp))
     end if
   end do
   write(*,'(A)') 'max|M| in r_excise..r_excise+0.30 by |cos(theta)| bin:'

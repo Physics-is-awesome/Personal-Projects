@@ -10,6 +10,7 @@ module initial_data_mod
   implicit none
   private
   public :: set_kerr_schild_id, compute_conformal_connections
+  public :: fill_conformal_connection_boundary
   public :: kerr_schild_point, kerr_schild_adm
 
 contains
@@ -193,6 +194,33 @@ contains
       end do
     end do
   end subroutine compute_conformal_connections
+
+  !---------------------------------------------------------------------------
+  ! The main connection loop deliberately covers only i=1..Nx-1,
+  ! k=2..Nz-1 (the RHS stencil's interior).  That leaves Gtilde exactly zero
+  ! on the outer boundary rows, while the interior value is O(0.01).  The
+  ! production RHS differentiates Gtilde across i=Nx-1/i=Nx and therefore
+  ! sees an artificial jump of the full interior amplitude, producing a
+  ! spurious RHS of order 0.1 in Atilde at the last interior column.  This is
+  ! a boundary-value defect, not a bulk discretization error.
+  !
+  ! Fill only the three outer rows/columns by linear extrapolation from the
+  ! two nearest interior points.  This is an interim boundary closure: it is
+  ! NOT a characteristic condition and it is not applied during the evolution;
+  ! it just makes the initial state consistent before the outgoing boundary
+  ! RHS takes over.  A real outer-boundary condition remains Phase-2 work.
+  subroutine fill_conformal_connection_boundary(u)
+    real(dp), intent(inout) :: u(:,:,:)
+    integer :: i, k
+
+    do k = 2, Nz - 1
+      u(Nx,k,IGTX:IGTZ) = 2.0_dp*u(Nx-1,k,IGTX:IGTZ) - u(Nx-2,k,IGTX:IGTZ)
+    end do
+    do i = 1, Nx
+      u(i,1,IGTX:IGTZ)  = 2.0_dp*u(i,2,IGTX:IGTZ)  - u(i,3,IGTX:IGTZ)
+      u(i,Nz,IGTX:IGTZ) = 2.0_dp*u(i,Nz-1,IGTX:IGTZ) - u(i,Nz-2,IGTX:IGTZ)
+    end do
+  end subroutine fill_conformal_connection_boundary
 
   ! outer product
   function outer(u, v) result(M)

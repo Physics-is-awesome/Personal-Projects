@@ -2,7 +2,10 @@
 
 **Date:** 2026-10-13
 **Scope:** the §13.7 / §6D lead in `LONG_TERM_GAUGE_DRIFT_REPORT.md`.
-**Status:** defect localized to a single assembly. Not yet fixed.
+**Status:** HISTORICAL. The two `constraints.F90` momentum-assembly bugs found
+here were fixed later, and the DBM initial momentum residual was validated.
+Read this for the diagnostic method, not as a current open defect. See
+`baseline/STEPS_1_3_CURRENT_STATUS.md` §2.
 
 ## Summary
 

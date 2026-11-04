@@ -20,31 +20,44 @@ make run PARFILE=parameter_files/vacuum_kerr.par \
   RUN_ENV='GR_NSTEPS=6000 GR_OUT_EVERY=500 GR_HORIZON_EVERY=100 GR_HZ_ABORT=0 GR_NEAR_MASK_W=0'
 ```
 
-It completed 6,000 steps at `t/M=2.6655`, without a determinant abort. The
-apparent horizon was found through step 4,100 and then not found from step
-4,200 through step 6,000. At step 6,000, exterior `max|H|=3.0323e-1`,
-`rms|H|=8.6009e-3`, and `max|M|=6.2315e-2`. The found area started at
-`43.74535` (`+8.79%` relative to exact Kerr) and had already drifted to about
-`43.35` before the finder lost the surface. The lapse stayed finite.
+It completed 6,000 steps at `t/M=2.6655`, without a determinant abort. With
+`GR_NEAR_MASK_W=0` the apparent horizon was found through step 4,100 and then
+not found from step 4,200 through step 6,000. At step 6,000, exterior
+`max|H|=3.0323e-1`, `rms|H|=8.6009e-3`, and `max|M|=6.2315e-2`. The found
+area started at `43.74535` (`+8.79%` relative to exact Kerr) and had already
+drifted to about `43.35` before the finder lost the surface. The lapse stayed
+finite.
+
+**Horizon-loss reconciliation.** `LAPSE_HORIZON_DIAGNOSTIC.md` quotes loss at
+step 1,900, not 4,100. The two numbers belong to different finder variants:
+the 4,100 result predates the inward-offset finder fix; after that fix the
+matched run rejects the candidate when it enters the coverage buffer at step
+1,900 (`t=0.844`). The 2026-11-04 baseline archived in
+`run_archive/baseline_96x192_6000` also rejects at step 1,900 with the default
+near-mask width, and at step 6,000 its best surface has `r_KS,min=1.52240`
+against a limit of `1.56316`. The difference is the finder coverage rule, not
+the near-mask width. Quote the finder configuration with each number; they are
+not contradictory measurements of the same run.
 
 The same temporary run directory was then reused for zero-step initial-data
 checks at higher resolutions. Its `output/` directory now contains files from
 different runs and is not a self-consistent baseline archive; use the command
 above to reproduce the 96×192 run in a fresh output directory.
 
-Zero-step production initializations at 192×384 and 384×768 found:
+Zero-step production initializations with the current default
+`GR_NEAR_MASK_W=2` and the inward-offset finder mask (`run_archive/horizon_initial_*`):
 
 | Grid | Exterior `max|H|` | Exterior `rms|H|` | Horizon shell `max|H|` | Initial horizon |
 |---|---:|---:|---:|---|
-| 96×192 | `1.9503e-1` | `5.4810e-3` | not separately reported | found, area `43.74535` (`+8.79%`) |
-| 192×384 | `2.4431e-2` | `1.9746e-3` | `5.4409e-2` | found, `dA/A_Kerr=+1.33%` |
-| 384×768 | `4.9007e-2` | `2.6455e-3` | `1.4365e-2` | not found (`ierr=2`) |
+| 96×192 | `4.1542e-2` | `2.0286e-3` | `1.9503e-1` | found, `dA/A_Kerr=+9.69e-4` |
+| 192×384 | `2.4431e-2` | `1.9746e-3` | `5.4409e-2` | found, `dA/A_Kerr=-1.95e-4` |
+| 384×768 | `4.9007e-2` | `2.6455e-3` | `1.4365e-2` | found, `dA/A_Kerr=-9.11e-6` |
 
 The outer-domain maximum is not monotone under refinement, so it should not be
 used as the sole convergence measure. Near-horizon shells and fixed-radius
-annuli are more informative. The 384×768 horizon-finder failure is a real
-acceptance failure that needs its own investigation; do not infer convergence
-from the 96/192 area improvement alone.
+annuli are more informative. The earlier 384×768 finder failure (`ierr=2`) was
+caused by the mask reaching beyond the surface; the inward-offset finder mask
+recovers the initial horizon at all three resolutions.
 
 The chart change in the current source uses the standard Kerr radius and full
 Cartesian Jacobian. At spin 0.8, points rejected as inside the closed-form
@@ -236,3 +249,44 @@ frozen-state stencil isolation comparison for the raised-A divergence in those
 two regions across 96x192, 192x384, and 384x768. Do not change the boundary
 operator unless the controlled comparison identifies its stencil as the
 source.
+
+## 5. Outer-boundary Gtilde consistency (2026-11-04)
+
+The initializer's conformal-connection loop covers only `i=1..Nx-1`,
+`k=2..Nz-1`, so it leaves the three outer boundary rows at exactly zero.
+On the 192x384 grid the adjacent `Gamx` is `1.978e-2`; the RHS differentiates
+across that jump and produced a spurious `Axx` RHS of `-1.0067e-1` on the last
+interior column. A one-step run confirmed that this RHS was applied. The
+full-RHS band at `r=12..20` carried `max|Axx RHS|=1.06e-1` at `t=0`.
+
+`fill_conformal_connection_boundary()` now linearly extrapolates
+`Gtx,Gty,Gtz` from the two nearest interior points onto the outer x and z
+rows. It is called once after `compute_conformal_connections()`. After the
+fix, `Gamx` on the boundary is `1.956e-2`, the last-column `Axx` RHS is
+`-1.77e-5`, and the outer band's `max|Axx RHS|` is `1.68e-5`. The
+near-excision band is unchanged (`max|Axx RHS|=4.89e-2`), so this is an
+outer-boundary repair, not a cure for the inner mask-adjacent defect.
+
+A matched 96x192 2000-step run with the fill completed at `t/M=0.8885` and
+exit 0. Against the archived pre-fix mode-3 run it gives exterior
+`max|H|=5.1304e-2` (was `5.2185e-2`), `rms|H|=2.6679e-3` (was `2.7275e-3`),
+`max|M|=1.5632e-2` (unchanged), horizon-shell `max|H|=2.2779e-1` (was
+`2.3054e-1`), and `alpha_min=0.27740` (unchanged). The fill is retained.
+
+The frozen-state band maximum `max|Axx RHS|` with the fill at `t=0` is:
+
+| band (`r_KS`) | 96x192 | 192x384 | 384x768 | observed order |
+|---|---:|---:|---:|---:|
+| `1.5–1.6` | `2.69e-2` | `1.47e-2` | `4.61e-3` | ~1–1.7 |
+| `1.6–1.8` | `1.23e-1` | `2.85e-2` | `6.64e-3` | ~2.1 |
+| `1.8–2.0` | `5.92e-2` | `1.79e-2` | `4.17e-3` | ~1.8–2.1 |
+| `8–12` | `3.55e-5` | `1.77e-5` | `8.81e-6` | ~1.0 |
+| `12–20` | `3.22e-5` | `1.68e-5` | `8.58e-6` | ~1.0 |
+
+The near-mask bulk residual is resolution-limited and roughly second order;
+the outermost band is only first order after the consistency fix. That outer
+band is still the target of the P2.3 boundary work.
+
+This is an interim consistency closure, not a characteristic boundary
+condition. The outer Sommerfeld layer still has to be replaced or validated
+by the domain sweep in Phase 2 before it can be called a boundary treatment.

@@ -29,6 +29,7 @@ program diagnose_rhs_snapshot
   use bssn_rhs_mod, only: compute_rhs_interior
   use stencil_mod, only: stencil_t, compute_stencil
   use eq_kerr_bssn_data_mod, only: initialize_kerr_f_cache
+  use initial_data_mod, only: fill_conformal_connection_boundary
   use hdf5
   implicit none
 
@@ -61,6 +62,7 @@ program diagnose_rhs_snapshot
   call extrapolate_excised(u)
   call init_deriv_stencils()
   if (slicing_mode == 4) call initialize_kerr_f_cache()
+  call maybe_fill_gt_bc(u)
 
   rhs = 0.0_dp
   call compute_rhs_interior(u, rhs)
@@ -185,6 +187,23 @@ program diagnose_rhs_snapshot
   end do
 
 contains
+
+  ! Optional experiment: make the Gtilde boundary consistent with the
+  ! interior before evaluating the RHS.  This calls the same interim closure
+  ! now used by the production driver; it is not a characteristic condition.
+  subroutine maybe_fill_gt_bc(state)
+    real(dp), intent(inout) :: state(:,:,:)
+    character(len=32) :: buf
+    integer :: ios, fill
+
+    fill = 0
+    call get_environment_variable("GR_FILL_GT_BC", buf, status=ios)
+    if (ios == 0) read(buf,*,iostat=ios) fill
+    if (fill == 0) return
+
+    call fill_conformal_connection_boundary(state)
+    write(*,'(A)') ' NOTE: linearly extrapolated Gtilde boundary cells.'
+  end subroutine maybe_fill_gt_bc
 
   subroutine read_snapshot(path, state)
     character(len=*), intent(in) :: path

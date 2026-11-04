@@ -125,19 +125,22 @@ Chapter~\ref{ch:findings}, and the reader should know where it stands. The
 with the legacy $\Gamma$-driver, $48\times96$ --- aborts at $t\approx 5.6$
 when the conformal metric loses positive definiteness near the excision
 boundary, and it is the subject of most of that chapter. The \emph{current}
-configuration keeps the same exact Kerr--Schild initial data but replaces
-the gauge with a stationary Kerr gauge (``route C'',
-Chapter~\ref{ch:routec}: a tabulated Bona--Masso slicing and a non-advective
-$\Gamma$-driver) and doubles both grid resolutions to $96\times192$. In that
-configuration the apparent horizon is found at step~0, its gauge invariants
-(area, irreducible mass) are conserved at the few-$\times10^{-4}$ level, the
-constraint violation stays bounded, and runs past 800 steps show no sign of
-the old runaway. What is \emph{not} yet established is the long-duration
-verdict: the definitive equal-physical-time comparison (the old
-configuration survived 5.6 units of physical time, and the finer grid needs
-twice as many steps to cover the same time) has not been completed. Several
-genuine defects also remain open; they are listed in
-Section~\ref{sec:unfinished} and are not hidden behind the improved numbers.
+configuration goes further: it uses the Dennison--Baumgarte--Montero route-C
+trumpet \emph{data} (\path{helper/eq_kerr_bssn_data.F90}) together with the
+matching route-C gauge (tabulated Bona--Masso slicing,
+\texttt{slicing\_mode = 3}, and the non-advective $\Gamma$-driver,
+\texttt{gamma\_driver\_mode = 4}) at $96\times192$ with
+$r_{\mathrm{excise}} = 1.5M$. Kerr--Schild data remain available as a control
+but are no longer the production initial data. In the live configuration the
+apparent horizon is recovered at step~0 at all three resolutions and a matched
+$192\times384$ run reaches $t/M \approx 2.66$ with the horizon found
+throughout. What is \emph{not} yet established is stationarity: the exact-data
+$\alpha$ RHS plateaus at $\sim4.3\times10^{-4}$ under refinement because a
+single scalar $f(\alpha)$ cannot reproduce the position-dependent coefficient
+required by the data. That mismatch, not the old runaway, is the open
+long-duration problem. Several genuine defects also remain open; they are
+listed in Section~\ref{sec:unfinished} and are not hidden behind the improved
+numbers.
 A large fraction of Chapter~\ref{ch:findings} is about measurement errors
 that produced confident but wrong conclusions, which is itself instructive.
 \end{quote}
@@ -159,9 +162,11 @@ $z$-axis}, using the \textbf{Cartoon method} to represent the $y$-direction
 derivatives, and \textbf{excising} a region inside the inner horizon so that no
 boundary condition is ever needed at the black hole.
 
-The test problem is exact: Kerr--Schild initial data, $M=1$, $a=0.8$. Because
-this is an exact vacuum solution, the continuum constraints vanish identically
-everywhere. Any constraint violation the code reports is therefore, by
+The control problem is exact: Kerr--Schild initial data, $M=1$, $a=0.8$. The
+live production configuration instead initialises from the route-C DBM
+trumpet, which is also an exact stationary vacuum Kerr slice for the matching
+gauge. Because either family is an exact vacuum solution, the continuum
+constraints vanish identically everywhere. Any constraint violation the code reports is therefore, by
 construction, \emph{pure discretisation error}. This makes the code an
 unusually clean testbed: there is no physics to blame.
 
@@ -216,22 +221,23 @@ make run PARFILE=parameter_files/vacuum_kerr_192.par
 A typical short run looks like:
 
 \begin{lstlisting}
-$ GR_NSTEPS=700 GR_HORIZON_EVERY=0 ./bin/vacuum_kerr parameter_files/vacuum_kerr.par
+$ GR_NSTEPS=5 GR_OUT_EVERY=5 GR_HORIZON_EVERY=5 GR_HZ_ABORT=0 \
+    ./bin/vacuum_kerr parameter_files/vacuum_kerr.par
  === GR BSSNOK (vacuum, Cartoon axisymmetric) - Milestone 1 ===
  Grid: Nx=96  Nz=192
  dx= 0.126  dy= 0.126  dz= 0.126
  BH mass M= 1.000   spin a= 0.800
- Excision radius r_excise= 0.800  (horizon at r_+= 1.600M; interior frozen)
- [horizon] step 0  r in [  1.59997,  1.78865]  dA/A_Kerr= -3.99E-05
-            M_irr= 0.894409  J= 0.800010  M_H= 0.999991
+ Excision radius r_excise= 1.500  (horizon at r_+= 1.600M; interior frozen)
+ Initial data: Dennison-Baumgarte-Montero trumpet (route C)
+ [horizon] step 0  r in [  1.60130,  1.78971]  dA/A_Kerr=  9.69E-04
+            M_irr= 0.894861  J= 0.799664  M_H= 1.000207
  Time step dt =  0.00044
   Slicing: tabulated Bona-Masso (route C stationary Kerr)
   Shift: non-advective Gamma-driver (stationarity candidate)
  Evolving vacuum Kerr data with excision...
- step     6  t=  0.0027  max|H|(ext)=  1.1163E-02  rms|H|(ext)=  1.2302E-03
-    max|M|(ext)=  2.4424E-03  alpha(probe)=  0.924714
-    near-mask r_KS <   2.8000E+00  n=   706  max|H|=  1.7890E+00
-      max|M|=  7.5744E-01  worst r=  8.1252E-01
+ step     5  t=  0.0022  max|H|(ext)=  4.1499E-02  rms|H|(ext)=  1.9707E-03
+    max|M|(ext)=  1.6939E-03  alpha(probe)=  0.912770  alpha_min= 0.27208
+    horizon-shell [  1.6012,  1.8539]  n=    82  max|H|=  1.9510E-01
 \end{lstlisting}
 
 Notice the near-mask line. The \texttt{max|H|(ext)} and \texttt{near-mask
@@ -292,14 +298,12 @@ run. Knowing which is which saves a great deal of confusion:
       module does not currently satisfy the SBP property (see
       Section~\ref{sec:sbp}), so this track is not usable.
 \item \path{helper/equilibrium\_1pluslog.F90},
-      \path{helper/eq\_schwarzschild\_data.F90},
-      \path{helper/eq\_kerr\_trumpet.F90}, \path{helper/eq\_kerr\_bssn\_data.F90}
-      --- special equilibrium data used only by tests and diagnostics. The
-      route C modules sit in \texttt{SOURCES} (so the parity gate covers them)
-      but the production run initialises from Kerr--Schild, \emph{not} from
-      route C data: the route C gauge works on Kerr--Schild data while the
-      route C data itself cannot be evolved --- the gradient discontinuity at
-      the trumpet boundary, Chapter~\ref{ch:routec}.
+      \path{helper/eq\_schwarzschild\_data.F90} --- equilibrium test fixtures.
+      \path{helper/eq\_kerr\_trumpet.F90} and
+      \path{helper/eq\_kerr\_bssn\_data.F90} are \emph{not} test-only: they
+      provide the live route-C trumpet initial data and the experimental
+      spatial $f(x,z)$ cache. They sit in \texttt{SOURCES} and are on the
+      production path.
 \item \path{helper/primitive\_recovery.F90} --- hydrodynamics recovery. Not
       exercised by the vacuum problem, though the BSSN RHS does accept an
       optional matter source \texttt{msrc}.
@@ -738,10 +742,11 @@ r^2_{\mathrm{KS}} = \frac{1}{2}\left(\rho^2 - a^2
 \end{equation}
 In the production configuration $a = 0.8$, $M = 1$, so the outer horizon is
 at $r_+ = M + \sqrt{M^2 - a^2} = 1.6$ and the inner horizon at $r_- = 0.4$.
-The production parameter file sets $r_{\mathrm{excise}} = 0.8$, which sits
-between the two horizons --- inside the black hole but outside the Cauchy
-horizon, which is the standard and safe choice. (The module default is still
-$1.0$; the parameter file overrides it.)
+The live route-C parameter file sets $r_{\mathrm{excise}} = 1.5$, which sits
+just inside the outer horizon and outside the trumpet surface $R_0 = 1$ where
+the DBM data are regular. (Older Kerr--Schild runs used
+$r_{\mathrm{excise}} = 0.8$; that value is retained only in historical
+experiments and control configurations.)
 
 \gotcha
 The $i \leq 2$ axis protection is not cosmetic. Without it, the
@@ -873,6 +878,18 @@ in one layer regardless of which characteristics actually leave the domain.
 A proper treatment would impose conditions on the incoming characteristic
 fields only. The apparent second-order convergence in domain size $L$ that this
 condition exhibits is reflection, not accuracy.
+
+\gotcha
+The initializer used to leave Gtilde exactly zero on the outer boundary rows
+while its adjacent interior value was $O(10^{-2})$. The production RHS
+differentiates Gtilde across that jump, so the last interior column carried a
+spurious Atilde RHS of order $10^{-1}$ at $t=0$ on the 192$\times$384 grid.
+\texttt{fill\_conformal\_connection\_boundary} now linearly extrapolates the
+three Gtilde components onto the outer $x$ and $z$ rows after
+\texttt{compute\_conformal\_connections}; on that grid the spurious RHS falls
+to $<2\times10^{-5}$. This is an interim consistency closure, not a
+characteristic condition, and the outer Sommerfeld condition still needs to be
+replaced by a real incoming/outgoing characteristic treatment.
 
 \section{Time integration}
 
@@ -1395,15 +1412,14 @@ independently written instrument.
 
 The investigation did not find a single bug that, once fixed, made the old
 configuration survive. What it produced instead is a \emph{different}
-configuration --- the same exact Kerr--Schild initial data, but a stationary
-Kerr gauge and a grid twice as fine on each axis --- together with a driver
-that aborts on the drift of gauge-invariant horizon quantities rather than on
-the horizon's coordinate position, and with every measurement error found
-along the way recorded above so that it need not be repeated. The old
-configuration's numbers remain in this chapter because they are the baseline
-those changes were measured against, and because the near-mask error they
-exposed is still present --- merely no longer fatal. The replacement is
-Chapter~\ref{ch:routec}.
+configuration --- the route-C DBM trumpet data, the matching stationary Kerr
+gauge, a finer grid, and a driver that aborts on the drift of gauge-invariant
+horizon quantities rather than on the horizon's coordinate position ---
+together with a record of every measurement error found along the way so that
+it need not be repeated. The old configuration's numbers remain in this
+chapter because they are the baseline those changes were measured against,
+and because the near-mask error they exposed is still present --- merely no
+longer fatal. The replacement is Chapter~\ref{ch:routec}.
 
 \chapter{Route C: a Stationary Kerr Gauge}
 \label{ch:routec}
@@ -1412,12 +1428,12 @@ The investigation in Chapter~\ref{ch:findings} ended on a specific missing
 ingredient: the code had no stationary Kerr data/gauge pair, so every run was
 measuring the slice evolution of Kerr--Schild data under a gauge (1+log) of
 which Kerr--Schild is not a slice. ``Route C'' is the attempt to supply one,
-named for the third of the candidate routes out of the failure. It partially
-succeeded, in a split that is worth understanding in full: the \emph{gauge}
-works, is what production now runs, and stops the horizon migrating; the
-\emph{data} does not work, for a reason --- a gradient discontinuity ---
-that is invisible to any value-continuity check and is recorded here so the
-next attempt starts from the right place.
+named for the third of the candidate routes out of the failure. Both the
+route-C \emph{data} and the route-C \emph{gauge} are now on the production
+path. An earlier projected implementation of the data failed because of a
+gradient discontinuity at the trumpet seam; the current DBM construction and
+$r_{\mathrm{excise}} = 1.5M$ avoid that failure, and the remaining stationarity
+defect is the scalar-law mismatch discussed below, not the old seam.
 
 \section{The source family}
 
@@ -1534,7 +1550,13 @@ Two caveats survive this validation and are not resolved:
       the frame fix without anyone noticing for a while.
 \end{itemize}
 
-\section{Why the route C data cannot be initial data}
+\section{Historical: why the early route C projection was not usable as initial data}
+
+This section records the early route-C attempt. It is \emph{not} a statement
+about the live configuration: the current DBM data construction and
+$r_{\mathrm{excise}} = 1.5$ do use route-C data for production. The failure
+below belongs to the older implementation that projected the trumpet interior
+and tried to excise at $r = 1.42$ or leave the projected annulus physical.
 
 The 160 trumpet-interior cells ($r < 1.41$) cannot be evaluated in closed
 form, so they were filled by \emph{radial projection}: a binary search
@@ -1543,7 +1565,8 @@ cells are projected, zero flat fallbacks. This fixes the \textbf{value}
 discontinuity at the trumpet boundary --- and fixes nothing else. The
 projected region has zero radial derivative while the exterior has non-zero,
 so the \textbf{gradient} is discontinuous, and the finite-difference stencils
-see $O(1)$ second derivatives across the seam. Measured consequences:
+see $O(1)$ second derivatives across the seam. Measured consequences of that
+old implementation:
 
 \begin{itemize}
 \item $r_{\mathrm{excise}} = 1.42$ (excise the entire projected region):
@@ -1566,23 +1589,35 @@ it is singular there --- hence its own caveat).
 
 \section{What production actually runs}
 
-Route C the \emph{data} is out; route C the \emph{gauge} is in. Production
-is: \textbf{Kerr--Schild initial data} ($\texttt{set\_kerr\_schild\_id}$) +
+Route C the \emph{data} is in, and route C the \emph{gauge} is in. The live
+production configuration is \textbf{Dennison--Baumgarte--Montero trumpet
+initial data} (\path{helper/eq_kerr_bssn_data.F90}) +
 \textbf{tabulated Bona--Masso slicing} ($\texttt{slicing\_mode = 3}$) +
 \textbf{non-advective $\Gamma$-driver} ($\texttt{gamma\_driver\_mode = 4}$),
-at $96\times192$ with $r_{\mathrm{excise}} = 0.8$. The route C gauge works on
-Kerr--Schild data because what it needs to be stationary is the gauge
-function $f(\alpha)$, not the trumpet coordinates. Measured, 800+ steps:
+at $96\times192$ with $r_{\mathrm{excise}} = 1.5M$. Kerr--Schild data remain
+available as a control configuration.
+
+Measured with the current data and finder mask:
 
 \begin{itemize}
-\item The horizon is found at step~0:
-      $r \in [1.59997, 1.78865]$, \texttt{dA/A\_Kerr} $= -3.99\times10^{-5}$,
-      $M_{\mathrm{irr}} = 0.894409$, $J = 0.800010$,
-      $M_H = 0.999991$ (exact: $M_{\mathrm{irr}} = \sqrt{0.8} =
-      0.894427$, $J = 0.8$, $M_H = 1$).
-\item The invariants stay put: \texttt{dA/A} remains a few
-      $\times10^{-5}$ and $M_H$ a few $\times10^{-6}$ over the runs
-      completed so far. $\max|H|$ stays below $4\times10^{-2}$ and bounded.
+\item The initial horizon is recovered at all three resolutions:
+      \texttt{dA/A\_Kerr} $= 9.69\times10^{-4}$ ($96\times192$),
+      $-1.95\times10^{-4}$ ($192\times384$), and
+      $-9.11\times10^{-6}$ ($384\times768$).
+\item A matched $192\times384$ run reaches $t/M = 2.6586$ with the horizon
+      found throughout. The area drifts from $-0.004\%$ to $-0.643\%$
+      relative to Kerr; the drift is reproduced by independent horizon
+      re-solves, so it is a real secular change, not a finder artefact.
+\item The $96\times192$ run reaches $t/M = 2.6655$ without a determinant
+      abort, with exterior $\max|H| = 3.03\times10^{-1}$,
+      RMS $= 8.60\times10^{-3}$, and $\max|M| = 6.23\times10^{-2}$.
+\item The open stationarity defect is the lapse source: with the scalar
+      table, the exact-data $\alpha$ RHS in the $[3M,5M]$ annulus is
+      $4.36\times10^{-4}$ at $192\times384$ and $4.34\times10^{-4}$ at
+      $384\times768$. It does not converge. The experimental spatial
+      $f(x,z)$ cache (\texttt{slicing\_mode = 4}) reduces the same residual
+      to $1.56\times10^{-8}$ and $1.00\times10^{-9}$ respectively, which
+      identifies the scalar-law mismatch as the cause.
 \end{itemize}
 
 \section{The stationarity gate: invariants, not coordinates}

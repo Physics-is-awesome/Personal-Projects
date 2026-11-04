@@ -123,6 +123,7 @@ SOURCES := \
 	helper/fo_constraints.F90 \
 	helper/fo_constraint_damping.F90 \
 	init/fo_complete_vars.F90 \
+	helper/fo_constraint_fields.F90 \
 	helper/excision.F90 \
 	helper/fo_curved_sat.F90 \
 	helper/fo_normal_system.F90 \
@@ -160,7 +161,7 @@ TESTS := test-excision-sat test-fo-sbp-sat test-fo-rhs test-fo-normal-system \
 	test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data \
 	test-k-from-gauge test-gauge-f-continuity
 
-.PHONY: all run clean check check-parity test diagnose-k-from-gauge diagnose-stencil-derivs diagnose-eq-kerr-data diagnose-kerr-bssn diagnose-f-alpha-relation diagnose-boundary-isolation diagnose-equilibrium-ring diagnose-route-c-sat diagnose-horizon-snapshot diagnose-dbm-momentum-point diagnose-momentum-snapshot test-horizon-drift test-constraint-conv test-momentum-conv test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data probe-momentum-terms diagnose-ks-stationarity diagnose-momentum-point diagnose-inner-boundary test-gauge-f-continuity $(TESTS)
+.PHONY: all run clean check check-parity test diagnose-k-from-gauge diagnose-stencil-derivs diagnose-eq-kerr-data diagnose-kerr-bssn diagnose-f-alpha-relation diagnose-boundary-isolation diagnose-equilibrium-ring diagnose-route-c-sat diagnose-horizon-snapshot diagnose-dbm-momentum-point diagnose-momentum-snapshot diagnose-rhs-snapshot test-horizon-drift test-constraint-conv test-momentum-conv test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data probe-momentum-terms diagnose-ks-stationarity diagnose-momentum-point diagnose-inner-boundary test-gauge-f-continuity $(TESTS)
 
 # Build-only: report targets that optionally take a parameter file.
 bin/diagnose_stationary_ks_rhs: $(SOURCES_NO_DRIVER) helper/diagnose_stationary_ks_rhs.F90 | bin $(MODDIR)
@@ -191,10 +192,10 @@ bin/diagnose_route_c_sat: $(SOURCES_NO_DRIVER) helper/diagnose_route_c_sat.F90 |
 diagnose-route-c-sat: bin/diagnose_route_c_sat
 	GR_INITIAL_DATA_MODE=1 GR_REXCISE=1.5 ./bin/diagnose_route_c_sat $(PARFILE)
 
-bin/diagnose_route_c_constraint_jacobian: $(SOURCES_NO_DRIVER) helper/fo_constraint_fields.F90 \
+bin/diagnose_route_c_constraint_jacobian: $(SOURCES_NO_DRIVER) \
 		helper/diagnose_route_c_constraint_jacobian.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
-		helper/fo_constraint_fields.F90 helper/diagnose_route_c_constraint_jacobian.F90 \
+		helper/diagnose_route_c_constraint_jacobian.F90 \
 		-o bin/diagnose_route_c_constraint_jacobian $(LDLIBS)
 
 diagnose-route-c-constraint-jacobian: bin/diagnose_route_c_constraint_jacobian
@@ -235,6 +236,13 @@ bin/diagnose_momentum_snapshot: $(SOURCES_NO_DRIVER) helper/diagnose_momentum_sn
 diagnose-momentum-snapshot: bin/diagnose_momentum_snapshot
 	./bin/diagnose_momentum_snapshot $(MOMENTUM_PAR) $(SNAPSHOT) \
 		$(if $(BACKGROUND),$(BACKGROUND),$(SNAPSHOT)) $(MOMENTUM_Z)
+
+bin/diagnose_rhs_snapshot: $(SOURCES_NO_DRIVER) helper/diagnose_rhs_snapshot.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/diagnose_rhs_snapshot.F90 -o bin/diagnose_rhs_snapshot $(LDLIBS)
+
+diagnose-rhs-snapshot: bin/diagnose_rhs_snapshot
+	./bin/diagnose_rhs_snapshot $(MOMENTUM_PAR) $(SNAPSHOT)
 
 # Build-only: report targets a compile-time error instead of stopping the build.
 bin/diagnose_momentum_point: $(SOURCES_NO_DRIVER) helper/diagnose_momentum_point.F90 | bin $(MODDIR)
@@ -287,10 +295,9 @@ test-excision-sat: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F
 		helper/excision_sat.F90 helper/test_excision_sat.F90 -o bin/test_excision_sat
 	./bin/test_excision_sat
 
-# Run every test even when one fails.  There are two known-red tests
-# (test-horizon-drift, test-gauge-f-continuity); a serial run would stop at the
-# first and hide the second, which is how a broken production .par survived so
-# long without the suite saying so.
+# Run every test even when one fails.  The suite is currently green; keep the
+# -k so a future regression in one target still reports every other failure
+# instead of hiding them behind the first one.
 test:
 	@$(MAKE) -k --no-print-directory $(TESTS)
 
@@ -342,12 +349,14 @@ check-parity:
 
 test-fo-complete-rhs: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F90 \
 		helper/cartoon.F90 init/fo_complete_vars.F90 helper/excision.F90 \
+		helper/eq_kerr_trumpet.F90 helper/eq_kerr_bssn_data.F90 \
 		init/fd_weights.F90 helper/stencil.F90 helper/geometry.F90 init/init_data.F90 init/stencils.F90 \
 		integrators/bssn_rhs.F90 integrators/fo_complete_rhs.F90 \
 		helper/test_fo_complete_rhs.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) \
 		helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F90 \
 		helper/cartoon.F90 init/fo_complete_vars.F90 helper/excision.F90 \
+		helper/eq_kerr_trumpet.F90 helper/eq_kerr_bssn_data.F90 \
 		init/fd_weights.F90 helper/stencil.F90 helper/geometry.F90 init/init_data.F90 init/stencils.F90 \
 		integrators/bssn_rhs.F90 integrators/fo_complete_rhs.F90 \
 		helper/test_fo_complete_rhs.F90 -o bin/test_fo_complete_rhs
@@ -373,10 +382,10 @@ test-fo-constraint-fields: helper/kinds_mod.F90 init/param.F90 init/grid.F90 ini
 		-o bin/test_fo_constraint_fields
 	./bin/test_fo_constraint_fields
 
-test-fo-constraint-principal: $(SOURCES_NO_DRIVER) helper/fo_constraint_fields.F90 \
+test-fo-constraint-principal: $(SOURCES_NO_DRIVER) \
 		helper/test_fo_constraint_principal.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
-		helper/fo_constraint_fields.F90 helper/test_fo_constraint_principal.F90 \
+		helper/test_fo_constraint_principal.F90 \
 		-o bin/test_fo_constraint_principal $(LDLIBS)
 	./bin/test_fo_constraint_principal
 
@@ -404,11 +413,13 @@ test-fo-validation: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.
 
 test-fo-rhs: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F90 init/fo_vars.F90 \
 		init/fd_weights.F90 helper/cartoon.F90 helper/excision.F90 helper/stencil.F90 \
+		helper/eq_kerr_trumpet.F90 helper/eq_kerr_bssn_data.F90 \
 		helper/geometry.F90 init/init_data.F90 init/stencils.F90 integrators/bssn_rhs.F90 \
 		integrators/fo_rhs.F90 helper/test_fo_rhs.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) \
 		helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/vars.F90 init/fo_vars.F90 \
 		init/fd_weights.F90 helper/cartoon.F90 helper/excision.F90 helper/stencil.F90 \
+		helper/eq_kerr_trumpet.F90 helper/eq_kerr_bssn_data.F90 \
 		helper/geometry.F90 init/init_data.F90 init/stencils.F90 integrators/bssn_rhs.F90 \
 		integrators/fo_rhs.F90 helper/test_fo_rhs.F90 -o bin/test_fo_rhs
 	./bin/test_fo_rhs
