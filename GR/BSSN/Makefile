@@ -278,6 +278,20 @@ bin $(MODDIR):
 run: $(TARGET)
 	cd $(RUN_DIR) && env $(RUN_ENV) $(abspath $(TARGET)) $(abspath $(PARFILE))
 
+# Slow regression guard for Phase 0.  This is deliberately NOT part of
+# `make check`: it runs the full 96x192 6000-step baseline.  The thresholds in
+# baseline/check_baseline_regression.sh are regression limits, not acceptance
+# targets; update them only with a new archived baseline.
+.PHONY: baseline-regression
+baseline-regression: $(TARGET) baseline/check_baseline_regression.sh
+	@rm -rf /tmp/bssn_baseline_regression_96x192
+	@mkdir -p /tmp/bssn_baseline_regression_96x192
+	@echo "baseline-regression: running 96x192 6000-step baseline..."
+	@cd /tmp/bssn_baseline_regression_96x192 && \
+		env GR_NSTEPS=6000 GR_OUT_EVERY=100 GR_HORIZON_EVERY=100 GR_HZ_ABORT=0 \
+		$(abspath $(TARGET)) $(abspath $(PARFILE)) > run.log 2>&1
+	@baseline/check_baseline_regression.sh /tmp/bssn_baseline_regression_96x192/run.log
+
 clean:
 	rm -rf bin build
 	# Stale .mod files in the tree root shadow $(MODDIR): gfortran searches the

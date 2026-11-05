@@ -1,7 +1,11 @@
 # Current work on long-term Kerr steps 1–3
 
-**Date:** 2026-11-02  
-**Source state:** current uncommitted working tree; production baseline was built from this tree before the diagnostic-only edits below.  
+**Date:** 2026-11-05
+
+**Source state:** branch `bssn-long-term-phase0`; the physics/run source is commit
+`59d6cddc`. The follow-up commit contains these status updates, the baseline
+regression script, and its Makefile target; it does not change the solver.
+
 **Parameters:** `parameter_files/vacuum_kerr.par`, unless stated otherwise.
 
 This records a fresh baseline and the current validation status. It supersedes
@@ -22,11 +26,22 @@ make run PARFILE=parameter_files/vacuum_kerr.par \
 
 It completed 6,000 steps at `t/M=2.6655`, without a determinant abort. With
 `GR_NEAR_MASK_W=0` the apparent horizon was found through step 4,100 and then
-not found from step 4,200 through step 6,000. At step 6,000, exterior
-`max|H|=3.0323e-1`, `rms|H|=8.6009e-3`, and `max|M|=6.2315e-2`. The found
-area started at `43.74535` (`+8.79%` relative to exact Kerr) and had already
-drifted to about `43.35` before the finder lost the surface. The lapse stayed
-finite.
+not found from step 4,200 through step 6,000. At step 6,000 the archived
+horizon-shell diagnostic is `max|H|=3.0323e-1` and `max|M|=6.2315e-2`; an
+older note labeled the `3.0323e-1` value "exterior", which is not comparable
+to exterior values from other runs. The found area started at `43.74535`
+(`+8.79%` relative to exact Kerr) and had already drifted to about `43.35`
+before the finder lost the surface. The lapse stayed finite.
+
+**Final-tree baseline (2026-11-04).** The 6,000-step run on the final tree
+with the default near-mask width and the outer-`Gtilde` fill is archived in
+`run_archive/baseline_gtbc_96x192_6000/`. It exits 0 at `t/M=2.6655` with
+exterior `max|H|=4.6565e-2`, `rms|H|=1.8230e-3`, `max|M|=2.7067e-2`, and
+`alpha_min=0.28477`. The horizon shell has `max|H|=3.0323e-1` and
+`max|M|=6.2315e-2`; the finder rejects the candidate from step 1,900 onward
+because it enters the coverage buffer (`r_KS,min=1.52240` at step 6,000
+against limit `1.56316`). `baseline/check_baseline_regression.sh` passes on
+this log.
 
 **Horizon-loss reconciliation.** `LAPSE_HORIZON_DIAGNOSTIC.md` quotes loss at
 step 1,900, not 4,100. The two numbers belong to different finder variants:
@@ -290,3 +305,13 @@ band is still the target of the P2.3 boundary work.
 This is an interim consistency closure, not a characteristic boundary
 condition. The outer Sommerfeld layer still has to be replaced or validated
 by the domain sweep in Phase 2 before it can be called a boundary treatment.
+
+A 192x384 2000-step run with the fill (`run_archive/phase2_gtbc_192x384_2000`)
+also exits 0. At `t/M=0.4431` the horizon is found throughout
+(`dA/A_Kerr=-1.88e-3`), with exterior `max|H|=1.0257e-1`, `rms|H|=3.2252e-3`,
+`max|M|=1.1794e-2`, horizon-shell `max|H|=7.83e-2`, `max|M|=1.09e-2`, and
+`alpha_min=0.26742`. The exterior `max|H|` is larger than the 96x192 value at
+comparable time (`6.04e-2` at step 1000). That exterior statistic excludes the
+horizon shell but includes both the near-horizon and outermost regions, so this
+run alone does not identify which band dominates. Treat it as a
+boundary-validation result, not an acceptance result.

@@ -52,15 +52,16 @@ From `parameter_files/vacuum_kerr.par`:
 - **The high-resolution horizon-finder coverage bug has a fix.** Offsetting the finder mask inward while keeping the evolution excision at `1.5M` restores the initial horizon at 384×768 (`dA/A_Kerr ≈ -9e-6` in `baseline/LAPSE_HORIZON_DIAGNOSTIC.md`).
 - **The outer `Gtilde` boundary columns were zero while the adjacent interior value was not, and have an interim consistency fix.** `compute_conformal_connections()` covered only `i=1..Nx-1`, `k=2..Nz-1`, so the production RHS saw a full jump across the last interior column (`RHS(Axx)=-1.0067e-1` on 192×384). `fill_conformal_connection_boundary()` now linearly extrapolates `Gtx,Gty,Gtz` onto the outer rows. After the fix the last-column RHS is `-1.77e-5`, the `r=12..20` band is `1.68e-5`, and a matched 2000-step 96×192 run is neutral-to-slightly-better (`max|H|=5.1304e-2` versus `5.2185e-2`, `max|M|` unchanged). The outer band still converges at only first order; this is not a characteristic boundary condition.
 - **A matched 192×384 run reaches `t=2.6586` (12,000 steps) with the horizon found throughout.** Exterior `max|H|` / RMS are `8.2846e-2` / `2.2411e-3`; the horizon area drifts from `-0.004%` to `-0.643%` relative to Kerr. This drift is real: independent re-solves at steps 0/4000/8000/12000 converge and reproduce it (`STEPS_1_3_CURRENT_STATUS.md` §3, report §13.10).
-- **The 96×192 matched baseline reaches `t=2.6655` without a determinant abort**, with exterior `max|H|=3.0323e-1`, RMS `8.6009e-3`, `max|M|=6.2315e-2`. It loses the finder late in the run. The status document records loss after step 4100; `LAPSE_HORIZON_DIAGNOSTIC.md` records an earlier rejection at step 1900 for a different finder-mask variant. Reconcile this from archived logs before quoting either number.
+- **The 96×192 matched baseline reaches `t=2.6655` without a determinant abort.** On the final tree with the outer-`Gtilde` fill, exterior `max|H|=4.6565e-2`, RMS `1.8230e-3`, `max|M|=2.7067e-2`; the horizon shell has `max|H|=3.0323e-1` and `max|M|=6.2315e-2`. (An older note quoted `3.0323e-1` as "exterior"; the shell/exterior labels are now separated.) The finder rejects the candidate from step 1900 because it enters the coverage buffer (`r_KS,min=1.52240` at step 6000 against limit `1.56316`). The older W=0 variant found the surface through step 4100; that difference is the inward-offset finder fix, not a physics discrepancy.
 - **Evolved momentum is not an axis-only defect.** At 192×384 and `t≈2.66`, the near-axis and same-radius off-axis norms are `7.02e-3` and `1.17e-2`; the maximum is immediately outside excision (`r_KS≈1.515`, `|M|=2.27e-2`). At 96×192 the inner-band maximum is `1.29e-1`. The bulk `r_KS=3..8` residual converges, but the outermost band does not (`1.56e-2`/`2.00e-3` at 192×384 versus `9.41e-3`/`1.49e-3` at 96×192).
 - **A scalar `f(alpha)` cannot fit all radii.** The dense equatorial table gives weighted lapse residual RMS `5.53e-2`; a binned fit gives `2.28e-2`, but the smooth candidate was rejected because the full `[3M,5M]` lapse RHS rose to `5.19e-3`/`2.34e-3` at both 192×384 and 384×768, against `4.36e-4`/`1.03e-4` for the current table. Shell fits trade `1.55..3M` against `5..8M` (report §13.11).
 - **The spatial lapse-coefficient experiment (`slicing_mode=4`) was measured and is not promoted.** The full `[3M,5M]` `RHS_alpha` falls to `2.47e-7` (96×192), `1.56e-8` (192×384), and `1.00e-9` (384×768), so the scalar-lapse residual is removed. However, the matched 2000-step 96×192 comparison is slightly worse than mode 3: exterior `max|H|=5.3172e-2` versus `5.2185e-2`, exterior `max|M|=1.6372e-2` versus `1.5632e-2`, horizon-shell `max|H|=2.3302e-1` versus `2.3054e-1`, and `alpha_min=0.27200` versus `0.27740`. The cached `f(x,z)` also has an adjacent-cell jump near `r_KS≈1.53` (`|Δf|=5.67e-1` at 96×192, `1.80e-1` at 384×768) just outside excision, with no flat fallback. Retain mode 3; revisit mode 4 only after the seam and boundary work.
 
 ### 1.3 Current gate status
 
-As of 2026-11-04 the production tree builds and the full `make check` exits 0
-(`CHECK_EXIT:0`, archived with the Phase 0 run record). `check-parity` reports
+As of 2026-11-05 the production tree builds and the full `make check` exits 0
+(`MAKE_CHECK_CLEAN_EXIT:0`, archived as
+`run_archive/2026-11-04_phase0_post_fix/make_check_clean_final.log`). `check-parity` reports
 `production SOURCES covers every tested module`; `test-fo-rhs`,
 `test-fo-complete-rhs`, and `test-fo-constraint-principal` pass, as do the
 constraint/momentum convergence targets, the gauge-driver checks,
@@ -105,18 +106,20 @@ momentum-assembly fixes. The horizon-loss numbers are reconciled in
 
 **Goal:** make the current state measurable before changing physics.
 
-- [ ] **P0.1 Commit or branch the current tree.** The worktree contains thousands of uncommitted lines across many files. Create a dedicated branch, commit the current BSSN work only, and record the exact state. Do not mix unrelated changes from the enclosing repository.
-- [ ] **P0.2 Archive the exact diff and configuration.** Save `git status --short`, `git diff`, the two production `.par` files, compiler version/flags, HDF5 version, `make` log, and the current `make check` output under a run archive outside `output/`.
-- [ ] **P0.3 Fix the red build gate.** Resolve both known failures:
+- [x] **P0.1 Commit or branch the current tree.** Branch `bssn-long-term-phase0`, base `e5befca8`, Phase 0-2 commit `59d6cddc`. Only BSSN files are staged; the enclosing repository is untouched.
+- [x] **P0.2 Archive the exact diff and configuration.** `run_archive/2026-11-04_phase0_post_fix/` holds `git_status.txt`, `phase0_post_fix.diff`, both `.par` files, `compiler.txt`, HDF5/link flags, `make_check.log`, `make_check_clean_final.log`, and the matched GTBC run metadata. The archived 96×192 and 192×384 run logs plus `run_info.txt` files are in the same directory.
+- [x] **P0.3 Fix the red build gate.** Resolve both known failures:
   - add `helper/fo_constraint_fields.F90` to `SOURCES` so `check-parity` stops reporting it (or document a test-only exemption inside the gate itself; do not edit the check to skip it silently);
   - add `helper/eq_kerr_trumpet.F90` and `helper/eq_kerr_bssn_data.F90` to the explicit source lists of `test-fo-rhs` and `test-fo-complete-rhs`, matching the new `get_kerr_f_cache` dependency in `integrators/bssn_rhs.F90`.
   
   Then run `make clean && make -j4 && make check` from a clean tree. The gate must pass before a baseline is declared; a pass that depends on a stale `build/mod` is not a pass.
-- [ ] **P0.4 Separate run directories.** Never reuse an output directory across configurations. The current `output/` mixes runs from different dates and is not a self-consistent baseline (`STEPS_1_3_CURRENT_STATUS.md` §1). Move or delete generated artifacts; keep archived logs in a dedicated run archive.
-- [ ] **P0.5 Add run metadata.** Write a small `run_info.txt` (or HDF5 attributes) at startup containing: git hash, full parameter file, environment overrides, compiler/flags, HDF5 version, grid, start time. This is cheap and prevents another “which configuration produced this?” ambiguity.
-- [ ] **P0.6 Add a baseline regression target.** A `make` target that runs the 96×192 6000-step baseline with `GR_HZ_ABORT=0` and checks the documented final exterior `H`/`M` values and the absence of determinant failures. Keep tolerances explicit; do not make it a long acceptance run.
-- [ ] **P0.7 Reconcile the status documents.** Update `docs/bsssn-kerr-axi.tex` and the older root-level fix documents to point at the live route-C configuration, or mark them superseded. Resolve the 1900-vs-4100 horizon-loss discrepancy from logs.
-- [ ] **P0.8 Reconcile the horizon-finder numbers.** Re-run the zero-step horizon check at 96×192, 192×384, and 384×768 with the current finder-mask offset and record the initial `dA/A_Kerr` in one table.
+
+  **Result (2026-11-05):** `make check` exits 0 on the final tree; the log is `run_archive/2026-11-04_phase0_post_fix/make_check_clean_final.log`, ending with `MAKE_CHECK_CLEAN_EXIT:0`. The earlier archived `make_check.log` is also green (`CHECK_EXIT:0`).
+- [x] **P0.4 Separate run directories.** The old mixed `output/` was moved to `run_archive/mixed_output_96x192_2026-11-02/`; each new run uses its own `run_archive/<name>/output/`. `output/` is scratch only, not a baseline.
+- [x] **P0.5 Add run metadata.** `drivers/vacuum_kerr.F90` writes `output/run_info.txt` and `output/run_params.par` with git hash, compiler, HDF5 link flags, grid/physics settings, start time, and environment overrides.
+- [x] **P0.6 Add a baseline regression target.** `make baseline-regression` runs the 96×192 6000-step baseline in `/tmp`, captures the log, and calls `baseline/check_baseline_regression.sh`. The thresholds (`max|H|<=6e-2`, `rms|H|<=3e-3`, `max|M|<=4e-2`, `alpha_min>=0.25`) are documented regression guards, not acceptance targets, and the target is not part of `make check`.
+- [x] **P0.7 Reconcile the status documents.** `docs/bsssn-kerr-axi.tex`, `STEPS_1_3_CURRENT_STATUS.md`, and the root fix documents now point at the live route-C configuration or are marked historical. The 1,900-vs-4,100 difference is the inward-offset finder fix, not a contradictory physics result.
+- [x] **P0.8 Reconcile the horizon-finder numbers.** Current zero-step values: 96×192 `9.69e-4`, 192×384 `-1.95e-4`, 384×768 `-9.11e-6` (`dA/A_Kerr`); the table and finder configuration are in `STEPS_1_3_CURRENT_STATUS.md`.
 
 **Gate 0:** clean build, `make check` green, baseline reproduced in a fresh directory, run metadata archived, and status documents consistent with the live configuration.
 
@@ -130,11 +133,11 @@ momentum-assembly fixes. The horizon-loss numbers are reconciled in
 
 The code already has the mechanism; it needs measurement, not another prototype.
 
-- [ ] Run `make diagnose-kerr-bssn` with `slicing_mode=3` and `4` at 96×192, 192×384, and 384×768. Record per-field max/RMS RHS, not only `RHS_alpha`.
-- [ ] Verify the cached `f(x,z)` is finite, positive, and continuous across the axis and the excision boundary. Check where the cache falls back to `bm_f_of_alpha`; document any discontinuity.
-- [ ] Evaluate the full RHS at `t=0` with the cache and with the scalar table. Gate A requires every evolved field’s residual to decrease under refinement. A reduction in `RHS_alpha` alone is insufficient.
-- [ ] If the full RHS converges, run matched short evolutions (e.g. 1000–2000 steps at 96×192 and 192×384) and compare horizon drift, constraints, and determinant minima against `slicing_mode=3`.
-- [ ] If the cache introduces a seam or a non-convergent residual, do not promote it. Record the failed comparison and move to P1.2.
+- [x] Run `make diagnose-kerr-bssn` with `slicing_mode=3` and `4` at 96×192, 192×384, and 384×768. Record per-field max/RMS RHS, not only `RHS_alpha`. Logs are in `run_archive/phase1_f/mode{3,4}_*`.
+- [x] Verify the cached `f(x,z)` is finite, positive, and continuous across the axis and the excision boundary. Check where the cache falls back to `bm_f_of_alpha`; document any discontinuity. Audit: no flat fallbacks, but a seam at `r_KS≈1.53` with worst adjacent `|Δf|=5.67e-1` (96×192) and `1.80e-1` (384×768).
+- [x] Evaluate the full RHS at `t=0` with the cache and with the scalar table. Gate A requires every evolved field’s residual to decrease under refinement. A reduction in `RHS_alpha` alone is insufficient. The cache removes the lapse residual (`RHS_alpha=2.47e-7`, `1.56e-8`, `1.00e-9`) but does not remove the other fields' residual; the seam independently blocks promotion.
+- [x] If the full RHS converges, run matched short evolutions (e.g. 1000–2000 steps at 96×192 and 192×384) and compare horizon drift, constraints, and determinant minima against `slicing_mode=3`. The 96×192 matched run is archived in `run_archive/phase1_matched/mode4_96x192`; it is slightly worse than mode 3 (`max|H|=5.3172e-2` vs `5.2185e-2`, `max|M|=1.6372e-2` vs `1.5632e-2`, `alpha_min=0.27200` vs `0.27740`). The 192×384 matched evolution was not run because the seam already fails the promotion gate.
+- [x] If the cache introduces a seam or a non-convergent residual, do not promote it. Record the failed comparison and move to P1.2. Mode 4 is not promoted; mode 3 remains production.
 
 #### P1.2 Decide between the two viable gauge/data formulations
 
@@ -144,6 +147,8 @@ The report (§13.11) identifies two routes. Make the decision with measured RHS,
 - **Route A2 (scalar-law-compatible data):** construct a Kerr stationary data set whose required `f` is a single scalar function of `alpha`, so `slicing_mode=3` is exact. This is a research/data-generation task, not a table-fitting task. Timebox it.
 - Required deliverable for A2: an initializer (or analytic construction) plus a three-resolution full-RHS table. If no such member of the family exists, document the no-go and retain A1.
 - Do **not** accept a global scalar fit merely because its weighted aggregate score improves; the smooth candidate already failed the full discrete RHS while improving the aggregate.
+
+**P1.2 status (2026-11-04):** Route A1 (`slicing_mode=4`) was measured and rejected for promotion; Route A2 has not been attempted. Gate A therefore remains open. Do not start Phase 3 acceptance runs from the current data/gauge pair.
 
 #### P1.3 Verify the shift-driver equilibrium
 
