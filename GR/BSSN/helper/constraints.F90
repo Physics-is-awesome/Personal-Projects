@@ -66,7 +66,8 @@ contains
   !
   ! Range: i in [2, Nx-1], k in [2, Nz-1] (one layer of derivatives needed).
   ! ---------------------------------------------------------------------------
-  subroutine momentum_constraint(u, Mout, Mterms, Mdir, mask_in)
+  subroutine momentum_constraint(u, Mout, Mterms, Mdir, mask_in, &
+                                 high_order_xz, high_order_y)
     real(dp), intent(in)  :: u(:,:,:)
     real(dp), intent(out) :: Mout(:,:,:)
     ! Optional diagnostic decomposition, last index (each summed over j):
@@ -84,6 +85,8 @@ contains
     ! live excision_status.  Diagnostics can pass a variant mask to compare
     ! the ghost-filled and strictly one-sided stencil branches on one state.
     integer, intent(in), optional :: mask_in(:,:)
+    ! Optional diagnostic derivative controls.  Production omits them.
+    logical, intent(in), optional :: high_order_xz, high_order_y
     integer, parameter :: IA(6) = [1,1,1,2,2,3]
     integer, parameter :: IB(6) = [1,2,3,2,3,3]
     type(stencil_t) :: S
@@ -106,9 +109,9 @@ contains
           ! Alternative-mask diagnostic: only physical points are evaluated;
           ! neighbours marked EXCISED force the strictly one-sided branch.
           if (mask_in(i,k) == EXCISED) cycle
-          call compute_stencil(u, i, k, mask_in, S)
+          call compute_stencil(u, i, k, mask_in, S, high_order_xz, high_order_y)
         else
-          call compute_stencil(u, i, k, excision_status, S)
+          call compute_stencil(u, i, k, excision_status, S, high_order_xz, high_order_y)
         end if
         call compute_conformal_geometry(S, G)
         gt = G%gt
@@ -391,11 +394,13 @@ contains
   ! evaluated over the interior grid (excluding the axis-adjacent double
   ! stencil margin needed by ricci_scalar_direct: i in [2, Nx-2], k in
   ! [3, Nz-2]).
-  subroutine hamiltonian_constraint(u, Hout, imin, imax, kmin, kmax, hydro_cons)
+  subroutine hamiltonian_constraint(u, Hout, imin, imax, kmin, kmax, hydro_cons, &
+                                    high_order_xz, high_order_y)
     real(dp), intent(in)  :: u(:,:,:)
     real(dp), intent(out) :: Hout(:,:)
     integer,  intent(out) :: imin, imax, kmin, kmax
     real(dp), intent(in), optional :: hydro_cons(:,:,:)
+    logical, intent(in), optional :: high_order_xz, high_order_y
     integer :: i, k
     real(dp) :: gt(3,3), gtinv(3,3), Aij(3,3), Aup(3,3), AijAij, det, Ktrace, R
     type(stencil_t) :: S
@@ -422,7 +427,7 @@ contains
         ! direct-Christoffel diagnostic used second-order Cartesian
         ! derivatives and measured its truncation error as a spurious
         ! Hamiltonian violation near the hole.
-        call compute_stencil(u, i, k, excision_status, S)
+        call compute_stencil(u, i, k, excision_status, S, high_order_xz, high_order_y)
         call compute_conformal_geometry(S, G)
         R = exp(-4.0_dp*u(i,k,IPHI)) * sum(G%gtinv * (G%Rt + G%Rphi))
 

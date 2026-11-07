@@ -18,18 +18,24 @@ program diagnose_momentum_snapshot
        'Axx', 'Axy', 'Axz', 'Ayy', 'Ayz', 'Azz', &
        'Gamx', 'Gamy', 'Gamz', 'alpha', 'betax', 'betay', 'betaz', 'Bx', 'By', 'Bz']
   real(dp), allocatable :: u(:,:,:),ubg(:,:,:),M(:,:,:),Moneside(:,:,:), &
-                           Mterms(:,:,:,:),Mdir(:,:,:,:),H(:,:)
+                           Mhi(:,:,:),Mterms(:,:,:,:),Mdir(:,:,:,:),H(:,:),Hhi(:,:)
   integer, allocatable :: mask_oneside(:,:)
   real(dp) :: redges(10),bandmax(9),bandsum2(9),bandoneside(9),ctmax(5)
   real(dp) :: bandterm(9,7),banddir(9,3),bandhmax(9),bandhsum2(9)
+  real(dp) :: bandhi(9),bandhhi(9),bandhisum2(9)
   real(dp) :: outermax(6),outersum2(6),outerhmax(6),outerdb(7),outermaxc(6,3)
   integer :: bandcount(9),ctcount(5),band_i(9),band_k(9),ib,probe_bins(4)
   integer :: outercount(6)
   integer :: bandhcount(9),imin,imax,kmin,kmax
   integer :: i,k,ii,kk,ios,ic,kc,max_i,max_k,ia,ka
   real(dp) :: target_z,r_target,best_dr,r_here,dr,mnorm,max_m,max_m_oneside,mnorm_oneside
+  real(dp) :: mnorm_hi,max_m_hi
   real(dp) :: db,db_cell
   real(dp) :: alpha_min,alpha_max,phi_min,phi_max
+  logical :: ho_xz,ho_y,hi_oneside
+  character(len=32) :: ho_buf
+  character(len=16) :: os_buf
+  integer :: ho_mode
 
   call get_command_argument(1,par_file)
   call get_command_argument(2,snapshot)
@@ -43,10 +49,32 @@ program diagnose_momentum_snapshot
   arg=''; call get_command_argument(4,arg)
   if (len_trim(arg)>0) read(arg,*,iostat=ios) target_z
 
+  ! 0 = production; 1 = fourth-order one-sided x/z; 2 = fourth-order cartoon
+  ! y; 3 = both.  This is a frozen-state control only.
+  ho_mode=0; ho_buf=''
+  call get_environment_variable('GR_DIAG_HIGH_ORDER',ho_buf,status=ios)
+  if (ios==0 .and. len_trim(ho_buf)>0) then
+    read(ho_buf,*,iostat=ios) ho_mode
+    if (ios/=0) ho_mode=0
+  end if
+  ho_xz = (ho_mode==1 .or. ho_mode==3)
+  ho_y  = (ho_mode==2 .or. ho_mode==3)
+
+  ! Optionally combine the high-order control with the strictly one-sided mask.
+  ! This isolates the order of the one-sided branch from the ghost-fill branch.
+  hi_oneside = .false.; os_buf=''
+  call get_environment_variable('GR_DIAG_ONESIDE',os_buf,status=ios)
+  if (ios==0) then
+    os_buf=adjustl(os_buf)
+    hi_oneside = (trim(os_buf)=='1' .or. trim(os_buf)=='T' &
+                  .or. trim(os_buf)=='t' .or. trim(os_buf)=='.true.')
+  end if
+
   call init_params(trim(par_file))
   call setup_grid()
   allocate(u(Nx,Nz,NVARS),ubg(Nx,Nz,NVARS),M(Nx,Nz,3),Moneside(Nx,Nz,3), &
-           Mterms(Nx,Nz,3,7),Mdir(Nx,Nz,3,3),H(Nx,Nz),mask_oneside(Nx,Nz))
+           Mhi(Nx,Nz,3),Mterms(Nx,Nz,3,7),Mdir(Nx,Nz,3,3),H(Nx,Nz),Hhi(Nx,Nz), &
+           mask_oneside(Nx,Nz))
   call read_snapshot(trim(snapshot),u)
   if (trim(background_file)==trim(snapshot)) then
     ubg=u
@@ -69,6 +97,22 @@ program diagnose_momentum_snapshot
   where (mask_oneside == GHOST) mask_oneside = EXCISED
   call momentum_constraint(u,Moneside,mask_in=mask_oneside)
 
+  ! Diagnostic high-order derivative control on the same frozen state.  When
+  ! GR_DIAG_ONESIDE is set, the same control uses the strictly one-sided mask,
+  ! so the comparison against Moneside isolates the stencil order.
+  if (hi_oneside) then
+    call momentum_constraint(u,Mhi,mask_in=mask_oneside, &
+                             high_order_xz=ho_xz,high_order_y=ho_y)
+  else
+    call momentum_constraint(u,Mhi,high_order_xz=ho_xz,high_order_y=ho_y)
+  end if
+  if (.not. hi_oneside) then
+    call hamiltonian_constraint(u,Hhi,imin,imax,kmin,kmax, &
+                                high_order_xz=ho_xz,high_order_y=ho_y)
+  else
+    Hhi=0.0_dp
+  end if
+
   call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
 
   redges=[r_excise,r_excise+0.05_dp,r_excise+0.10_dp,r_excise+0.30_dp, &
@@ -76,12 +120,13 @@ program diagnose_momentum_snapshot
           r_excise+6.50_dp,r_excise+10.50_dp,huge(1.0_dp)]
   bandmax=0.0_dp;bandsum2=0.0_dp;bandoneside=0.0_dp;bandcount=0;band_i=0;band_k=0
   bandterm=0.0_dp;banddir=0.0_dp;bandhmax=0.0_dp;bandhsum2=0.0_dp;bandhcount=0
+  bandhi=0.0_dp;bandhhi=0.0_dp;bandhisum2=0.0_dp
   outermax=0.0_dp;outersum2=0.0_dp;outerhmax=0.0_dp;outercount=0;outermaxc=0.0_dp
   outerdb=[0.0_dp,1.0_dp,2.0_dp,4.0_dp,8.0_dp,16.0_dp,huge(1.0_dp)]
   ctmax=0.0_dp;ctcount=0
   ia=min(2,Nx-1); ka=minloc(abs(zg-target_z),dim=1)
   r_target=sqrt(xg(ia)**2+zg(ka)**2)
-  max_m=0.0_dp;max_m_oneside=0.0_dp;max_i=0;max_k=0
+  max_m=0.0_dp;max_m_oneside=0.0_dp;max_m_hi=0.0_dp;max_i=0;max_k=0
   alpha_min=huge(1.0_dp);alpha_max=-huge(1.0_dp)
   phi_min=huge(1.0_dp);phi_max=-huge(1.0_dp)
   do kk=1,Nz
@@ -92,6 +137,8 @@ program diagnose_momentum_snapshot
       mnorm=sqrt(sum(M(ii,kk,:)**2))
       mnorm_oneside=sqrt(sum(Moneside(ii,kk,:)**2))
       max_m_oneside=max(max_m_oneside,mnorm_oneside)
+      mnorm_hi=sqrt(sum(Mhi(ii,kk,:)**2))
+      max_m_hi=max(max_m_hi,mnorm_hi)
       r_here=kerr_radius(xg(ii),zg(kk))
 
       ! Distance to the nearest outer boundary in grid cells.  This separates
@@ -118,6 +165,9 @@ program diagnose_momentum_snapshot
             bandmax(ios)=mnorm;band_i(ios)=ii;band_k(ios)=kk
           end if
           bandoneside(ios)=max(bandoneside(ios),mnorm_oneside)
+          bandhi(ios)=max(bandhi(ios),mnorm_hi)
+          bandhisum2(ios)=bandhisum2(ios)+mnorm_hi*mnorm_hi
+          bandhhi(ios)=max(bandhhi(ios),abs(Hhi(ii,kk)))
           bandsum2(ios)=bandsum2(ios)+mnorm*mnorm
           bandcount(ios)=bandcount(ios)+1
           bandterm(ios,:)=max(bandterm(ios,:),maxval(abs(Mterms(ii,kk,:,:)),dim=1))
@@ -139,6 +189,13 @@ program diagnose_momentum_snapshot
   write(*,'(A,A)') 'excision background: ',trim(background_file)
   write(*,'(A,I0,A,I0,A,ES13.5)') 'grid=',Nx,'x',Nz,' max|M| physical=',max_m
   write(*,'(A,ES13.5)') '  one-sided physical max|M| (diagnostic)=',max_m_oneside
+  write(*,'(A,I0)') '  high-order derivative mode (diagnostic)=',ho_mode
+  if (hi_oneside) then
+    write(*,'(A)') '  high-order mask=strictly one-sided'
+  else
+    write(*,'(A)') '  high-order mask=production (ghost-filled)'
+  end if
+  write(*,'(A,ES13.5)') '  high-order physical max|M| (diagnostic)=',max_m_hi
   write(*,'(A,2ES13.5)') 'physical alpha min/max=',alpha_min,alpha_max
   write(*,'(A,2ES13.5)') 'physical phi min/max=',phi_min,phi_max
   if (max_i>0) write(*,'(A,2ES15.7,A,ES12.4)') 'max location x,z=', &
@@ -158,6 +215,13 @@ program diagnose_momentum_snapshot
       write(*,'(A,2ES11.3)') '    |H| max/rms=',bandhmax(i), &
            sqrt(bandhsum2(i)/real(max(bandhcount(i),1),dp))
       write(*,'(A,ES13.5)') '    one-sided max|M|=',bandoneside(i)
+      if (hi_oneside) then
+        write(*,'(A,2ES13.5)') '    high-order max/rms|M|=',bandhi(i), &
+             sqrt(bandhisum2(i)/real(bandcount(i),dp))
+      else
+        write(*,'(A,3ES13.5)') '    high-order max/rms|M|, max|H|=',bandhi(i), &
+             sqrt(bandhisum2(i)/real(bandcount(i),dp)),bandhhi(i)
+      end if
     end if
   end do
   write(*,'(A)') '|M|/|H| by distance to nearest outer boundary (cells):'

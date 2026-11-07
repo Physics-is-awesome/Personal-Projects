@@ -52,13 +52,20 @@ contains
   !
   !=======================================================================
 
-  subroutine compute_stencil(u, i, k, mask, S)
+  subroutine compute_stencil(u, i, k, mask, S, high_order_xz, high_order_y)
 
     real(dp), intent(in)    :: u(:,:,:)
     integer,  intent(in)    :: i, k
     integer,  intent(in)    :: mask(:,:)
     type(stencil_t), intent(out) :: S
+    ! Diagnostic controls.  Production omits both and keeps the existing
+    ! near-mask second-order one-sided x/z fallback and second-order cartoon y
+    ! differences.  With high_order_xz, a genuinely one-sided x/z point uses a
+    ! five-point fourth-order one-sided stencil when four valid neighbours are
+    ! available; with high_order_y, d1y/d2y use the four-point cartoon ghosts.
+    logical, intent(in), optional :: high_order_xz, high_order_y
 
+    logical :: ho_xz, ho_y
     real(dp) :: c0(NVARS)
 
     ! Cartesian neighbors
@@ -69,8 +76,13 @@ contains
     real(dp) :: xp2(NVARS), xm2(NVARS)
     real(dp) :: zp2(NVARS), zm2(NVARS)
 
+    ! Third and fourth neighbors for the diagnostic fourth-order one-sided
+    ! stencils.
+    real(dp) :: xp3(NVARS), xm3(NVARS), xp4(NVARS), xm4(NVARS)
+    real(dp) :: zp3(NVARS), zm3(NVARS), zp4(NVARS), zm4(NVARS)
+
     ! Cartoon y neighbors
-    real(dp) :: yp(NVARS), ym(NVARS)
+    real(dp) :: yp(NVARS), ym(NVARS), yp2(NVARS), ym2(NVARS)
 
     ! Cartoon mixed neighbors
     real(dp) :: xpyp(NVARS), xpym(NVARS)
@@ -85,8 +97,15 @@ contains
 
     logical :: xp_ok, xm_ok
     logical :: xp2_ok, xm2_ok
+    logical :: xp4_ok, xm4_ok
     logical :: zp_ok, zm_ok
     logical :: zp2_ok, zm2_ok
+    logical :: zp4_ok, zm4_ok
+
+    ho_xz = .false.
+    ho_y  = .false.
+    if (present(high_order_xz)) ho_xz = high_order_xz
+    if (present(high_order_y))  ho_y  = high_order_y
 
     !-------------------------------------------------------------------
     ! Central value
@@ -107,11 +126,17 @@ contains
     xp2_ok = valid_x2(i,k,+1,mask)
     xm2_ok = valid_x2(i,k,-1,mask)
 
+    xp4_ok = valid_xn(i,k,+1,4,mask)
+    xm4_ok = valid_xn(i,k,-1,4,mask)
+
     zp_ok  = valid_z(i,k,+1,mask)
     zm_ok  = valid_z(i,k,-1,mask)
 
     zp2_ok = valid_z2(i,k,+1,mask)
     zm2_ok = valid_z2(i,k,-1,mask)
+
+    zp4_ok = valid_zn(i,k,+1,4,mask)
+    zm4_ok = valid_zn(i,k,-1,4,mask)
 
 
     !===================================================================
@@ -144,6 +169,28 @@ contains
       xm  = get_neighbor(u,i,k,-1,0,0.0_dp)
 
       S%d1x = (xm2 - 8.0_dp*xm + 8.0_dp*xp - xp2)/(12.0_dp*dx)
+
+    else if (ho_xz .and. xp_ok .and. .not. xm_ok .and. xp4_ok) then
+
+      ! Fourth-order forward one-sided stencil.  This is a diagnostic control:
+      ! production falls through to the second-order formula below.
+      xp  = get_neighbor(u,i,k, 1,0,0.0_dp)
+      xp2 = get_neighbor(u,i,k, 2,0,0.0_dp)
+      xp3 = get_neighbor(u,i,k, 3,0,0.0_dp)
+      xp4 = get_neighbor(u,i,k, 4,0,0.0_dp)
+
+      S%d1x = (-25.0_dp*c0 + 48.0_dp*xp - 36.0_dp*xp2 &
+               + 16.0_dp*xp3 - 3.0_dp*xp4)/(12.0_dp*dx)
+
+    else if (ho_xz .and. xm_ok .and. .not. xp_ok .and. xm4_ok) then
+
+      xm  = get_neighbor(u,i,k,-1,0,0.0_dp)
+      xm2 = get_neighbor(u,i,k,-2,0,0.0_dp)
+      xm3 = get_neighbor(u,i,k,-3,0,0.0_dp)
+      xm4 = get_neighbor(u,i,k,-4,0,0.0_dp)
+
+      S%d1x = (25.0_dp*c0 - 48.0_dp*xm + 36.0_dp*xm2 &
+               - 16.0_dp*xm3 + 3.0_dp*xm4)/(12.0_dp*dx)
 
     else if (xp_ok .and. xm_ok) then
 
@@ -190,6 +237,26 @@ contains
 
       S%d1z = (zm2 - 8.0_dp*zm + 8.0_dp*zp - zp2)/(12.0_dp*dz)
 
+    else if (ho_xz .and. zp_ok .and. .not. zm_ok .and. zp4_ok) then
+
+      zp  = get_neighbor(u,i,k,0, 1,0.0_dp)
+      zp2 = get_neighbor(u,i,k,0, 2,0.0_dp)
+      zp3 = get_neighbor(u,i,k,0, 3,0.0_dp)
+      zp4 = get_neighbor(u,i,k,0, 4,0.0_dp)
+
+      S%d1z = (-25.0_dp*c0 + 48.0_dp*zp - 36.0_dp*zp2 &
+               + 16.0_dp*zp3 - 3.0_dp*zp4)/(12.0_dp*dz)
+
+    else if (ho_xz .and. zm_ok .and. .not. zp_ok .and. zm4_ok) then
+
+      zm  = get_neighbor(u,i,k,0,-1,0.0_dp)
+      zm2 = get_neighbor(u,i,k,0,-2,0.0_dp)
+      zm3 = get_neighbor(u,i,k,0,-3,0.0_dp)
+      zm4 = get_neighbor(u,i,k,0,-4,0.0_dp)
+
+      S%d1z = (25.0_dp*c0 - 48.0_dp*zm + 36.0_dp*zm2 &
+               - 16.0_dp*zm3 + 3.0_dp*zm4)/(12.0_dp*dz)
+
     else if (zp_ok .and. zm_ok) then
 
       zp = get_neighbor(u,i,k,0, 1,0.0_dp)
@@ -231,9 +298,26 @@ contains
     yp = get_neighbor(u,i,k,0,0, dy)
     ym = get_neighbor(u,i,k,0,0,-dy)
 
-    S%d1y = (yp-ym)/(2.0_dp*dy)
+    if (ho_y) then
 
-    S%d2y = (yp-2.0_dp*c0+ym)/(dy**2)
+      ! Diagnostic fourth-order cartoon control.  The reconstruction is
+      ! accurate enough to support the wider ghost pair; production keeps the
+      ! second-order pair below.
+      yp2 = get_neighbor(u,i,k,0,0, 2.0_dp*dy)
+      ym2 = get_neighbor(u,i,k,0,0,-2.0_dp*dy)
+
+      S%d1y = (ym2 - 8.0_dp*ym + 8.0_dp*yp - yp2)/(12.0_dp*dy)
+
+      S%d2y = (-yp2 + 16.0_dp*yp - 30.0_dp*c0 &
+               + 16.0_dp*ym - ym2)/(12.0_dp*dy**2)
+
+    else
+
+      S%d1y = (yp-ym)/(2.0_dp*dy)
+
+      S%d2y = (yp-2.0_dp*c0+ym)/(dy**2)
+
+    end if
 
 
     !===================================================================
@@ -261,6 +345,26 @@ contains
 
       S%d2x = (-xp2 + 16.0_dp*xp - 30.0_dp*c0 + 16.0_dp*xm - xm2) &
               /(12.0_dp*dx**2)
+
+    else if (ho_xz .and. xp_ok .and. .not. xm_ok .and. xp4_ok) then
+
+      xp  = get_neighbor(u,i,k, 1,0,0.0_dp)
+      xp2 = get_neighbor(u,i,k, 2,0,0.0_dp)
+      xp3 = get_neighbor(u,i,k, 3,0,0.0_dp)
+      xp4 = get_neighbor(u,i,k, 4,0,0.0_dp)
+
+      S%d2x = (35.0_dp*c0 - 104.0_dp*xp + 114.0_dp*xp2 &
+               - 56.0_dp*xp3 + 11.0_dp*xp4)/(12.0_dp*dx**2)
+
+    else if (ho_xz .and. xm_ok .and. .not. xp_ok .and. xm4_ok) then
+
+      xm  = get_neighbor(u,i,k,-1,0,0.0_dp)
+      xm2 = get_neighbor(u,i,k,-2,0,0.0_dp)
+      xm3 = get_neighbor(u,i,k,-3,0,0.0_dp)
+      xm4 = get_neighbor(u,i,k,-4,0,0.0_dp)
+
+      S%d2x = (35.0_dp*c0 - 104.0_dp*xm + 114.0_dp*xm2 &
+               - 56.0_dp*xm3 + 11.0_dp*xm4)/(12.0_dp*dx**2)
 
     else if (xp_ok .and. xm_ok) then
 
@@ -306,6 +410,26 @@ contains
 
       S%d2z = (-zp2 + 16.0_dp*zp - 30.0_dp*c0 + 16.0_dp*zm - zm2) &
               /(12.0_dp*dz**2)
+
+    else if (ho_xz .and. zp_ok .and. .not. zm_ok .and. zp4_ok) then
+
+      zp  = get_neighbor(u,i,k,0, 1,0.0_dp)
+      zp2 = get_neighbor(u,i,k,0, 2,0.0_dp)
+      zp3 = get_neighbor(u,i,k,0, 3,0.0_dp)
+      zp4 = get_neighbor(u,i,k,0, 4,0.0_dp)
+
+      S%d2z = (35.0_dp*c0 - 104.0_dp*zp + 114.0_dp*zp2 &
+               - 56.0_dp*zp3 + 11.0_dp*zp4)/(12.0_dp*dz**2)
+
+    else if (ho_xz .and. zm_ok .and. .not. zp_ok .and. zm4_ok) then
+
+      zm  = get_neighbor(u,i,k,0,-1,0.0_dp)
+      zm2 = get_neighbor(u,i,k,0,-2,0.0_dp)
+      zm3 = get_neighbor(u,i,k,0,-3,0.0_dp)
+      zm4 = get_neighbor(u,i,k,0,-4,0.0_dp)
+
+      S%d2z = (35.0_dp*c0 - 104.0_dp*zm + 114.0_dp*zm2 &
+               - 56.0_dp*zm3 + 11.0_dp*zm4)/(12.0_dp*dz**2)
 
     else if (zp_ok .and. zm_ok) then
 
@@ -518,6 +642,32 @@ contains
 
 
   !=======================================================================
+  ! Are n x neighbours usable?  Used only by the diagnostic fourth-order
+  ! one-sided control.  Unlike valid_x, this does not synthesize x<1 mirror
+  ! points; a genuinely one-sided stencil near the mask needs stored points.
+  !=======================================================================
+
+  logical function valid_xn(i,k,sgn,n,mask)
+
+    integer, intent(in) :: i,k,sgn,n
+    integer, intent(in) :: mask(:,:)
+
+    integer :: j, ii
+
+    valid_xn = .false.
+
+    do j = 1, n
+      ii = i + j*sgn
+      if (ii < 1 .or. ii > Nx) return
+      if (mask(ii,k) == EXCISED) return
+    end do
+
+    valid_xn = .true.
+
+  end function valid_xn
+
+
+  !=======================================================================
   ! Is the immediate z neighbor usable?
   !=======================================================================
 
@@ -566,6 +716,30 @@ contains
     valid_z2 = .true.
 
   end function valid_z2
+
+
+  !=======================================================================
+  ! Are n z neighbours usable?
+  !=======================================================================
+
+  logical function valid_zn(i,k,sgn,n,mask)
+
+    integer, intent(in) :: i,k,sgn,n
+    integer, intent(in) :: mask(:,:)
+
+    integer :: j, kk
+
+    valid_zn = .false.
+
+    do j = 1, n
+      kk = k + j*sgn
+      if (kk < 1 .or. kk > Nz) return
+      if (mask(i,kk) == EXCISED) return
+    end do
+
+    valid_zn = .true.
+
+  end function valid_zn
 
 
   !=======================================================================

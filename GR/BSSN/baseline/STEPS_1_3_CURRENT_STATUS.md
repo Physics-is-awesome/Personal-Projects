@@ -368,3 +368,49 @@ maximum. Retain the single-layer Sommerfeld closure as an interim condition,
 do not call it characteristic, and do not treat a larger domain as a
 convergence result. The near-horizon/mask residual remains the primary open
 problem.
+
+## 7. Phase 2 high-order and cartoon-y controls (2026-11-07)
+
+`compute_stencil` now accepts diagnostic-only optional flags for a
+fourth-order one-sided x/z branch and a fourth-order cartoon-y ghost pair.
+Production calls omit both, so the evolution path is unchanged. The snapshot
+diagnostic selects them with `GR_DIAG_HIGH_ORDER=1` (x/z), `2` (y), or `3`
+(both); `GR_DIAG_ONESIDE=1` combines the control with the strictly one-sided
+mask. Logs are in `run_archive/phase2_high_order/`; the interpretation is in
+`run_archive/2026-11-04_phase0_post_fix/PHASE2_HIGH_ORDER.md`.
+
+### 7.1 Fourth-order cartoon y
+
+| state | production `max|M|` | high-order y `max|M|` | band `1.5–1.55` | band `1.55–1.6` | band `1.6–1.8` |
+|---|---:|---:|---:|---:|---:|
+| 96x192, `t=0` | `7.163e-3` | `6.557e-3` | `7.163e-3 → 6.557e-3` | `4.549e-3 → 3.866e-3` | `2.304e-3 → 1.652e-3` |
+| 96x192, `t/M=2.66` | `1.293e-1` | `1.266e-1` | `1.293e-1 → 1.266e-1` | `7.044e-2 → 6.961e-2` | `6.232e-2 → 6.298e-2` |
+| 192x384, `t=0` | `7.619e-4` | `3.186e-4` | `7.619e-4 → 3.186e-4` | `4.567e-4 → 2.006e-4` | `5.045e-4 → 1.731e-4` |
+| 192x384, `t/M=2.66` | `2.269e-2` | `2.295e-2` | `2.269e-2 → 2.295e-2` | `2.052e-2 → 2.076e-2` | `1.781e-2 → 1.802e-2` |
+
+The wider cartoon pair improves the initial-data residual, especially away
+from the mask at 192x384, but not the late-time residual: it is about 2%
+better at 96x192 late and about 1% worse at 192x384 late. The Hamiltonian
+maximum is not improved either (for example the 192x384 `t=0` near band goes
+from `1.217e-1` to `1.301e-1`). The cartoon y truncation is therefore a real
+piece of the `t=0` defect, not the dominant late-time residual.
+
+### 7.2 Fourth-order one-sided x/z
+
+Under the production ghost-filled mask the x/z control is a no-op: the filled
+`GHOST` layer supplies the first inward neighbour, so the genuinely one-sided
+branch is never selected at the reported bands and the momentum/H table is
+unchanged. The order test therefore has to use the strictly one-sided mask:
+
+| state | one-sided 2nd-order `max|M|` | + high-order x/z | + high-order x/z and y |
+|---|---:|---:|---:|
+| 96x192, `t=0` | `1.334e-1` | `4.860e-2` | `4.796e-2` |
+| 96x192, `t/M=2.66` | `1.761e-1` | `1.830e-1` | `1.805e-1` |
+| 192x384, `t=0` | `3.793e-2` | `1.457e-2` | `1.432e-2` |
+| 192x384, `t/M=2.66` | `4.353e-2` | `3.155e-2` | `3.185e-2` |
+
+The one-sided order is a large part of the `t=0` discrepancy (2.6–2.7x
+improvement), but it does not fix late time consistently and remains worse
+than the production ghost-filled branch in every state. No one-sided or
+high-order branch is promoted. The next target is the near-mask data/seam and
+inner-boundary physics, not a higher-order stencil.
