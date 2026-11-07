@@ -6,7 +6,7 @@ module constraints_mod
   use geometry_mod, only: sym3_inverse, pack6, pack6A, conformal_geometry_t, &
                           compute_conformal_geometry
   use stencil_mod, only: stencil_t, compute_stencil
-  use excision_mod, only: excision_status
+  use excision_mod, only: excision_status, EXCISED
   use cartoon_mod, only: get_neighbor
   !use hydro_vars_mod, only: ID, ISX, ISY, ISZ, ITAU
   !use primitive_recovery_mod, only: con2prim
@@ -66,7 +66,7 @@ contains
   !
   ! Range: i in [2, Nx-1], k in [2, Nz-1] (one layer of derivatives needed).
   ! ---------------------------------------------------------------------------
-  subroutine momentum_constraint(u, Mout, Mterms, Mdir)
+  subroutine momentum_constraint(u, Mout, Mterms, Mdir, mask_in)
     real(dp), intent(in)  :: u(:,:,:)
     real(dp), intent(out) :: Mout(:,:,:)
     ! Optional diagnostic decomposition, last index (each summed over j):
@@ -80,6 +80,10 @@ contains
     real(dp), intent(out), optional :: Mterms(:,:,:,:)
     ! Optional directional pieces of term 1, shape (Nx,Nz,free-index,direction).
     real(dp), intent(out), optional :: Mdir(:,:,:,:)
+    ! Optional diagnostic mask.  The production call omits it and uses the
+    ! live excision_status.  Diagnostics can pass a variant mask to compare
+    ! the ghost-filled and strictly one-sided stencil branches on one state.
+    integer, intent(in), optional :: mask_in(:,:)
     integer, parameter :: IA(6) = [1,1,1,2,2,3]
     integer, parameter :: IB(6) = [1,2,3,2,3,3]
     type(stencil_t) :: S
@@ -98,7 +102,14 @@ contains
     if (present(Mdir)) Mdir = 0.0_dp
     do k = 2, Nz - 1
       do i = 2, Nx - 1
-        call compute_stencil(u, i, k, excision_status, S)
+        if (present(mask_in)) then
+          ! Alternative-mask diagnostic: only physical points are evaluated;
+          ! neighbours marked EXCISED force the strictly one-sided branch.
+          if (mask_in(i,k) == EXCISED) cycle
+          call compute_stencil(u, i, k, mask_in, S)
+        else
+          call compute_stencil(u, i, k, excision_status, S)
+        end if
         call compute_conformal_geometry(S, G)
         gt = G%gt
         call sym3_inverse(gt, gtinv, det)

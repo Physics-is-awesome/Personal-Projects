@@ -2,11 +2,11 @@
 ! Usage: diagnose_momentum_snapshot <parfile> <state.h5> [initial.h5] [target_z]
 program diagnose_momentum_snapshot
   use kinds_mod, only: dp
-  use params_mod, only: Nx, Nz, dx, dz, r_excise, bh_spin, init_params
+  use params_mod, only: Nx, Nz, dx, dz, xmax, zmax, r_excise, bh_spin, init_params
   use grid_mod, only: xg, zg, setup_grid
   use vars_mod
   use excision_mod, only: set_excision_background, excision_reset_geometry, &
-                          extrapolate_excised, excision_status, PHYSICAL
+                          extrapolate_excised, excision_status, PHYSICAL, GHOST, EXCISED
   use deriv_stencils_mod, only: init_deriv_stencils
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
   use hdf5
@@ -17,13 +17,18 @@ program diagnose_momentum_snapshot
        'phi', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz', 'K', &
        'Axx', 'Axy', 'Axz', 'Ayy', 'Ayz', 'Azz', &
        'Gamx', 'Gamy', 'Gamz', 'alpha', 'betax', 'betay', 'betaz', 'Bx', 'By', 'Bz']
-  real(dp), allocatable :: u(:,:,:),ubg(:,:,:),M(:,:,:),Mterms(:,:,:,:),Mdir(:,:,:,:),H(:,:)
-  real(dp) :: redges(10),bandmax(9),bandsum2(9),ctmax(5)
+  real(dp), allocatable :: u(:,:,:),ubg(:,:,:),M(:,:,:),Moneside(:,:,:), &
+                           Mterms(:,:,:,:),Mdir(:,:,:,:),H(:,:)
+  integer, allocatable :: mask_oneside(:,:)
+  real(dp) :: redges(10),bandmax(9),bandsum2(9),bandoneside(9),ctmax(5)
   real(dp) :: bandterm(9,7),banddir(9,3),bandhmax(9),bandhsum2(9)
+  real(dp) :: outermax(6),outersum2(6),outerhmax(6),outerdb(7),outermaxc(6,3)
   integer :: bandcount(9),ctcount(5),band_i(9),band_k(9),ib,probe_bins(4)
+  integer :: outercount(6)
   integer :: bandhcount(9),imin,imax,kmin,kmax
   integer :: i,k,ii,kk,ios,ic,kc,max_i,max_k,ia,ka
-  real(dp) :: target_z,r_target,best_dr,r_here,dr,mnorm,max_m
+  real(dp) :: target_z,r_target,best_dr,r_here,dr,mnorm,max_m,max_m_oneside,mnorm_oneside
+  real(dp) :: db,db_cell
   real(dp) :: alpha_min,alpha_max,phi_min,phi_max
 
   call get_command_argument(1,par_file)
@@ -40,8 +45,8 @@ program diagnose_momentum_snapshot
 
   call init_params(trim(par_file))
   call setup_grid()
-  allocate(u(Nx,Nz,NVARS),ubg(Nx,Nz,NVARS),M(Nx,Nz,3),Mterms(Nx,Nz,3,7), &
-           Mdir(Nx,Nz,3,3),H(Nx,Nz))
+  allocate(u(Nx,Nz,NVARS),ubg(Nx,Nz,NVARS),M(Nx,Nz,3),Moneside(Nx,Nz,3), &
+           Mterms(Nx,Nz,3,7),Mdir(Nx,Nz,3,3),H(Nx,Nz),mask_oneside(Nx,Nz))
   call read_snapshot(trim(snapshot),u)
   if (trim(background_file)==trim(snapshot)) then
     ubg=u
@@ -54,17 +59,29 @@ program diagnose_momentum_snapshot
   call extrapolate_excised(u)
   call init_deriv_stencils()
   call momentum_constraint(u,M,Mterms,Mdir)
+
+  ! Diagnostic control: production treats filled excision points as GHOST and
+  ! therefore lets them into centred stencils.  Recompute the same algebraic
+  ! constraint while marking those points EXCISED, which forces the stencil
+  ! logic onto strictly one-sided physical data at the mask edge.  This is not
+  ! a proposed boundary condition; it isolates the ghost-fill/stencil branch.
+  mask_oneside = excision_status
+  where (mask_oneside == GHOST) mask_oneside = EXCISED
+  call momentum_constraint(u,Moneside,mask_in=mask_oneside)
+
   call hamiltonian_constraint(u,H,imin,imax,kmin,kmax)
 
   redges=[r_excise,r_excise+0.05_dp,r_excise+0.10_dp,r_excise+0.30_dp, &
           r_excise+0.50_dp,r_excise+1.50_dp,r_excise+3.50_dp, &
           r_excise+6.50_dp,r_excise+10.50_dp,huge(1.0_dp)]
-  bandmax=0.0_dp;bandsum2=0.0_dp;bandcount=0;band_i=0;band_k=0
+  bandmax=0.0_dp;bandsum2=0.0_dp;bandoneside=0.0_dp;bandcount=0;band_i=0;band_k=0
   bandterm=0.0_dp;banddir=0.0_dp;bandhmax=0.0_dp;bandhsum2=0.0_dp;bandhcount=0
+  outermax=0.0_dp;outersum2=0.0_dp;outerhmax=0.0_dp;outercount=0;outermaxc=0.0_dp
+  outerdb=[0.0_dp,1.0_dp,2.0_dp,4.0_dp,8.0_dp,16.0_dp,huge(1.0_dp)]
   ctmax=0.0_dp;ctcount=0
   ia=min(2,Nx-1); ka=minloc(abs(zg-target_z),dim=1)
   r_target=sqrt(xg(ia)**2+zg(ka)**2)
-  max_m=0.0_dp;max_i=0;max_k=0
+  max_m=0.0_dp;max_m_oneside=0.0_dp;max_i=0;max_k=0
   alpha_min=huge(1.0_dp);alpha_max=-huge(1.0_dp)
   phi_min=huge(1.0_dp);phi_max=-huge(1.0_dp)
   do kk=1,Nz
@@ -73,7 +90,25 @@ program diagnose_momentum_snapshot
       alpha_min=min(alpha_min,u(ii,kk,IALPHA));alpha_max=max(alpha_max,u(ii,kk,IALPHA))
       phi_min=min(phi_min,u(ii,kk,IPHI));phi_max=max(phi_max,u(ii,kk,IPHI))
       mnorm=sqrt(sum(M(ii,kk,:)**2))
+      mnorm_oneside=sqrt(sum(Moneside(ii,kk,:)**2))
+      max_m_oneside=max(max_m_oneside,mnorm_oneside)
       r_here=kerr_radius(xg(ii),zg(kk))
+
+      ! Distance to the nearest outer boundary in grid cells.  This separates
+      ! the boundary layer from the radial bands, which mix the layer with
+      ! clean interior as soon as the domain is enlarged.
+      db = min(xmax - xg(ii), zmax - abs(zg(kk)))
+      db_cell = max(db,0.0_dp)/max(dx,dz)
+      do ios=1,6
+        if (db_cell>=outerdb(ios) .and. db_cell<outerdb(ios+1)) then
+          outercount(ios)=outercount(ios)+1
+          outermax(ios)=max(outermax(ios),mnorm)
+          outermaxc(ios,:)=max(outermaxc(ios,:),abs(M(ii,kk,:)))
+          outersum2(ios)=outersum2(ios)+mnorm*mnorm
+          outerhmax(ios)=max(outerhmax(ios),abs(H(ii,kk)))
+          exit
+        end if
+      end do
       if (mnorm>max_m) then
         max_m=mnorm;max_i=ii;max_k=kk
       end if
@@ -82,6 +117,7 @@ program diagnose_momentum_snapshot
           if (mnorm>bandmax(ios)) then
             bandmax(ios)=mnorm;band_i(ios)=ii;band_k(ios)=kk
           end if
+          bandoneside(ios)=max(bandoneside(ios),mnorm_oneside)
           bandsum2(ios)=bandsum2(ios)+mnorm*mnorm
           bandcount(ios)=bandcount(ios)+1
           bandterm(ios,:)=max(bandterm(ios,:),maxval(abs(Mterms(ii,kk,:,:)),dim=1))
@@ -102,6 +138,7 @@ program diagnose_momentum_snapshot
   write(*,'(A,A)') 'snapshot: ',trim(snapshot)
   write(*,'(A,A)') 'excision background: ',trim(background_file)
   write(*,'(A,I0,A,I0,A,ES13.5)') 'grid=',Nx,'x',Nz,' max|M| physical=',max_m
+  write(*,'(A,ES13.5)') '  one-sided physical max|M| (diagnostic)=',max_m_oneside
   write(*,'(A,2ES13.5)') 'physical alpha min/max=',alpha_min,alpha_max
   write(*,'(A,2ES13.5)') 'physical phi min/max=',phi_min,phi_max
   if (max_i>0) write(*,'(A,2ES15.7,A,ES12.4)') 'max location x,z=', &
@@ -120,6 +157,20 @@ program diagnose_momentum_snapshot
       write(*,'(A,3ES11.3)') '    dAup dir (x,y,z)=',banddir(i,:)
       write(*,'(A,2ES11.3)') '    |H| max/rms=',bandhmax(i), &
            sqrt(bandhsum2(i)/real(max(bandhcount(i),1),dp))
+      write(*,'(A,ES13.5)') '    one-sided max|M|=',bandoneside(i)
+    end if
+  end do
+  write(*,'(A)') '|M|/|H| by distance to nearest outer boundary (cells):'
+  write(*,'(A)') '  columns: |M| max rms, |Mx| |My| |Mz|, |H| max, count'
+  do i=1,6
+    if (outercount(i)>0 .and. i<6) then
+      write(*,'(A,2F7.2,2ES13.5,3ES12.4,ES13.5,I9)') ' ',outerdb(i),outerdb(i+1), &
+           outermax(i),sqrt(outersum2(i)/real(outercount(i),dp)), &
+           outermaxc(i,:),outerhmax(i),outercount(i)
+    else if (outercount(i)>0) then
+      write(*,'(A,F7.2,A,2ES13.5,3ES12.4,ES13.5,I9)') ' ',outerdb(i),'+', &
+           outermax(i),sqrt(outersum2(i)/real(outercount(i),dp)), &
+           outermaxc(i,:),outerhmax(i),outercount(i)
     end if
   end do
   write(*,'(A)') 'max|M| in r_excise..r_excise+0.30 by |cos(theta)| bin:'

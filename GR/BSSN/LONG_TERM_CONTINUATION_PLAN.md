@@ -172,14 +172,16 @@ The report (§13.11) identifies two routes. Make the decision with measured RHS,
 
 #### P2.1 Frozen-state stencil isolation (the next planned measurement)
 
-- [ ] Use saved states from the 96×192, 192×384, and 384×768 runs at early and late equal physical times.
-- [ ] For the near-excision band (`r_KS ≈ 1.5–1.6`) and the outer band (`r_KS > 12`), compare the production constraint/derivative assembly against:
-  - an interior/high-order derivative on the same frozen state;
-  - a one-sided alternative at the mask edge;
-  - the same operator with the cartoon `y` path replaced by an analytic/interpolated control where possible.
-- [ ] Report all seven momentum pieces and the x/y/z raised-`Atilde` divergence pieces, plus the Hamiltonian, by region.
-- [ ] Change a boundary operator only if the error follows that operator across resolutions. The current evidence localizes the near-mask error to the raised-`Atilde` divergence, but does not yet distinguish data conversion, metric raising, cartoon `y`, or one-sided `x/z`.
-- [ ] Extend the existing snapshot diagnostic if needed: a `diagnose_stationarity_snapshot` that reloads any `state_*.h5` and evaluates the full RHS by region would make the secular growth directly measurable.
+- [x] Use saved states from the 96×192 and 192×384 runs at early and late physical times. Late 384×768 evolved states are not archived, so the high-resolution evolution arm remains unavailable.
+- [ ] For the near-excision band (`r_KS ≈ 1.5–1.6`) and the outer band (`r_KS > 12`), compare the production constraint/derivative assembly against all three alternatives:
+  - [ ] an interior/high-order derivative on the same frozen state — **not yet done**;
+  - [x] a one-sided alternative at the mask edge — **done** with the diagnostic-only mask in `diagnose_momentum_snapshot`;
+  - [ ] the same operator with the cartoon `y` path replaced by an analytic/interpolated control where possible — **not yet done**.
+- [x] Report all seven momentum pieces and the x/y/z raised-`Atilde` divergence pieces, plus the Hamiltonian, by region. The diagnostic now prints the alternative one-sided maximum beside the production maximum for every band.
+- [x] Change a boundary operator only if the error follows that operator across resolutions. The one-sided control does not improve the late-time 192×384 near-mask residual (`2.27e-2` production versus `4.35e-2` one-sided at `t/M=2.66`), and at `t=0` it is much worse (`7.62e-4` versus `3.79e-2`). The ghost-filled centered branch is therefore not a standalone culprit; the residual is not a simple stencil-order effect.
+- [x] Extend the existing snapshot diagnostic if needed: `diagnose_rhs_snapshot` already reloads any `state_*.h5` and evaluates the full production RHS by region; `diagnose_momentum_snapshot` now provides the corresponding momentum/H band table. A time-series wrapper remains optional, not a blocker.
+
+**P2.1 one-sided control result (2026-11-05).** The alternative marks filled `GHOST` points as `EXCISED`, forcing strictly one-sided physical data at the mask edge; it is diagnostic only, never a proposed boundary condition. Production and one-sided near-mask maxima are: 96×192 `t=0` `7.16e-3` / `1.33e-1`; 96×192 `t=2.66` `1.29e-1` / `1.76e-1`; 192×384 `t=0` `7.62e-4` / `3.79e-2`; 192×384 `t=2.66` `2.27e-2` / `4.35e-2`. The control is better only in the intermediate snapshots (`96×192 t≈0.89`, `192×384 t≈0.44`) and is worse at `t=0` and at late time. There is no consistent improvement, so the ghost-filled branch is not promoted and the stencil-order hypothesis does not explain the late residual.
 
 #### P2.2 Inner boundary: complete the characteristic treatment
 
@@ -194,11 +196,11 @@ The report (§13.11) identifies two routes. Make the decision with measured RHS,
 
 The outer band is now a measured non-convergent region in the evolved momentum residual, and older domain sweeps show a real outer-boundary error floor.
 
-- [ ] Reproduce the outer-domain sweep with the **current DBM configuration**, not the old frozen Kerr–Schild configuration: 12M, 18M, 24M at fixed `dx`, equal physical time, same inner setup.
-- [ ] Measure the exterior and outermost-band `H`, `Mx/My/Mz`, and the first-reflection time.
-- [ ] Replace the current single-layer, all-fields Sommerfeld prescription with a characteristic or constraint-preserving outer boundary if the sweep confirms dominance. Keep the legacy condition under an explicit control parameter.
+- [x] Reproduce the outer-domain sweep with the **current DBM configuration**, not the old frozen Kerr–Schild configuration: 12M, 18M, 24M at fixed `dx`, equal physical time, same inner setup. Archive: `run_archive/2026-11-04_phase0_post_fix/PHASE2_OUTER_SWEEP.md`; runs in `run_archive/domain_sweep_{18M,24M}` and `run_archive/baseline_gtbc_96x192_6000`.
+- [x] Measure the exterior and outermost-band `H`, `Mx/My/Mz`, and the first-reflection time. The outer layer is `x/z` dominated and decreases roughly as `1/r_boundary`; the exterior maximum remains near-horizon. No causal reflection is possible before `t/M≈20.8`, so the `t/M≈2.66` layer is local, not reflected.
+- [x] Replace the current single-layer, all-fields Sommerfeld prescription with a characteristic or constraint-preserving outer boundary if the sweep confirms dominance. It does not: the exterior `max|H|` is `4.66e-2`, `5.05e-2`, `4.73e-2` and `max|M|` is `2.71e-2`, `2.71e-2`, `2.71e-2` at 12M, 18M, 24M. Keep the legacy condition as an explicit interim closure; do not call it characteristic.
 - [ ] Do not use the empirical sponge as a fix. The recorded sweep shows it increases the residual; it is at best a diagnostic.
-- [ ] If a larger domain is used as a stopgap, keep `dx` fixed and report the cost; do not claim convergence from a larger box alone.
+- [x] If a larger domain is used as a stopgap, keep `dx` fixed and report the cost; do not claim convergence from a larger box alone. The 18M and 24M runs hold `dx≈0.126` and cost 2.25× and 4× the 12M cell count respectively. The moved boundary cleans the `r=8–12` band (`2.98e-3` at 12M versus `1.04e-5` and `9.82e-6`), but does not improve the near-horizon maximum.
 
 #### P2.4 Cartoon / `y`-derivative accuracy
 

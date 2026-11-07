@@ -315,3 +315,51 @@ comparable time (`6.04e-2` at step 1000). That exterior statistic excludes the
 horizon shell but includes both the near-horizon and outermost regions, so this
 run alone does not identify which band dominates. Treat it as a
 boundary-validation result, not an acceptance result.
+
+## 6. Phase 2 controlled comparisons (2026-11-07)
+
+### 6.1 One-sided mask control
+
+`diagnose_momentum_snapshot` now recomputes the momentum constraint on the
+same frozen state with filled `GHOST` points treated as `EXCISED`. This forces
+strictly one-sided physical data at the mask edge. It is a diagnostic control,
+not a proposed boundary condition. Production and one-sided near-mask maxima:
+
+| state | production `max|M|` | one-sided `max|M|` |
+|---|---:|---:|
+| 96x192, `t=0` | `7.16e-3` | `1.33e-1` |
+| 96x192, `t/M=0.889` | `1.73e-1` | `8.16e-2` |
+| 96x192, `t/M=2.66` | `1.29e-1` | `1.76e-1` |
+| 192x384, `t=0` | `7.62e-4` | `3.79e-2` |
+| 192x384, `t/M=0.443` | `2.55e-2` | `2.15e-2` |
+| 192x384, `t/M=2.66` | `2.27e-2` | `4.35e-2` |
+
+The control is better only in the intermediate snapshots and is much worse at
+`t=0` and at late time. No consistent improvement follows, so the
+ghost-filled centered branch is not the standalone cause and the alternative
+is not promoted. The late 192x384 near-mask residual survives both branches.
+
+### 6.2 Outer-domain sweep
+
+The current DBM configuration was run at fixed `dx` to `t/M≈2.66` with 12M,
+18M, and 24M outer domains. Full tables and commands are in
+`run_archive/2026-11-04_phase0_post_fix/PHASE2_OUTER_SWEEP.md`.
+
+| domain | grid | `max|H|(ext)` | `rms|H|(ext)` | `max|M|(ext)` | `alpha_min` |
+|---|---:|---:|---:|---:|---:|
+| 12M | 96x192 | `4.6565e-2` | `1.8230e-3` | `2.7067e-2` | `0.28477` |
+| 18M | 144x288 | `5.0496e-2` | `1.1086e-3` | `2.7072e-2` | `0.28217` |
+| 24M | 191x384 | `4.7296e-2` | `8.2314e-4` | `2.7146e-2` | `0.28455` |
+
+Moving the boundary outward cleans the `r=8–12` band (`2.98e-3` at 12M
+versus `1.04e-5` and `9.82e-6` at 18M and 24M) and lowers the exterior RMS,
+but leaves the near-horizon maximum and shell metrics essentially unchanged.
+The boundary layer is predominantly `x/z`, decreases roughly as
+`1/r_boundary`, and is `1e-3` in `|M|` by `t/M≈2.66`. It is not a reflection:
+the earliest causal round trip at 12M is `t/M≈20.8`, beyond the run end.
+
+The outer boundary is therefore not the dominant source of the exterior
+maximum. Retain the single-layer Sommerfeld closure as an interim condition,
+do not call it characteristic, and do not treat a larger domain as a
+convergence result. The near-horizon/mask residual remains the primary open
+problem.
