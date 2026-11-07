@@ -8,8 +8,11 @@ script/target, the Phase 2 sweep record, and diagnostic-only one-sided
 instrumentation; they do not change the evolution path. The combined
 `make clean && make -j4 && make check` gate is green on `b1a97b03`
 (`run_archive/2026-11-04_phase0_post_fix/make_clean_check_final_20261107.log`,
-`MAKE_CLEAN_CHECK_EXIT:0`), and `make baseline-regression` passes end-to-end on
-the same tree (`BASELINE_REGRESSION_EXIT:0`).
+`MAKE_CLEAN_CHECK_EXIT:0`) and again on the high-order diagnostic commit
+`2e4b3243` (`make_clean_check_final_20261107_highorder.log`,
+`MAKE_CLEAN_CHECK_EXIT:0`). `make baseline-regression` passes end-to-end
+(`BASELINE_REGRESSION_EXIT:0`); that run predates the diagnostic-only
+high-order commit, whose production calls are unchanged.
 
 **Parameters:** `parameter_files/vacuum_kerr.par`, unless stated otherwise.
 
