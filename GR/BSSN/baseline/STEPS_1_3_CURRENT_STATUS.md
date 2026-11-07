@@ -3,8 +3,13 @@
 **Date:** 2026-11-05
 
 **Source state:** branch `bssn-long-term-phase0`; the physics/run source is commit
-`59d6cddc`. The follow-up commit contains these status updates, the baseline
-regression script, and its Makefile target; it does not change the solver.
+`59d6cddc`. Follow-up commits add status updates, the baseline regression
+script/target, the Phase 2 sweep record, and diagnostic-only one-sided
+instrumentation; they do not change the evolution path. The combined
+`make clean && make -j4 && make check` gate is green on `b1a97b03`
+(`run_archive/2026-11-04_phase0_post_fix/make_clean_check_final_20261107.log`,
+`MAKE_CLEAN_CHECK_EXIT:0`), and `make baseline-regression` passes end-to-end on
+the same tree (`BASELINE_REGRESSION_EXIT:0`).
 
 **Parameters:** `parameter_files/vacuum_kerr.par`, unless stated otherwise.
 
