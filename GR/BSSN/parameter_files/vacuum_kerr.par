@@ -30,7 +30,7 @@ gauge_eta = 2.0      # Gamma-driver damping, ~ 2/M
 
 # --- Time evolution ---
 cfl       = 0.005    # back to default
-nsteps    = 100000
+nsteps    = 42000
 out_every = 100
 hz_every = 100
 ko_eps    = 0.2   #0.2 is what it was   # Kreiss-Oliger dissipation strength, typical 0.1-0.5

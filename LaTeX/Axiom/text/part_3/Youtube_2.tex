@@ -1,14 +1,21 @@
-\section{Metriplectic 4-bracket}
+\section{Metriplectic 4-bracket: Metriplectic 2}
 
 \begin{itemize}
   \item Introduction
+  \item Scope
   \item Review of Metriplectic Dynamics
   \item Motivating 4-brackets
-  \item Poisson to Metriplectic
-  \item Metriplectic to 4-bracket
+  \item minimal Metriplectic of 4-bracket
+  \item Metriplectic 4-bracket to Dissipative
+  \item Lie-metriplectic manifolds
   \item Kulkarni-Nomizu construction
-  \item UTA(unified thermodynamics algorithm)
-  \item Conclusion
+  \item UTA(unified thermodynamics algorithm)(brief)
+  \item Next steps and Conclusion
+        \begin{itemize}
+          \item Further UTA
+          \item Infinite dimensional
+          \item General conclusion
+        \end{itemize}
 \end{itemize}
 
 \subsection{Introduction}
@@ -16,6 +23,11 @@
 Welcome back to our series on Metriplectic dynamics. If you haven't already I would recommend watching our previous video motivating the Metriplectic system.
 
 Here we will work to extend the system from a binary bracket into a four-bracket in order to expand the geometry used.
+\subsection{Scope}
+
+Here, will be a theoretical examination of 4-bracket Metriplectic, mostly based on Dr. Morrison and Mr. Updike's work in \emph{Inclusive curvaturelike framework for describing dissipation: Metriplectic 4-bracket dynamics}.
+
+Here we will focus on finite dimensional Metriplectic systems, and also give a minimal introduction to UTA or the Unified Thermodynamics Algorithm.
 
 
 \subsection{Review of Metriplectic}
@@ -69,7 +81,7 @@ Positive semidefiniteness
 
 The third condition is particularly important. It makes the claim that the bracket doesn't actually produce a change of total energy, just produces entropy that can in some cases mimic energy dissipation, but you can't just add arbitrary dissipative operators.
 
-A great example is the fact that in fluid dynamics, you add arbitrary dissipative structure like viscosity or collisional relaxation. While, individually you it can be done, but when coupling them it breaks the mathematical structure without extremly careful mathematics hard to justify.
+A great example is the fact that in fluid dynamics, you add arbitrary dissipative structure like viscosity or collisional relaxation. While, individually you it can be done, but when coupling them it breaks the mathematical structure without extremely careful mathematics hard to justify.
 
 \[
 (F,S) = (F,S)_{\text{visc}} + (F,S)_{\text{heat}}
@@ -79,4 +91,597 @@ A great example is the fact that in fluid dynamics, you add arbitrary dissipativ
 
   The two-bracket formulation does not provide a general construction procedure for accomplishing this. The four-bracket does, which is what we will show momentarly.
 
-  \subsection{Poisson to Metriplectic}
+\subsection{Minimal Metriplectic}
+
+
+To construct our metriplectic 4-bracket, we begin with phase space manifold  $\calz$ is a Riemannian manifold with a curvature tensor $R$,
+\bq
+ R \colon\mathfrak{X}(\calz)\times\mathfrak{X}(\calz) \times\mathfrak{X}(\calz)\rightarrow \mathfrak{X}(\calz)\,,
+ \label{R1}
+ \eq
+ i.e, for  $\bfX,\bfY,\bfZ\in \mathfrak{X}(\calz)$,   $R(\bfX,\bfY)\bfZ \in \mathfrak{X}(\calz)$.
+ As usual, we may write the Riemann curvature tensor in coordinate form as
+
+ $\mathbf{R}^i_{\ jk l}$, with $i,j,k,l= 1,2,\dots, \mathrm{dim}\left(\calz\right)$. Given a metric
+ \bq
+ g:\mathfrak{X}(\calz)\times\mathfrak{X}(\calz) \rightarrow \La^0(\calz),
+ \eq
+ which has the usual covariant tensor expression $g_{ij}$, we can construct the totally covariant tensor as such
+ \bq
+ R:\mathfrak{X}(\calz)\times\mathfrak{X}(\calz) \times\mathfrak{X}(\calz)\times \mathfrak{X}(\calz)\rightarrow \La^0(\calz)
+  \label{R2}
+  \eq
+ defined by
+ \bq
+ R(\bfX,\bfY,\bfZ,\bfW)=g(\bfR(\bfX,\bfY)\bfZ,\bfW)
+ \label{convenR},
+ \eq
+It can also be expressed in index form $R_{ijkl}= g_{im}R^m_{\ jk l}$.
+
+The totally covariant Riemann tensor possess the following symmetries:
+First
+\bqy
+R_{ijkl}&=& -R_{jikl}
+\label{asym1}
+\\
+R_{ijkl}&=&-R_{ijlk}
+\label{asym2}
+\\
+R_{ijkl}&=&R_{klij}\,.
+\label{asym3}
+\eqy
+\\
+Fourth, the cyclic or as it is sometimes called the algebraic or first Bianchi identity
+\bq
+R_{ijkl} + R_{iklj} +R_{iljk} =0
+\label{cyclic}
+\eq
+Fifth, differential or second Bianchi identity, which has been called the Jacobi  identity
+\bq
+R_{ijkl\, ;m} + R_{ijlm \, ;k} + R_{ijmk \, ;l} \equiv 0\,.
+\eq
+
+
+Given the above background, We suppose we are given a fully contravariant tensor
+ \bq
+  R:\La^1(\calz)\times\La^1(\calz) \times \La^1(\calz)\times \La^1(\calz)\rightarrow \La^0(\calz)\,,
+  \eq
+ satisfying the same symmetries as the Riemann tensor. Such an object can be constructed, for example, by composing the fully covariant curvature tensor $R$ with any tangent-cotangent isomorphism, raising and lowering operation, the metric being one obvious choice.
+We have a natural bracket on functions $f,k,g$, and $n$  by
+  \bq
+ (f,k;g,n):=R(\bfd f, \bfd k,\bfd g,\bfd n) \,,
+ \label{curvatureBkt}
+\eq
+which is our metriplectic 4-bracket. Restricted to a coordinate neighborhood, the metriplectic 4-bracket can be expressed in index form as
+\bq
+(f,k;g,n)=R^{ijkl}(z) \frac{\p f}{\p z^i} \frac{\p k}{\p z^j} \frac{\p g}{\p z^k} \frac{\p n}{\p z^l}\,.
+\label{4Bktcoords}
+\eq
+From the above construction leading to \eqref{curvatureBkt} or \eqref{4Bktcoords}, the following algebraic properties are  immediately evident:
+\begin{quote}
+(i) linearity in all arguments, e.g,
+\bq
+(f+h,k;g,n)=(h,k;g,n)+(h,k;g,n)
+\label{linearity}
+\eq
+(ii) the algebraic identities/symmetries
+\bqy
+(f,k;g,n)&=&-(k,f;g,n)
+\label{Basym1}
+\\
+(f,k;g,n)&=&-(f,k;n,g)
+\label{Basym2}
+\\
+(f,k;g,n)&=&(g,n;f,k)
+\label{Basym3}
+\\
+(f,k;g,n) &+& (f,g;n,k)+ (f,n;k,g)=0
+\label{Basym4}
+\eqy
+(iii) derivation in all arguments, e.g.,
+\bq
+(fh,k;g,n)= f(h,k;g,n)+(f,k;g,n)h
+\label{leibniz}
+\eq
+which is manifest when written in coordinates as in \eqref{4Bktcoords}. Here, as usual, $fh$ denotes pointwise multiplication.
+\end{quote}
+Using the above definitions, we can define the contravariant analog of many constructions in standard Riemannian geometry. Of particular dynamical interest is the contravariant sectional curvature defined on 1-forms, say  $\si,\et \in  \La^1(\calz)$, by
+\bq
+K(\si, \eta)  \coloneqq  R(\si,\eta, \si,\eta,) = (f,g,f,g) \,,
+\label{secCurv}
+\eq
+where the second equality follows if  $\si=\bfd f$ and $\eta = \bfd g$.  Here we choose to forsake the conventional normalization of $|\si  \wedge \eta|$ for simplicity. Throughout this paper, we will assume that
+\bq
+\label{pos-def}
+K(\si, \eta) \geq 0
+\end{equation}
+
+From all of this, we have created the Metriplectic 4-bracket, a very broad structure that encompasses many things. As this was only first constructed sometime in 2023, the work so far is fairly limited.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dissipative Dynamics}
+
+From all of this, I noted that this construction allows for dissipative structure, here I will work to prove it.
+
+From  the metriplectic 4-bracket from earlier, \eqref{curvatureBkt} we construct the symmetric, yet degenerate bracket:
+\bq
+(f,g)_H \coloneqq (f,H;g,H)=R^{ijkl}\frac{\p f}{\p z^i}\frac{\p H}{\p z^j}\frac{\p g}{\p z^k}\frac{\p H}{\p z^l}\,.
+\label{fgH}
+\eq
+Interchanging $f$ and $g$ amounts to interchanging $i$ and $k$, and because we have symmetrical contraction in $j$ and $l$, we get by \eqref{Basym3}
+\bq
+(f,g)_H= (g,f)_H\,.
+\eq
+Thus  the $G$-metric follows from \eqref{fgH},
+\bq
+G^{ik}=R^{ijkl}\frac{\p H}{\p z^j}\frac{\p H}{\p z^l}\,,
+\eq
+and with this bracket, the dissipative dynamics is generated by
+\bq
+\dot{z}^i= (z^i,H;S,H)= (z^i,S)_H=G^{ij}\frac{\p S}{\p z^j}\,,
+\eq
+where, for the full metriplectic dynamics, we would add the Poisson bracket contribution to the above.
+
+
+Energy conservation comes automatically upon using \eqref{Basym1} and \eqref{Basym2}, i.e.,
+\bq
+(f,H)_H= (H,f)_H=0\qquad \forall\, f\,.
+\eq
+Then the entropy dynamics would be governed by
+\bq
+\dot{S} =(S,S)_H = (S,H;S,H)\geq 0\,,
+\label{entropy}
+\eq
+where the inequality comes from \eqref{pos-def} and assures entropy production.
+
+
+Thus we see how  metriplectic 2-brackets, arise from metriplectic 4-brackets.
+
+
+\subsection{Lie-Metriplectic Manifold}
+We can more readily expand on its structure by examining the underlying Manifold, often refered to as \emph{Lie-Metriplectic} manifolds.
+
+I am not sure how else to express it, so I will read of the paper by Morrison that I mentioned earlier, with some minor changes to make it concise, as they express it very well.
+
+Hamiltonian systems with a configuration  space being a Lie group $G$ can lead to a  reduced phase space $\mathcal{Z}=T^*G/G\cong \mathfrak{g}^*$ where  $\mathfrak{g}^*$ is the  dual of the Lie algebra $\mathfrak{g}$ of  $G$. To endow $G$ with a metriplectic structure, we need a metric $g$ While many such metrics may exists, left-invariant metrics (metrics constant with respect to the vector field module basis of left-invariant vector fields) are the only ones  that  respect the reduced phase space $\mathcal{Z}$. By left translation, these metrics are globally defined by their action at the identity of $G$. Given such a metric, we may consider the left-invariant curvature tensor $R_G$, which restricts to, and is in fact entirely encoded by, the constant tensor $R_{G}|_e$ on $\mathfrak{g}$.
+Metrically raising the indices of $R_G$, the metriplectic 4-bracket on $\mathfrak{g}^*$  takes the form of \eqref{4Bktcoords} with $R^{ijkl} = R_{G}|_e(z^i,z^j,z^k,z^l)$ {and}  $z^i$ being the coordinates of  $\mathfrak{g}^*$.
+
+{Because cases like the above, where the metriplectic 4-tensor is independent of the coordinate $z$,  have special properties,  we   call these  {\it Lie-metriplectic} 4-brackets.}
+For such brackets, the $z$-dependance of the associated metriplectic 2-bracket  is determined by $H$.  For example, when the Hamiltonian is quadratic, say $H = H_{ij}z^i z^j$,  the  metriplectic 2-bracket is a quadratic form.
+
+\subsection{Kulkarni-Nomizu construction}
+Now, to consider specific ways to construct 4-brackets, Kulkarni-Nomizu is the one that gains the most research attention but others do exist, so I once again reccomend reading the paper.
+
+For all future mentions, I will refer to  Kulkarni-Nomizu as (K-N). With the K-N product being defined at:
+
+\bqy
+ \sigma \KN \mu \,(\bfd f, \bfd k,\bfd g,\bfd n)&=&  \sigma(\bfd f,\bfd g) \, \mu (\bfd k,\bfd n)
+\nonumber\\
+&-& \sigma(\bfd f,\bfd n) \, \mu (\bfd k,\bfd g)
+ \nonumber\\
+&+&  \mu (\bfd f,\bfd g)\,  \sigma(\bfd k,\bfd n)
+ \nonumber \\
+&-&  \mu (\bfd f,\bfd n)\,  \sigma(\bfd k,\bfd g) \,.
+\label{KNfinite}
+\eqy
+
+Thus, we may define the 4-bracket as
+\bq
+(f,k;g,n)= \sigma \KN  \mu (\bfd f, \bfd k,\bfd g,\bfd n)\,.
+\eq
+
+We choice this product as it is simple to construct a minimal metriplectic, n using the Cauchy-Schwarz inequality we can see that the -positivity of the sectional curvature  is satisfied, if both $\si$ and $\mu$ are positive semidefinite. {Moreover, if one of the two is positive definite, thus defining an inner product, then the sectional curvature of \eqref{pos-def} satisfies $K(\si, \eta) \geq 0$ with equality if and only if  $\si \propto \eta$.}
+
+
+
+\subsection{Unified Thermodynamics Algorithm}
+
+In current research, they have developed an algorithm that uses the K-N product to make generalizing systems using 4-bracket. As it is a pretty in-depth field, I won't go too far, but the general steps using (black) as an example, goes as follows
+
+First, Identify dynamical valuses
+
+ \bq
+ \bfxi(\bfx,t) = (\rho(\bfx,t),\bfm(\bfx,t),\si(\bfx,t))\,,
+ \eq
+where $\rho$ is the mass density, $\bfm=\rho\bfv$ is the momentum density with $\bfv$ being the Eulerian velocity field, and $\si$ is the entropy density. Observe we have singled out the entropy density $\si$ as the last variable
+
+
+Second, Propose energy and entropy functionals
+
+    \bq
+    S = \int_\Om \si
+    \label{S_nsf}\,.
+    \eq
+
+    \bq
+     H = \int_\Om \frac{\, |\mathbf{m}|^2}{2\rho} + \rho\, u(\rho,\si/\rho)\,,
+     \label{Ham_1}
+    \eq
+
+Third, find Poisson Bracket for which the Entropy S is a Casmir Invariant
+\bq
+\pb{F}{S} = 0 \, \forall F
+\eq
+
+    \bal
+    \{F,G\} = -  \int_{\Omega} \mathbf{m}&\cdot \left[  F_{\bfm} \cdot \nabla G_{\bfm} - G_{\bfm}\cdot \nabla F_{\bfm}\right]
+     \nn\\
+     &+ \rho\left[F_{\bfm}\cdot \nabla G_\rho  -G_{\bfm}\cdot \nabla F_\rho  \right]
+     \nn\\
+     &+ \sigma \left[F_{\bfm}\cdot \nabla G_\si - G_{\bfm}\cdot\nabla  F_\si\right] \,,
+     \label{PB_NSF}
+    \eal
+     where $S$ is a Casimir invariant, i.e., $\{\,S,F\,\} = 0$, for any functional $F$.
+
+
+
+Fourth, Construct Metriplectic 4-bracket via Kulkarni-Nomizu product by a new method
+that separates local thermodynamics from phenomenological quantities, giving the EoMs
+as Poisson bracket + 4-bracket
+
+
+ \bal
+M(dF,dG) &= F_{\si}\,G_{\si}\,,
+\label{UTANSFM}
+\\
+\Si(dF,dG) &=  \call_*^{(\al)}(F_{\xi^\al}) \frac{{L}^{\al\be}}{H_{\si}} \call_*^{(\be)}(G_{\xi^\be})
+\,,
+\label{UTANSFSi}
+\eal
+
+Now, this solution is as general as possible, for an actual solution we need to add the dissipative functions are via defining $\call_*^{(\al)}$ and ${L}^{\al\be}$. I won't go into doing that in this video but I will likely to do so in the future.
+
+
+\subsection{Conclusion and Next steps}
+
+Now that we have in general sketched out the 4-bracket metriplectic, now let us look at our next direction.
+
+I have already mentioned going into more detail about the UT algorithm
+
+Another direction would be to explore infinite dimensional 4-brackets, as what I have explored here is specifically for finite dimensional.
+
+Next, I could work on exploring numerical integrators of metriplectic systems, just as symplectic systems have their own special integrators.
+
+Finally, I could look into exploring metriplectic systems beyond simple fluids, into multi-fluid, and possibly even kinetic systems.
+
+\subsection{Description}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Metriplectic Numerics: Metriplectic 3}
+
+\subsection{Pre-notes}
+Not a part of the video script
+
+
+The spatial discretisation consists of the following components: (a) choosing
+approximations of the function spaces of the dynamical variables, (b) choosing
+approximations of the inner products on these spaces, (c) choosing an approximation of functionals, (d) choosing a finite-dimensional representation of the
+functional derivative. The first step implies the choice of an appropriate finite
+element or similar space. The second as well as the third step tend to boil down
+to choosing a quadrature formula. And the last step usually amounts to the most
+simple choice of a plain partial derivative. Apart from these degrees of freedom,
+the whole construction is systematic and automatic. Everything follows from
+these choices and the metriplectic structure of the system of equations
+
+
+Consider a time-stepping strategy based on the averaged vector-field discrete gradient method. The time-stepping method based on the averaged vector-field discrete gradient method.
+
+
+For this program, I will likely just kinda copy off of 1D thermal and use continuous Garlkin and the same general time stepping method.
+
+I will likely use a library to further simplify, maybe FEniCSx or Firedrake, leaning towards Firedrake
+
+\begin{itemize}
+  \item Introduction
+  \item Scope
+  \item Review Metriplectic
+  \item General theory of metriplectic integrators
+  \item Setting up the Problem
+  \item Spacial Discretization
+  \item Results
+  \item Next steps
+\end{itemize}
+
+I am probably just going to do it in python for ease of use, at least for now.
+
+\subsection{Introduction}
+
+Welcome to another video on the Metriplectic Series, here we will have an introduction to numerical methods for Metriplectic 4-brackets.
+
+I would recommend watching the previous videos first as the review will be extremely brief.
+
+\subsection{Scope}
+
+In this video, I will mimic the paper, ``A thermodynamically consistent discretization of 1D thermal-fluid models using their metriplectic 4-bracket structure'' by William Barham, Philip J. Morrison, Azeddine Zaidni.
+
+We will explore the general idea of metriplectic integrators then apply it to the simplest method I could find as a concrete example. That example being the Navier-Stokes-Fourier, a thermal fluid.
+
+\subsection{Review Metriplectic}
+For a quick review, Metriplectic systems expand Hamiltonian dynamics into dissipative and irreversible systems.
+
+It is able to do this as the reason traditional Hamiltonians are so limited, is because they are fundamentally symplectic, it expands it into Remaniann geometry, hence the metric. We have the antisymmetric Poisson bracket—representing the conservative, Hamiltonian flow, and a symmetric metric bracket, representing dissipation and entropy generation. Together, they create a complete picture of a system obeying the first and second laws of thermodynamics.
+
+Starting with the poission bracket
+$$\dot{f}=\{f,g\}$$
+In this case
+$$0= \{S,H\}$$
+Thus it is the Casimir functionals of the Poisson bracket
+$$\{C,f\}=0 \forall f$$
+From here we can define the Hamiltonian free energy.
+$$F=H+\lambda C $$
+Where $\lambda$ is an arbitrary constant left. In MSTDOF, it is the minus of the tempeture.
+
+To then expand the system, $\langle\langle f,g \rangle \rangle$ via $F$. So that $\langle\langle f, g\rangle \rangle=\{f,h\} + (f,g)$ and $(f,g)$ is symmetric, bilinear and semi-definite.
+
+Evolution is then given by
+$$\dot{f}=\langle\langle f, F\rangle \rangle$$
+(the symmetric bracket $(f,g)$ will be defined so to cancel out the presence of the coefficient
+ $\lambda$, removing it from the equations of motion).
+
+ $(f,g)$ is defined so that $H$ is conserved.
+ $$(H, f) = 0 \forall f$$
+ Thus metriplectic evolution reads:
+ $$\dot{f}=\{f,H\}+\lambda(f,C)$$
+ The Casimir to mimic entropy undergoes an evolution described by:
+ $$\dot{C}=\lambda(C,C)$$
+
+
+This can then be pushed further by changing the binary bracket into a four-bracket.
+\[
+\dot{f} = \pb{f}{h} + (F,S;F,H)
+  \]
+
+  This form allows for generalizing an algorithm to define any 4-bracket.
+
+
+\subsection{General Theory}
+
+As Metriplectic is primarily used in fluid and kinetic equations, like most all fluid and kinetic equations they need to be solved numerically.
+
+Like symplectic and Hamiltonian mechanics, it is embedded with spesicial geometric properties that would be preferable to be conserved.
+
+It is worth mentioning that the natural variables for fluid models using the Metriplectic formulation use entropy rather than internal energy as a prognostic variable. This makes our formulation incompatible with many tools in common practice for numerical methods for hyperbolic conservation laws.
+
+As mentioned, the metriplectic systems have several unique properties, many of these we would wish to satify in our discretization and further integration.
+
+When discretizing, both space and time must follow
+
+
+1: Algebraic bracket properties
+
+Such as Skew-symmetry of brackets
+\[
+\pb{F}{G} = - \pb{G}{F}
+  \]
+
+  Symmetry of Metric Bracket
+\[
+[F,G] = [G,F]
+\]
+
+Positive semi-definiteness
+\[
+    [F,F] \geq 0
+  \]
+
+  It should also hold the degeneracy conditions:
+
+Energy as a Poisson Generator \& Metric Casimir: The discrete total energy $H_d$ must strictly drive the reversible dynamics and be entirely invisible to the dissipative bracket
+\[
+[F,S] = 0
+  \]
+
+  Then entropy as a Metric Generator \& Poisson Casimir: The discrete total entropy $S_d$ must strictly drive the dissipative dynamics and be entirely invisible to the reversible bracket:
+\[
+\pb{F}{S}=0
+  \]
+
+  Finally, any other Casimir invariant such as mass should hold in the discrete form for both the Poisson and metric bracket.
+
+
+  There are many ways to do this, generally constructing them follows the Method of lines, where you first discretize space to convert the infinite-dimensional PDE into a finite dimensional ODE system, and then discretize time in order to solve that system. Both steps requiring structure preserving methods.
+
+  To discretize space, there are a couple of methods. As most methods use artificial dissipation that destroys energy, mathematicians use mimetic methods that mimic differential geometry.
+
+  Methods include:
+
+
+  Finite Element Exterior calculus (FEEC): Instead of evaluating vectors and scalars at random grid points, FEEC uses differential forms. Observable such as mass, energy, momentum, etc are mapped onto geometric elements, this guarantees that vector calculus identities hold exact, which preserves the skew-symmetry of the Poisson bracket.
+
+  Another being Mimetic finite difference/discrete exterior Calculus (DEC): Having two different griddes, one reversible for the Poisson and the other irreversible for the Metric.
+
+
+  Finally, we have Galerkin methods: We have already done a video on discreate Galerkin, so for this video we will examine continuous Galerkin in more detail(also because it is easier and this video was already hard enough.)
+
+  Now, other methods not mentioned do exist, but these have been the most established.
+
+
+  Next, for Temporal Discretization:
+
+  Almost all metriplectic integrators are implicit, just like symplectic ones.
+
+  When it comes to discretizing, the general way is to replace the continuous partial derivatives with discrete gradients
+\[
+F(z_{n+1}) - F(z_n) = \bar{\nabla} F(z_n, z_{n+1}) \cdot (z_{n-1}-z_n)
+  \]
+
+  There are two primary wats of doing this.
+
+  Itoh-Abe, updating the state vector one coordinate at a time, calculating the finite difference at each coordinate while keeping the rest fixed.
+
+
+  And AVF, the average vector field method, which is the one we will use in this video.
+
+\subsection{Setting up the Problem}
+
+I am not going to go through and derive the reference equations, but I would reccomend reading the actual paper this is based upon.
+
+Note that I will be using using the functional derivative shorthand $\delta F/\delta u = F_u$, just like the paper mentioned.
+
+They first derive the 4-metric using the UTA algorithm as
+
+\begin{multline}
+    (F, K; G, N)
+    =
+    \int_\Omega (\Sigma \varowedge M)(F, K, G, N) \mathsf{d} x
+    \\
+    =
+    \int_\Omega
+    \frac{1}{T}
+    \bigg[
+    \mu
+    \left(
+    K_{\sigma} \partial_x F_m
+    -
+    F_{\sigma} \partial_x K_{m}
+    \right)
+    \left(
+    N_{\sigma} \partial_x G_{m}
+    -
+    G_{\sigma} \partial_x N_{m}
+    \right) \\
+    +
+    \frac{\kappa}{T}
+    \left(
+    K_{\sigma} \partial_x F_{\sigma}
+    -
+    F_{\sigma} \partial_x K_{\sigma}
+    \right)
+    \left(
+    N_{\sigma} \partial_x G_{\sigma}
+    -
+    G_{\sigma} \partial_x N_{\sigma}
+    \right)
+    \bigg]
+    \mathsf{d} x \,.
+\end{multline}
+
+As the 2-bracket is defined to be $(F,G)_H \coloneqq (F,H; G,H)$. Thus we can find that:
+
+\begin{equation} \label{eq:dissipative_flow}
+\begin{aligned}
+    (F, S)_H
+    &=
+    \int_\Omega
+    (\Sigma \varowedge M)(F, K, G, N)
+    \mathsf{d} x
+    =
+    \int_\Omega
+    \left(
+    - \Sigma(F, H) M(S, H)
+    + M(F, S) \Sigma(H, H)
+    \right)
+    \mathsf{d} x \\
+    &=
+    \int_\Omega
+    \left(
+    -
+    \left[
+     (\partial_x F_m) \mu \partial_x u
+    +
+    (\partial_x F_\sigma) \frac{\kappa}{T} (\partial_x T)
+    \right]
+    +
+    F_\sigma
+    \left[
+    \frac{\mu}{T} (\partial_x u)^2
+    +
+    \frac{\kappa}{T^2} (\partial_x T)^2
+    \right]
+    \right)
+    \mathsf{d} x \,.
+\end{aligned}
+\end{equation}
+
+
+They further derive the conservative portion to be
+\begin{equation}
+    \{F, H\}
+    =
+    - \int_\Omega
+    \bigg[
+    m \left(
+    F_m \partial_x u
+    -
+    u \partial_x F_m
+    \right)
+    +
+    \rho \left(
+    F_m \partial_x \eta
+    -
+    m \partial_x F_{\rho}
+    \right)
+    +
+    \sigma \left(
+    F_m \partial_x T
+    -
+    u \partial_x F_{\sigma}
+    \right)
+    \bigg]
+    \mathsf{d} x \,,
+\end{equation}
+
+Combining these together they find that the weak evolution equation is
+
+\begin{multline} \label{eq:weak_nsf_system}
+    \dot{F}
+    =
+    \{F, H\} + (F, S)_H \\
+    =
+    - \int_\Omega
+    \bigg[
+    m \left(
+    F_m \partial_x u
+    -
+    u \partial_x F_m
+    \right)
+    +
+    \rho \left(
+    F_m \partial_x \eta
+    -
+    m \partial_x F_{\rho}
+    \right)
+    +
+    \sigma \left(
+    F_m \partial_x T
+    -
+    u \partial_x F_{\sigma}
+    \right)
+    \bigg]
+    \mathsf{d} x \\
+    +
+    \int_\Omega
+    \left(
+    -
+    \left[
+     (\partial_x F_m) \mu \partial_x u
+    +
+    (\partial_x F_\sigma) \frac{\kappa}{T} (\partial_x T)
+    \right]
+    +
+    F_\sigma
+    \left[
+    \frac{\mu}{T} (\partial_x u)^2
+    +
+    \frac{\kappa}{T^2} (\partial_x T)^2
+    \right]
+    \right)
+    \mathsf{d} x \,.
+\end{multline}
+
+Now, some further work can recover the strong evolution equations from the original Navier-Stokes-Fourier, but that isn't importaint for our case as the the metriplectic structure is where the finite element method will be derived, not the evolution equations.
+
+
+\subsection{Spacial Discretization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Long-Term Black Hole Evolution: BSSN 2}
+\begin{itemize}
+  \item Introduction/Scope
+  \item Review
+\end{itemize}
+
+
+\section{GEMPIC}
+
+
+
+\section{Relativistic Kinetic Theory}

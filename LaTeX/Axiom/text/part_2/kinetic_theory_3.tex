@@ -206,5 +206,82 @@ Dynamics, and Irreversibility}
 \subsection{Fluid Dynamic Equations and the Boltzmann H
 Theorem}
 
+\subsection{Transport Coefficients}
 
 
+Consider that a fluid is in equilibrium (or steady state) at given uniform values of
+n, u, and T . Gradients of these variables develop under perturbation. The fluid
+responds to these gradients in a manner to restore equilibrium (Le Chatelier’s
+principle). Thus, with R written for “response” we may write
+
+\[
+R[\nabla n] = nu
+  \]
+\[
+R[\nabla u] = S
+  \]
+\[
+R[\nabla T] = Q
+  \]
+\[
+R[\nabla \Phi] = J
+  \]
+  That is, fluid motion will develop in response to gradients in density.
+
+  The coefficients that relate gradients of the perturbation to response motions are called transport coefficients.
+
+\subsection{The Chapman–Enskog Expansion}
+
+The collision integral of the Boltzmann equation
+\[
+J(F \vert F) \equiv -F \int \int \sigma d \Omega g dv_1 F(v_1) + \int \int \sigma d \Omega g dv_1 F' F_1'
+  \]
+
+  The quantity
+\[
+\nu = \int \int \sigma d \Omega g dv_1 F(v_1)
+  \]
+
+  Represents collision frequency
+
+  Allows us to rewrite the Boltzmann Equation
+
+
+  Which serves to define the collision-integral operator $vu{I}$. Which has a dimensions of frequency.
+
+  We can see that a large collision frequency is equivalent to a small mean free path.
+
+  We can once again rewrite the Boltzmann equation as
+\bq
+\left(\pdv{}{t} + \vu{D}  \right)F = \frac{1}{\epsilon} \vu{I}F
+\label{Bolt_Chap}
+\eq
+
+Step 2 is to introduce the expansion
+\bq
+F = F^{(0)} + \epsilon F^{(2)} + \epsilon^2 F^{(2)} + ...
+\label{series_F}
+\eq
+
+The normalization of F satisfies the moment relations
+\bq
+n = \int F dv, \quad n \vb{u} = \int F \vb{v} d\vb{v}, \quad \frac 3 2 n k_B T = \int \frac{mc^2}{2}F d\vb{v}
+\eq
+
+Step three stipulates that the variables are all $0(1)$ quantities and stem from $F^{(0)}$. Where the rest of the series \eqref{series_F} correspond to the higher moments, I won't go through and write all of them out.
+
+Using the same method we can expand $\vu{D}$.
+
+We can also expand $\vu{J}$ y
+\bq
+\vu{hat}(F \vert F) = \vu{J}^{(0)}(F^{(0)}) + \epsilon \vu{J}^{(1)}(F^{(0)}F^{(1)}) + ...
+\eq
+
+The fourth steps is to address the time derivatives
+
+The physical meaning of this expansion is that lowest-order terms vary most rapidly, whereas higher-order terms are more slowly varying.
+
+The book then goes on expressing the equation and deriving results, but I think what I have done so far is sufficient.
+
+
+\subsection{The Druyvesteyn Distribution}
