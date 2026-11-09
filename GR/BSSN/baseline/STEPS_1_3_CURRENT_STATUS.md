@@ -15,7 +15,11 @@ the final diagnostic tree (`baseline_regression_final_20261107.log`,
 `BASELINE_REGRESSION_EXIT:0`), with the same numbers as the earlier run. The
 current branch HEAD is `24c2ce9e`, a user commit whose only BSSN change is
 `nsteps` `100000 -> 42000` in `vacuum_kerr.par`; it does not affect the
-6000-step regression, which overrides the step count.
+6000-step regression, which overrides the step count. A non-clean `make check`
+on this tree (no Fortran changes after `2e4b3243`; only the parameter, docs,
+and the acceptance checker changed) is also green:
+`run_archive/2026-11-04_phase0_post_fix/make_check_nsteps42000_20261109.log`,
+`MAKE_CHECK_EXIT:0`. The last clean gate remains the `2e4b3243` run.
 
 **Parameters:** `parameter_files/vacuum_kerr.par`, unless stated otherwise.
 
