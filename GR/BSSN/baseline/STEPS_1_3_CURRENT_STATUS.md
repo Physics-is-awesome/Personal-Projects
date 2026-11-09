@@ -10,9 +10,12 @@ instrumentation; they do not change the evolution path. The combined
 (`run_archive/2026-11-04_phase0_post_fix/make_clean_check_final_20261107.log`,
 `MAKE_CLEAN_CHECK_EXIT:0`) and again on the high-order diagnostic commit
 `2e4b3243` (`make_clean_check_final_20261107_highorder.log`,
-`MAKE_CLEAN_CHECK_EXIT:0`). `make baseline-regression` passes end-to-end
-(`BASELINE_REGRESSION_EXIT:0`); that run predates the diagnostic-only
-high-order commit, whose production calls are unchanged.
+`MAKE_CLEAN_CHECK_EXIT:0`). `make baseline-regression` passes end-to-end on
+the final diagnostic tree (`baseline_regression_final_20261107.log`,
+`BASELINE_REGRESSION_EXIT:0`), with the same numbers as the earlier run. The
+current branch HEAD is `24c2ce9e`, a user commit whose only BSSN change is
+`nsteps` `100000 -> 42000` in `vacuum_kerr.par`; it does not affect the
+6000-step regression, which overrides the step count.
 
 **Parameters:** `parameter_files/vacuum_kerr.par`, unless stated otherwise.
 
@@ -417,3 +420,20 @@ improvement), but it does not fix late time consistently and remains worse
 than the production ghost-filled branch in every state. No one-sided or
 high-order branch is promoted. The next target is the near-mask data/seam and
 inner-boundary physics, not a higher-order stencil.
+
+## 8. Near-mask `f(x,z)` cache and axis audit (2026-11-07)
+
+The mode-4 `f(x,z)` cache was audited at 96x192, 192x384, and 384x768. Every
+physical cell is valid, there are no missing values and no flat fallbacks. The
+worst adjacent `|df|` is `5.6668e-1`, `3.2479e-1`, and `1.7985e-1`
+respectively, at points just outside `r_excise=1.5M` with `r_KS≈1.51–1.65`.
+The jump decreases roughly first order with `dx`; this is a steep near-mask
+profile, not a missing-data hole or a fixed grid seam. Mode 4 remains
+unpromoted and is not read by production (`slicing_mode=3`).
+
+The polar-angle `|M|` profile peaks at the equator and falls toward the axis
+(96x192 `ct=0..0.1` `2.255e-4` vs `ct=0.9..1.0` `8.314e-5`; 192x384
+`5.899e-5` vs `2.166e-5`), and all four production near-mask maxima are
+off-axis (`x=0.63–1.64`). There is no axis-specific defect to promote.
+Details: `run_archive/2026-11-04_phase0_post_fix/PHASE2_SEAM_AXIS.md`; logs in
+`run_archive/phase2_seam/`.
