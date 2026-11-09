@@ -124,6 +124,27 @@ SAT or equivalent, matched to the production second-order BSSN system). But the
 evidence now says the bar is "get the boundary to 2nd-order-plus accuracy",
 **not** "control an unstable incoming mode".
 
+## 2026-11-08 long-run confirmation
+
+The 96x192 production run archived at
+`run_archive/production_96x192_42000_2026-11-08/` reaches 42,000 steps
+(`t/M=18.6587`) but confirms the earlier diagnosis rather than contradicting it:
+
+- The horizon is found only through step 1800 (`t/M=0.7997`) and is rejected
+  at step 1900 inside the excision/coverage buffer.
+- Area has already drifted `-3.24%` and `M_irr` `-1.63%` at the last found
+  surface; area crosses 1% at `t/M=0.355` and `M_irr` at `t/M=0.578`.
+- After horizon loss the state is not physical: `max|H|` reaches `22.6`,
+  `alpha_min=-16.3`, and `phi_min=-1385` by the final step.
+- The 5% abort does not fire because the horizon-rejection path returns before
+  the invariant guard. `baseline/check_acceptance_run.py` now rejects this run
+  at `T/M=10`.
+
+This is consistent with the earlier result: the failure is a secular
+inner-boundary accuracy problem, not a lack of steps or a late-time
+instability. It also shows why a long-run acceptance test must require
+horizon coverage, not just completion of `nsteps`.
+
 ## Reproduction
 
 ```sh
