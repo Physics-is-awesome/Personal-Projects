@@ -437,3 +437,25 @@ The polar-angle `|M|` profile peaks at the equator and falls toward the axis
 off-axis (`x=0.63–1.64`). There is no axis-specific defect to promote.
 Details: `run_archive/2026-11-04_phase0_post_fix/PHASE2_SEAM_AXIS.md`; logs in
 `run_archive/phase2_seam/`.
+
+## 9. 42,000-step production run (2026-11-08)
+
+A 96x192 production run from `8738c628` completed 42,000 steps to
+`t/M=18.6587`. It is archived at
+`run_archive/production_96x192_42000_2026-11-08/` with full state/output.
+It is **not** a baseline or acceptance result.
+
+The apparent horizon is found only through step 1800 (`t/M=0.7997`) and is
+rejected at step 1900 inside the excision/coverage buffer (`hmin=1.5660`
+versus limit `1.5632`). At the last found surface the area has drifted
+`-3.24%` and `M_irr` `-1.63%` from step 0; the `<1%` programme target is
+already violated. The 5% abort does not fire because the horizon rejection
+returns before the invariant guard. After loss, `max|H|` exceeds `0.1` at
+`t/M=6.84`, `alpha_min` becomes negative at `t/M=14.88`, and the final state
+has `max|H|=22.6`, `alpha_min=-16.3`, `phi_min=-1385`. Completing the steps is
+therefore not a long-term success.
+
+Do not count `T/M=18.66` as a checkpoint, and do not start another long
+production arm until the horizon coverage/inner-boundary behavior and the
+post-loss monitoring gap are addressed. Details:
+`run_archive/production_96x192_42000_2026-11-08/RUN_NOTES.md`.

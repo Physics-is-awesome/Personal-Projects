@@ -223,6 +223,8 @@ The `y` path is second order while `x/z` are fourth order. This is a known resol
 
 **Goal:** demonstrate the accepted physical duration at three resolutions with the same validated configuration.
 
+**Pre-campaign failed run (2026-11-08).** A 96×192 production run from `8738c628` completed 42,000 steps (`t/M=18.6587`) but the horizon was found only through step 1800 (`t/M=0.7997`) and rejected inside the coverage buffer at step 1900. The last found surface already had `-3.24%` area and `-1.63%` `M_irr` drift; after loss the run reached `max|H|=22.6` and `alpha_min=-16.3`. The 5% abort did not fire because the rejection path bypasses the invariant guard. This is a failed run, not a checkpoint; see `run_archive/production_96x192_42000_2026-11-08/RUN_NOTES.md`. Do not count `T/M=18.66` as acceptance progress.
+
 - [ ] Freeze the configuration after Gate A/B: initial data, gauge, excision radius in `M`, boundary method, dissipation, domain, CFL.
 - [ ] Run 96×192, 192×384, and 384×768 to `T/M = 10`, then 30, then 100 (or the agreed final target). Use separate directories and archive all logs.
 - [ ] At each diagnostic time record:
