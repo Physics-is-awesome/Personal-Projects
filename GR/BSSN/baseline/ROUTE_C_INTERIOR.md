@@ -724,3 +724,20 @@ available for the curved-background Jacobian work.  It is diagnostic only;
 it does not alter the production RHS or enable a boundary penalty.  The
 constraint characteristic transform remains explicitly incomplete until the
 full metric/Ricci/gauge block has been differentiated and validated.
+
+## 42,000-step confirmation (2026-11-08)
+
+The archived 96x192 run (`run_archive/production_96x192_42000_2026-11-08/`)
+reached `t/M=18.6587` but lost the horizon at step 1900 (`t/M=0.844`), after
+area and `M_irr` had already drifted more than 1% (crossings at
+`t/M=0.355` and `0.578`).  The late state had `max|H|=22.6`,
+`alpha_min=-16.3`, and `phi_min=-1385`.  This is exactly the failure mode the
+coupled boundary operator is meant to remove; it is not evidence for enabling
+the reduced SAT.
+
+The next gated artifact is the full normal principal matrix on a local Kerr
+background.  `fo_complete_normal_matrix` already carries the transport and
+several explicit principal couplings, but it still marks the Ricci, Gamma-
+driver, and constraint-coupling blocks unsupported.  Those blocks must be
+differentiated from the production RHS and validated before any penalty is
+enabled.
