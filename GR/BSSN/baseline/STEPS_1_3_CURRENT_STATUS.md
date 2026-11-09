@@ -435,7 +435,11 @@ The polar-angle `|M|` profile peaks at the equator and falls toward the axis
 (96x192 `ct=0..0.1` `2.255e-4` vs `ct=0.9..1.0` `8.314e-5`; 192x384
 `5.899e-5` vs `2.166e-5`), and all four production near-mask maxima are
 off-axis (`x=0.63–1.64`). There is no axis-specific defect to promote.
-Details: `run_archive/2026-11-04_phase0_post_fix/PHASE2_SEAM_AXIS.md`; logs in
+The existing Gamma-tilde convergence measurement (orders ~1.57 then ~1.99,
+amplitude between the neighbouring second-derivative errors) also keeps the
+second-order `compute_conformal_connections` path off the promotion list until
+a manufactured-field/frozen-state test exists. Details:
+`run_archive/2026-11-04_phase0_post_fix/PHASE2_SEAM_AXIS.md`; logs in
 `run_archive/phase2_seam/`.
 
 ## 9. 42,000-step production run (2026-11-08)
