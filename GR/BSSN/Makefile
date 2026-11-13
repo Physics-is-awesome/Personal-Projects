@@ -130,6 +130,7 @@ SOURCES := \
 	helper/excision_sat.F90 \
 	helper/stencil.F90 \
 	helper/geometry.F90 \
+	helper/fo_production_normal.F90 \
 	helper/equilibrium_1pluslog.F90 \
 	helper/eq_schwarzschild_data.F90 \
 	helper/eq_kerr_trumpet.F90 \
@@ -157,11 +158,12 @@ TESTS := test-excision-sat test-fo-sbp-sat test-fo-rhs test-fo-normal-system \
 	test-fo-constraint-fields test-fo-constraint-principal \
 	test-fo-curved-sat test-fo-validation test-fo-complete-layout \
 	test-fo-complete-state test-fo-complete-rhs test-fo-symbol-consistency test-fo-layout test-fo-convergence \
+		test-fo-production-normal \
 	test-horizon-drift test-constraint-conv test-momentum-conv \
 	test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data \
 	test-k-from-gauge test-gauge-f-continuity
 
-.PHONY: all run clean check check-parity test diagnose-k-from-gauge diagnose-stencil-derivs diagnose-eq-kerr-data diagnose-kerr-bssn diagnose-f-alpha-relation diagnose-boundary-isolation diagnose-equilibrium-ring diagnose-route-c-sat diagnose-horizon-snapshot diagnose-dbm-momentum-point diagnose-momentum-snapshot diagnose-rhs-snapshot test-horizon-drift test-constraint-conv test-momentum-conv test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data probe-momentum-terms diagnose-ks-stationarity diagnose-momentum-point diagnose-inner-boundary test-gauge-f-continuity $(TESTS)
+.PHONY: all run clean check check-parity test diagnose-k-from-gauge diagnose-stencil-derivs diagnose-eq-kerr-data diagnose-kerr-bssn diagnose-f-alpha-relation diagnose-boundary-isolation diagnose-equilibrium-ring diagnose-route-c-sat diagnose-production-normal diagnose-horizon-snapshot diagnose-dbm-momentum-point diagnose-momentum-snapshot diagnose-rhs-snapshot test-horizon-drift test-constraint-conv test-momentum-conv test-equilibrium-1pluslog test-gamma-driver-rhs test-eq-schwarzschild-data probe-momentum-terms diagnose-ks-stationarity diagnose-momentum-point diagnose-inner-boundary test-gauge-f-continuity $(TESTS)
 
 # Build-only: report targets that optionally take a parameter file.
 bin/diagnose_stationary_ks_rhs: $(SOURCES_NO_DRIVER) helper/diagnose_stationary_ks_rhs.F90 | bin $(MODDIR)
@@ -339,7 +341,10 @@ test-gauge-f-continuity: $(SOURCES_NO_DRIVER) helper/test_gauge_f_continuity.F90
 
 # `check` is the gate: the production binary must build from a source set that
 # a superset-check covers, and the whole test suite must pass.
-check: check-parity $(TARGET) test
+check:
+	@$(MAKE) -j4 $(TARGET)
+	@$(MAKE) check-parity
+	@$(MAKE) -j1 test
 	@echo "check: production build and full test suite OK"
 
 # Every .F90 a test target compiles must be in SOURCES (the driver is
@@ -375,6 +380,15 @@ test-fo-complete-rhs: helper/kinds_mod.F90 init/param.F90 init/grid.F90 init/var
 		integrators/bssn_rhs.F90 integrators/fo_complete_rhs.F90 \
 		helper/test_fo_complete_rhs.F90 -o bin/test_fo_complete_rhs
 	./bin/test_fo_complete_rhs
+
+test-fo-production-normal: $(SOURCES_NO_DRIVER) helper/test_fo_production_normal.F90 | bin $(MODDIR)
+	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \
+		helper/test_fo_production_normal.F90 -o bin/test_fo_production_normal $(LDLIBS)
+	./bin/test_fo_production_normal
+
+diagnose-production-normal: bin/test_fo_production_normal
+	@mkdir -p run_archive/2026-11-04_phase0_post_fix
+	./bin/test_fo_production_normal run_archive/2026-11-04_phase0_post_fix/production_normal_matrix_20261109.dat
 
 test-fo-symbol-consistency: $(SOURCES_NO_DRIVER) helper/test_fo_symbol_consistency.F90 | bin $(MODDIR)
 	$(FC) $(FFLAGS) -J$(MODDIR) -I$(MODDIR) $(SOURCES_NO_DRIVER) \

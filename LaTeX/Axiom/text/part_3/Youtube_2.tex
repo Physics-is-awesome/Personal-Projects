@@ -669,9 +669,405 @@ Combining these together they find that the weak evolution equation is
 \end{multline}
 
 Now, some further work can recover the strong evolution equations from the original Navier-Stokes-Fourier, but that isn't importaint for our case as the the metriplectic structure is where the finite element method will be derived, not the evolution equations.
-
-
 \subsection{Spacial Discretization}
+
+Basing our work on the work by Barham et al, we consider simulations on a periodic domain: $\Omega = [0,L]/\sim$, where $L > 0$ and the equivalence relation identifies the endpoints. Leting $V_h \subset H^1(\Omega)$ be the degree-$p$ continuous Galerkin finite element space defined over a uniform grid, $\mathcal{T}_h$, on $\Omega$: i.e.
+\begin{equation}
+    V_h
+    =
+    \{ v_h \in H^1(\Omega) : \left. v_h \right|_{K} \in \mathbb{P}^p(K) \,,\, \forall K \in \mathcal{T}_h \} \,,
+\end{equation}
+where $\mathbb{P}^p(K)$ is the space of degree-$p$ polynomials on $K \subset \Omega$. The discretization is accomplished using the method of lines by positing that all dynamical fields have spatial dependence modeled in this Galerkin subspace.
+
+
+From here we can trivially take the original Hamiltonian
+
+\begin{equation}
+    H[\rho, m, \sigma]
+    =
+    \int_\Omega
+    \left(
+    \frac{1}{2} \frac{m^2}{\rho}
+    +
+    \rho U \left(\rho, \frac{\sigma}{\rho} \right)
+    \right)
+    \mathsf{d} x \,,
+\end{equation}
+
+And entropy
+
+::: add
+
+And dercritize them
+\begin{equation}
+    H^h[\rho_h, m_h, \sigma_h]
+    =
+    \int_\Omega
+    \left[
+    \frac{1}{2} \frac{m_h^2}{\rho_h}
+    +
+    \rho_h U \left(\rho_h, \frac{\sigma_h}{\rho_h} \right)
+    \right]
+    \mathsf{d} x \,,
+    \quad
+    S^h[\sigma_h]
+    =
+    \int_\Omega \sigma_h \mathsf{d} x \,,
+\end{equation}
+
+We can further use the same method on the antisymmetric bracket
+\begin{multline} \label{eq:discrete_poisson_bracket}
+    \{F^h, G^h\}_h(\rho_h, m_h, \sigma_h)
+    =
+    - \int_\Omega
+    \bigg[
+    m_h \left(
+    F^h_{m_h} \partial_x G^h_{m_h}
+    -
+    G^h_{m_h} \partial_x F^h_{m_h}
+    \right) \\
+    +
+    \rho_h \left(
+    F^h_{m_h} \partial_x G^h_{\rho_h}
+    -
+    G^h_{m_h} \partial_x F^h_{\rho_h}
+    \right)
+    +
+    \sigma_h \left(
+    F^h_{m_h} \partial_x G^h_{\sigma_h}
+    -
+    G^h_{m_h} \partial_x F^h_{\sigma_h}
+    \right)
+    \bigg]
+    \mathsf{d} x \,,
+\end{multline}
+Note, we refered to the equation as an antisymmetric bracket and not a Poisson bracket as it fails to satisfy the Jacobi identity:
+
+\begin{equation}
+    \{ F, \{G, H\}\}
+    +
+    \{ H, \{F, G\}\}
+    +
+    \{ G, \{H, F\}\}
+    = 0 \quad \forall F, G, H \,.
+\end{equation}
+
+No known method in fluid mechanics preserves this property. Nevertheless, our method does conserve antisymmetry, energy, and entropy thus is sufficient.
+And the metriplectic 4-bracket
+
+\begin{multline}
+    (F^h, K^h; G^h, N^h)_h
+    =
+    \frac{1}{\text{Re}}
+    \int_\Omega
+    \frac{1}{T_h}
+    \bigg[
+    \left(
+    K^h_{\sigma_h} \partial_x F^h_{m_h}
+    -
+    F^h_{\sigma_h} \partial_x K^h_{m_h}
+    \right)
+    \left(
+    N^h_{\sigma_h} \partial_x G^h_{m_h}
+    -
+    G^h_{\sigma_h} \partial_x N^h_{m_h}
+    \right) \\
+    +
+    \frac{1}{\text{Pr}} \frac{\gamma}{\gamma - 1}
+    \frac{1}{T_h}
+    \left(
+    K^h_{\sigma_h} \partial_x F^h_{\sigma_h}
+    -
+    F^h_{\sigma_h} \partial_x K^h_{\sigma_h}
+    \right)
+    \left(
+    N^h_{\sigma_h} \partial_x G^h_{\sigma_h}
+    -
+    G^h_{\sigma_h} \partial_x N^h_{\sigma_h}
+    \right)
+    \bigg]
+    \mathsf{d} x \,,
+\end{multline}
+
+Next we take $Q_{V_h}$ to be the $L^2$ projection onto $V_h$ in order to find the functional derivatives of the Hamiltonian.
+
+\begin{multline}
+    H_{\rho_h}^h
+    =
+    Q_{V_h} \bigg(
+    - \frac{m_h^2}{2 \rho_h^2}
+    + U \left(\rho_h, \frac{\sigma_h}{\rho_h} \right)
+    + \rho_h \partial_1 U \left(\rho_h, \frac{\sigma_h}{\rho_h} \right)
+    - \frac{\rho_h}{\sigma_h} \partial_2 U  \left(\rho_h, \frac{\sigma_h}{\rho_h} \right)
+    \bigg) \,, \\
+    H_{m_h}^h
+    =
+    Q_{V_h} \left( \frac{m_h}{\rho_h} \right) \,,
+    \quad \text{and} \quad
+    H_{\sigma_h}^h
+    =
+    Q_{V_h} \left( \partial_2 U  \left(\rho_h, \frac{\sigma_h}{\rho_h} \right) \right) \,,
+    \quad
+\end{multline}
+
+We can then find for the entropy that, $S_{\rho_h}^h = S_{m_h}^h = 0$, and $S_{\sigma_h}^h = 1$, since $V_h$ interpolates constant functions exactly. For convenience, and to match notation used subsequently, we write $\delta \bm{s}_h = (0, 0, 1)$ to denote the vector of derivatives of the entropy with respect to the three dynamical fields, $(\rho_h, m_h, \sigma_h)$.
+
+If we assume a an observable of the form $F^h = (\phi_m, m_h)_{L^2} + (\phi_\rho, \rho_h)_{L^2} + (\phi_\sigma, \sigma_h)_{L^2}$, then we obtain the following variational problem: find $(\bm{u}_h, \delta \bm{h}_h) \coloneq ((\rho_h, m_h, \sigma_h), (\eta_h, u_h, T_h)) \in V_h^3 \times V_h^3$, where $V_h^3 = V_h \times V_h \times V_h$, such that
+
+\begin{equation} \label{eq:evolution_eqns_fem_model}
+    (\bm{v}_h, \partial_t \bm{u}_h)_{L^2}
+    -
+    \{ \bm{v}_h, \delta \bm{h}_h \} \left( \bm{u}_h \right)
+    -
+    ( \bm{v}_h, \delta \bm{s}_h)_H ( \delta \bm{h}_h ) \\
+    +
+    (\delta \bm{h}_h - DH(\bm{u}_h), \bm{w}_h)_{L^2}
+    =
+    0
+\end{equation}
+$\forall (\bm{v}_h, \bm{w}_h) \coloneq ((\phi_\rho, \phi_m, \phi_\sigma), (\phi_{\eta_h}, \phi_{u_h}, \phi_{T_h})) \in V_h^3 \times V_h^3$, where
+\begin{equation}
+    (\bm{v}_h, \partial_t \bm{u}_h)_{L^2}
+    =
+    (\partial_t \rho_h, \phi_\rho)_{L^2}
+    +
+    (\partial_t m_h, \phi_m)_{L^2}
+    +
+    (\partial_t \sigma_h, \phi_\sigma)_{L^2} \,,
+\end{equation}
+the discrete Poisson bracket is defined to be
+\begin{multline}
+    \{ \bm{v}_h, \delta \bm{h}_h \} \left( \bm{u}_h \right)
+    =
+    \{ F^h, H^h \}_h(\bm{u}_h)
+    =
+    - \left( m_h \partial_x u_h, \phi_m \right)_{L^2}
+    +
+    \left( m_h u_h, \partial_x \phi_m \right)_{L^2} \\
+    -
+    \left( \rho_h \partial_x \eta_h, \phi_m \right)_{L^2}
+    +
+    \left( \rho_h u_h, \partial_x \phi_\rho \right)_{L^2}
+    -
+    \left( \sigma_h \partial_x T_h, \phi_m \right)_{L^2}
+    +
+    \left( \sigma_h u_h, \partial_x \phi_\sigma \right)_{L^2} \,,
+\end{multline}
+the discrete metriplectic bracket yields
+\begin{multline}
+    (\bm{v}_h, \delta \bm{s}_h)_H ( \delta \bm{h}_h )
+    =
+    (F^h, H^h; S^h, H^h)_h
+    =
+    - \frac{1}{\text{Re}}
+    \Bigg[
+    \left(\partial_x u_h, \partial_x \phi_m \right)_{L^2}
+    -
+    \left(
+    \frac{ (\partial_x u_h)^2}{T_h}, \phi_\sigma
+    \right)_{L^2} \\
+    +
+    \frac{1}{\text{Pr}} \frac{\gamma}{\gamma - 1}
+    \bigg[
+    \left(
+    \frac{\partial_x T_h}{T_h}, \partial_x \phi_\sigma
+    \right)_{L^2}
+    -
+    \left(
+    \frac{ (\partial_x T_h)^2}{T_h^2}, \phi_\sigma
+    \right)_{L^2}
+    \bigg]
+    \Bigg] \,,
+\end{multline}
+and the $L^2$ projections of the derivatives of the Hamiltonian are imposed via
+\begin{equation}
+\begin{aligned}
+    (\delta \bm{h}_h - DH(\bm{u}_h), \bm{w}_h)_{L^2}
+    =
+    \left(
+    \eta_h
+    -
+    \frac{\delta H^h}{\delta \rho_h},
+    \phi_{\eta_h}
+    \right)_{L^2}
+    +
+    \left(
+    u_h - \frac{\delta H^h}{\delta m_h},
+    \phi_{u_h}
+    \right)_{L^2}
+    +
+    \left(
+    T_h - \frac{\delta H^h}{\delta \sigma_h},
+    \phi_{T_h}
+    \right)_{L^2} \,.
+\end{aligned}
+\end{equation}
+
+Here we have three main features:
+
+\begin{itemize}
+    \item The derivatives of the generating functions are computed as via projections and must be thought of as distinct from the evolving state vector, $\bm{u}_h = (\rho_h, m_h, \sigma_h)$. Hence, we keep track of an the derivatives of the Hamiltonian, $\delta \bm{h}_h = (\eta_h, m_h, T_h)$, as additional degrees of freedom (note, $\delta \bm{s}_h = (0, 0, 1)$ takes a simple form in momentum coordinates).
+    \item The bilinear two-brackets generating the conservative and dissipative dynamics,
+    \begin{equation}
+        \{ \bm{v}_h, \delta \bm{h}_h \} \left( \bm{u}_h \right)
+        \quad \text{and} \quad
+        (\bm{v}_h, \delta \bm{s}_h)_H ( \delta \bm{h}_h ) \,,
+    \end{equation}
+    respectively, take the derivatives of the generating functions, $\delta \bm{h}_h$ and $\delta \bm{s}_h$, as one argument, and arbitrary the test function, $\bm{v}_h$ as the other.
+    \item These brackets also have nonlinear field dependence. The discrete antisymmetric bracket depends directly on the state-vector, $\bm{u}_h$, while the discrete symmetric bracket depends on the derivative of the Hamiltonian, $\delta \bm{h}_h$. The nonlinear dependence of the dissipative bracket on $\delta \bm{h}_h$, rather than $\bm{u}_h$, is dictated by the $4$-bracket formalism and essential for energy conservation.
+\end{itemize}
+
+By including the $L^2$ projection of the derivatives of the Hamiltonian as additional fields to solve for in the variational problem, we formulate the semi-discrete problem as a differential algebraic equation. The derivatives of the Hamiltonian with respect to momentum and entropy density have the physical interpretation of being the velocity and temperature, respectively. The derivative of the Hamiltonian with respect to density is related to the enthalpy, and one may readily recover the gradient of the pressure through a Bernoulli-like equation:
+\begin{equation} \label{eq:proj}
+    \left( \partial_x p_h + \frac{1}{2} \partial_x (u_h^2) - \rho_h \partial_x \eta_h + \sigma_h \partial_x T_h, \phi
+    \right)_{L^2} = 0 \,, \quad \forall \phi \in V_h \,.
+\end{equation}
+
+Letting $\phi_\rho = \phi_\sigma = 0$, we find
+\begin{multline}
+    (\phi_m, \partial_t m_h)
+    + \left( m_h \partial_x u_h, \phi_m \right)_{L^2}
+    -
+    \left( m_h u_h, \partial_x \phi_m \right)_{L^2} \\
+    +
+    \left( \rho_h \partial_x \eta_h, \phi_m \right)_{L^2}
+    +
+    \left( \sigma_h \partial_x T_h, \phi_m \right)_{L^2}
+    +
+    \frac{1}{\text{Re}}
+    \left(\partial_x u_h, \partial_x \phi_m \right)_{L^2}
+    =
+    0 \,, \quad \forall \phi_m \in V_h \,,
+\end{multline}
+where
+\begin{multline}
+    \bigg(
+    \eta_h
+    + \frac{m_h^2}{2 \rho_h^2}
+    - U \left(\rho_h, \frac{\sigma_h}{\rho_h} \right)
+    - \rho_h \partial_1 U \left(\rho_h, \frac{\sigma_h}{\rho_h} \right)
+    + \frac{\rho_h}{\sigma_h} \partial_2 U  \left(\rho_h, \frac{\sigma_h}{\rho_h} \right) ,
+    \phi_\eta
+    \bigg)_{L^2} = 0 \,, \\
+    \left(u_h - \frac{m_h}{\rho_h}, \phi_u \right)_{L^2} = 0 \,,
+    \quad \text{and} \quad
+    \left(T_h - \partial_2 U  \left(\rho_h, \frac{\sigma_h}{\rho_h} \right), \phi_T \right)_{L^2} = 0 \,, \quad \forall (\phi_\eta, \phi_u, \phi_T) \in V_h^3 \,.
+\end{multline}
+The continuity and entropy equations are obtained in a similar fashion.
+
+As mentioned previously, the spatially semi-discretized evolution equations given in equation \eqref{eq:evolution_eqns_fem_model} are thermodynamically consistent. This may be verified by letting $\bm{v}_h = \delta \bm{h}_h$, yielding
+\begin{equation}
+    \dot{H}^h
+    =
+    (\delta \bm{h}_h, \partial_t \bm{u}_h)_{L^2}
+    =
+    0 \,,
+\end{equation}
+and $\bm{v}_h = \delta \bm{s}_h$, yielding
+\begin{equation}
+    \dot{S}^h
+    =
+    (\delta \bm{s}_h, \partial_t \bm{u}_h)_{L^2}
+    =
+    \frac{1}{\text{Re}}
+    \Bigg[
+    \left(
+    \frac{ (\partial_x u_h)^2}{T_h}, 1
+    \right)_{L^2}
+    +
+    \frac{1}{\text{Pr}} \frac{\gamma}{\gamma - 1}
+    \left(
+    \frac{ (\partial_x T_h)^2}{T_h^2}, 1
+    \right)_{L^2}
+    \Bigg] \geq 0 \,.
+\end{equation}
+
+
+\subsection{Temporal Discretization}
+
+As mentioned earlier, we will use the time-stepping method based on the averaged vector-field discrete gradient method.
+
+We will take evolution equation finite element model
+\begin{equation} \label{eq:evolution_eqns_fem_model}
+    (\bm{v}_h, \partial_t \bm{u}_h)_{L^2}
+    -
+    \{ \bm{v}_h, \delta \bm{h}_h \} \left( \bm{u}_h \right)
+    -
+    ( \bm{v}_h, \delta \bm{s}_h)_H ( \delta \bm{h}_h ) \\
+    +
+    (\delta \bm{h}_h - DH(\bm{u}_h), \bm{w}_h)_{L^2}
+    =
+    0
+\end{equation}
+
+and average the discrete vector field.
+\begin{multline}
+    \left(\frac{\bm{u}_h^{n+1} - \bm{u}_h^n}{\Delta t}, \bm{v}_h \right)_{L^2}
+    +
+    \{ \delta \bm{h}_h^n, \bm{v}_h \} \left( \frac{\bm{u}_h^{n+1} + \bm{u}_h^n}{2} \right)
+    +
+    ( \delta \bm{s}_h^n, \bm{v}_h)_H ( \delta \bm{h}_h^n ) \\
+    +
+    ( \overline{DH}(\bm{u}_h^{n}, \bm{u}_h^{n+1}) - \delta \bm{h}_h^n, \bm{w}_h)_{L^2}
+    =
+    0 \,, \quad \forall (\bm{v}_h, \bm{w}_h) \in V_h^3 \times V_h^3
+\end{multline}
+where
+\begin{equation} \label{eq:avg_vector_field_hamiltonian}
+    \overline{DH}(\bm{u}_h^{n}, \bm{u}_h^{n+1})
+    =
+    \int_0^1 DH( (1-t) \bm{u}_h^n + t \bm{u}_h^{n+1}) \mathsf{d} t \,.
+\end{equation}
+This method is equivalent to the implicit midpoint method if we approximate the integral in \eqref{eq:avg_vector_field_hamiltonian} using the midpoint rule. In fact, this integral must be approximated via quadrature in general. We find that Gauss-Legendre quadrature with $\geq 4$ quadrature points achieves sufficient accuracy to achieve energy conservation to machine precision in the tests done by Braham et al. From this definition of the time-stepping scheme, it follows that if we let $\bm{v}_h = \delta \bm{h}_h$, then the fundamental theorem of calculus implies that
+
+\begin{equation}
+\begin{aligned}
+    \left(\frac{\bm{u}_h^{n+1} - \bm{u}_h^n}{\Delta t}, \delta \bm{h}_h \right)_{L^2}
+    &=
+    \left(\frac{\bm{u}_h^{n+1} - \bm{u}_h^n}{\Delta t}, \overline{DH}(\bm{u}_h^{n}, \bm{u}_h^{n+1}) \right)_{L^2} \\
+    &=
+    \frac{1}{\Delta t} \int_0^1
+    DH( (1-t) \bm{u}_h^n + t \bm{u}_h^{n+1})
+    \cdot (\bm{u}_h^{n+1} - \bm{u}_h^n)
+     \mathsf{d} t
+    \\
+    &=
+    \frac{1}{\Delta t} \int_0^1
+    \frac{\mathsf{d}}{\mathsf{d} t} H ((1 - t) \bm{u}_h^{n} + t \bm{u}_h^{n+1}) \mathsf{d} t
+    =
+    \frac{H(\bm{u}_h^{n+1}) - H(\bm{u}_h^n)}{\Delta t}
+    =
+    0 \,,
+\end{aligned}
+\end{equation}
+verifying energy conservation. Positive entropy production follows from letting $\bm{v}_h = \delta \bm{s}_h^n$:
+\begin{equation}
+    \frac{S^{n+1} - S^n}{\Delta t}
+    =
+    ( \delta \bm{s}_h^n, \delta \bm{s}_h^n)_H ( \delta \bm{h}_h )
+    = \frac{1}{\text{Re}}
+    \left[
+    \left(
+    \frac{ (\partial_x u_h^n)^2}{T_h^n},
+    1
+    \right)_{L^2}
+    +
+    \frac{1}{\text{Pr}} \frac{\gamma}{\gamma - 1}
+    \left(
+    \frac{ (\partial_x T_h^n)^2}{(T_h^n)^2},
+    1
+    \right)_{L^2}
+    \right]
+    \geq 0 \,.
+\end{equation}
+Hence, the fully discrete method is found to be thermodynamically-consistent. The averaged vector field discrete gradient method is $O(\Delta t^2)$. Further work has found that both the Gauss-Legendre implicit Runge-Kutta methods and energy conserving methods  were recently shown to fit into a general framework in.
+
+\subsection{Numerical Experimentation}
+
+The authors mentioned in this video have already gone through the work of testing these methods numerically, but to confirm my understanding as well as for the fun of it, I attempt to replicate their work.
+
+I find similar results to their work with extremely small errors that are near machine persicion.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Long-Term Black Hole Evolution: BSSN 2}
 \begin{itemize}
@@ -680,8 +1076,41 @@ Now, some further work can recover the strong evolution equations from the origi
 \end{itemize}
 
 
-\section{GEMPIC}
+\section{Introduction to Geometric ElectroMagnetic Particle in Cell methods(GEMPIC): Vlasov-Maxwell}
+\begin{itemize}
+  \item Introduction
+  \item Scope
+  \item Vlasov-Maxwell Review
+  \item Motivating
+  \item Finite Exterior Calculus
+  \item Discretizing Hamiltonian Structure
+  \item Example set-up
+  \item Code
+  \item Results
+\end{itemize}
+
+\subsection{Introduction}
+Welcome to another video, an Introduction to Geometric Particle in Cell Method, or as it will be refered to as GEMPIC.
+
+\subsection{Scope}
+
+This video will largely be based upon the work of GEMPIC: Geometric ElectroMagnetic Particle-In-Cell Methods by Micheal Kraus et al.
+
+We will derive the GEMPIC method via finite exterior calculus and then look at a simple example. We will follow their example and look at the 1D2V Vlasov-Maxwell.
+
+\subsection{Vlasov-Maxwell Review}
 
 
 
-\section{Relativistic Kinetic Theory}
+\section{Introduction to 3+1 Einstein-Vlasov Systems: Derivation and Numerics}
+
+\begin{itemize}
+  \item Introduction
+  \item Scope
+  \item Notation
+  \item SpaceTime in Phase-Space
+  \item Liouville Vector field
+  \item Vlasov Equation
+  \item The Stress Energy Tensor
+  \item Complete Einstein-Vlasov system
+\end{itemize}

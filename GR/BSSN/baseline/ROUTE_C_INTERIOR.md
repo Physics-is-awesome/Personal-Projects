@@ -741,3 +741,33 @@ several explicit principal couplings, but it still marks the Ricci, Gamma-
 driver, and constraint-coupling blocks unsupported.  Those blocks must be
 differentiated from the production RHS and validated before any penalty is
 enabled.
+
+## Second-order and partial first-order normal blocks (2026-11-09)
+
+The highest-normal-derivative block has now been isolated from the production
+RHS rather than inferred from the incomplete first-order scaffold:
+
+- `helper/fo_production_normal.F90` implements the analytic `C2` matrix for
+  the 24 evolved fields and analytic `A1` for the rows without
+  Christoffel/connection perturbations (`phi`, conformal metric, lapse,
+  shift);
+- `helper/test_fo_production_normal.F90` uses linear and quadratic probes and
+  compares every measured entry with the analytic coefficient;
+- the measured full matrices are archived in
+  `run_archive/2026-11-04_phase0_post_fix/production_normal_matrix_20261109.dat`.
+
+The z normal agrees to `1.2e-9` for `C2` and `1.8e-10` for derived `A1`; the
+curved radial normal agrees to `1.45e-3` for `C2`.  The x normal and radial
+`A1` probes are diagnostic only: in the axisymmetric Cartoon code a
+perturbation with `n_x != 0` is not a clean `m=0` plane wave, so transverse
+`y` reconstruction contaminates the local extraction.  This is a limitation of
+measuring a full 3D normal symbol with the 2D `m=0` evolution, not a defect in
+the analytic formulas.
+
+This closes the second-order principal block and a first slice of `A1`.
+`A1` remains open for `K`, `Atilde`, `Gamma`, and `B` (`DDa`, `Rphi`,
+`Rtilde`, Gamma-driver, and constraint-coupling terms, including background
+Christoffel perturbations), and the full characteristic transform still has to
+be derived and validated.  `fo_complete_normal_matrix` remains incomplete and
+`excision_sat=false` remains required.  Details:
+`baseline/PRODUCTION_NORMAL_MATRIX.md`.

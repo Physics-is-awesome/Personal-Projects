@@ -474,3 +474,33 @@ A standalone acceptance checker now enforces the same distinction:
 requires horizon coverage through the target and at most 1% invariant drift.
 It rejects the 42,000-step run at target `T/M=10` and is documented in the
 Phase 3 checklist.
+
+## 10. Production normal principal matrices (2026-11-09)
+
+`helper/fo_production_normal.F90` now isolates the highest-normal-derivative
+(`C2`) block of the actual 24-field production BSSN + gauge RHS and provides
+analytic first-normal (`A1`) rows for `phi`, conformal metric, lapse, and
+shift.  `helper/test_fo_production_normal.F90` uses linear and quadratic
+probes at a curved route-C Kerr point and compares measured entries with the
+analytic matrices.
+
+- `C2`: z-normal `1.2e-9`, radial `1.45e-3`, all 24x24 entries pass the
+  `3e-3` gate for z and radial.
+- `A1` derived rows (`phi`, `gt_ij`, `alpha`, `beta`): z-normal `1.8e-10`.
+- x-normal and radial-`A1` probes are diagnostic only because perturbations
+  with `n_x != 0` are not clean `m=0` modes under the Cartoon reconstruction.
+
+The measured full `A1`/`A2` matrices are archived in
+`run_archive/2026-11-04_phase0_post_fix/production_normal_matrix_20261109.dat`;
+formulas, results, and limitations are in
+`baseline/PRODUCTION_NORMAL_MATRIX.md`.  `A1` remains open for `K`, `Atilde`,
+`Gamma`, and `B` (`DDa`/`Rphi`/`Rtilde`, Gamma-driver, and
+constraint-coupling terms, including background Christoffel perturbations),
+and the characteristic transform/incoming-outgoing tests are still open.  No
+SAT is enabled and the production evolution path is unchanged.
+
+The final clean gate is green on this tree:
+`run_archive/2026-11-04_phase0_post_fix/make_clean_check_final_20261109.log`,
+`MAKE_CLEAN_CHECK_EXIT:0`.  The test target now forces its shared-module test
+recipes to run with `-j1`, so passing `-j4` to `make check` no longer races
+`build/mod`; the source build itself still uses `-j4`.

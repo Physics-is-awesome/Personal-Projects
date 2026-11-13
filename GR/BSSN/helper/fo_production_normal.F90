@@ -1,10 +1,16 @@
-! Normal second-derivative principal matrix of the production BSSN/gauge RHS.
+! Normal principal matrices of the production BSSN/gauge RHS.
 !
-! This module deliberately covers only the highest normal derivative carried
-! by each production equation.  It is *not* a first-order characteristic
-! transform and it is not used by an excision penalty.  The remaining
-! first-normal-derivative (transport, Lie, Ricci/connection) couplings and the
-! constraint block are still open; see `LONG_TERM_CONTINUATION_PLAN.md` P2.2.
+! The second-normal-derivative block C2 is the highest-derivative (principal)
+! part of the actual production second-order system.  The first-normal block
+! A1 contains transport, Lie, and first-derivative couplings; A1 is required
+! for a characteristic transform but is only partially derived analytically
+! here (the remainder can be measured by the linear probe in
+! `test_fo_production_normal`).  No SAT or penalty is implemented.
+!
+! Convention:
+!
+!     delta( RHS_v ) = ... + A1(v,w) * d_n delta(u_w)
+!                           + C2(v,w) * d_n^2 delta(u_w) + ...
 !
 ! Convention used here and in the manufactured test:
 !
@@ -37,10 +43,12 @@ module fo_production_normal_mod
                       IK, IAXX, IAXY, IAXZ, IAYY, IAYZ, IAZZ, &
                       IGTX, IGTY, IGTZ, IALPHA, IBETAX, IBETAY, IBETAZ, &
                       IBX, IBY, IBZ
-  use params_mod, only: gamma_driver_mode
+  use params_mod, only: gamma_driver_mode, slicing_mode
+  use geometry_mod, only: conformal_geometry_t
   implicit none
   private
   public :: production_normal_second_matrix, production_normal_second_labels
+  public :: production_normal_first_matrix, production_normal_var_labels
 
 contains
 
@@ -243,5 +251,119 @@ contains
     case default;  name = 'unknown'
     end select
   end function var_name
+
+  subroutine production_normal_var_labels(labels)
+    character(len=32), intent(out) :: labels(NVARS)
+    integer :: v
+    do v = 1, NVARS
+      labels(v) = var_name(v)
+    end do
+  end subroutine production_normal_var_labels
+
+  ! Analytic first-normal-derivative block for rows whose production RHS
+  ! contains no background Christoffel/connection perturbation: phi, the
+  ! conformal metric, lapse (modes 0,1,3,4), and shift (modes 3,4).  Rows
+  ! depending on first derivatives of alpha/phi/K/Gamma/metric through
+  ! DDa, Rphi, Rtilde, or the Gamma-driver are left unsupported here and
+  ! remain measured numerically by the linear probe.
+  !
+  ! Convention: delta(RHS_v) = A1(v,w) * d_n delta(u_w) + ... with
+  ! d_n delta(u_w) = 1 for a linear normal perturbation.
+  subroutine production_normal_first_matrix(q, normal, A1, labels, supported)
+    real(dp), intent(in) :: q(NVARS), normal(3)
+    real(dp), intent(out) :: A1(NVARS,NVARS)
+    character(len=32), intent(out) :: labels(NVARS)
+    logical, intent(out) :: supported(NVARS)
+    real(dp) :: n(3), nrm, beta(3), bn, g(3,3)
+    integer :: i, j, c, v, w
+
+    A1 = 0.0_dp
+    labels = 'a1-not-derived'
+    supported = .false.
+
+    nrm = sqrt(sum(normal*normal))
+    if (nrm <= tiny(1.0_dp)) error stop 'production_normal_first_matrix: zero normal'
+    n = normal / nrm
+    beta = [q(IBETAX), q(IBETAY), q(IBETAZ)]
+    bn = dot_product(beta, n)
+    g = reshape([q(IGXX), q(IGXY), q(IGXZ), &
+                 q(IGXY), q(IGYY), q(IGYZ), &
+                 q(IGXZ), q(IGYZ), q(IGZZ)], [3,3])
+
+    ! phi: -alpha*K/6 + beta^i d_i phi + d_i beta^i/6
+    A1(IPHI, IPHI) = bn
+    A1(IPHI, IBETAX) = n(1) / 6.0_dp
+    A1(IPHI, IBETAY) = n(2) / 6.0_dp
+    A1(IPHI, IBETAZ) = n(3) / 6.0_dp
+    labels(IPHI) = 'a1-derived'
+    supported(IPHI) = .true.
+
+    ! Conformal metric: -2 alpha A_ij + Lie_beta(gt)_ij
+    ! Lie_beta(gt)_ij = beta^k d_k gt_ij + gt_ik d_j beta^k + gt_kj d_i beta^k
+    !                   - 2/3 gt_ij d_k beta^k
+    do i = 1, 3
+      do j = i, 3
+        v = metric_index(i, j)
+        A1(v, v) = bn
+        do c = 1, 3
+          w = beta_var(c)
+          A1(v, w) = A1(v, w) + g(i, c) * n(j) + g(j, c) * n(i) &
+                     - (2.0_dp / 3.0_dp) * g(i, j) * n(c)
+        end do
+        labels(v) = 'a1-derived'
+        supported(v) = .true.
+      end do
+    end do
+
+    ! Lapse: production modes 0,1,3,4 include beta^i d_i alpha.
+    ! Mode 2 freezes alpha (rhs=0); other modes are not currently used.
+    select case (slicing_mode)
+    case (2)
+      labels(IALPHA) = 'a1-frozen'
+      supported(IALPHA) = .true.
+    case (0, 1, 3, 4)
+      A1(IALPHA, IALPHA) = bn
+      labels(IALPHA) = 'a1-derived'
+      supported(IALPHA) = .true.
+    case default
+      labels(IALPHA) = 'a1-unknown-slicing'
+      supported(IALPHA) = .false.
+    end select
+
+    ! Shift: mode 4 has rhs_beta = 0.75*B^i (no first derivative).
+    ! Mode 3 has rhs_beta = 0.75*B^i + beta^j d_j beta^i.
+    ! Mode 2 freezes shift; mode 0 has 0.75*B^i; mode 1 freezes.
+    select case (gamma_driver_mode)
+    case (4, 0)
+      labels(IBETAX) = 'a1-derived'; labels(IBETAY) = 'a1-derived'; labels(IBETAZ) = 'a1-derived'
+      supported(IBETAX) = .true.; supported(IBETAY) = .true.; supported(IBETAZ) = .true.
+    case (3)
+      A1(IBETAX, IBETAX) = bn
+      A1(IBETAY, IBETAY) = bn
+      A1(IBETAZ, IBETAZ) = bn
+      labels(IBETAX) = 'a1-derived'; labels(IBETAY) = 'a1-derived'; labels(IBETAZ) = 'a1-derived'
+      supported(IBETAX) = .true.; supported(IBETAY) = .true.; supported(IBETAZ) = .true.
+    case (1, 2)
+      labels(IBETAX) = 'a1-frozen'; labels(IBETAY) = 'a1-frozen'; labels(IBETAZ) = 'a1-frozen'
+      supported(IBETAX) = .true.; supported(IBETAY) = .true.; supported(IBETAZ) = .true.
+    case default
+      labels(IBETAX) = 'a1-unknown-driver'; labels(IBETAY) = 'a1-unknown-driver'; labels(IBETAZ) = 'a1-unknown-driver'
+    end select
+
+    ! K, Atilde, Gamma, B: first-normal couplings involve DDa, Rphi, Rtilde,
+    ! Gamma-driver, and/or constraint terms; not yet derived analytically.
+    labels(IK) = 'a1-open'
+    labels(IAXX) = 'a1-open'; labels(IAXY) = 'a1-open'; labels(IAXZ) = 'a1-open'
+    labels(IAYY) = 'a1-open'; labels(IAYZ) = 'a1-open'; labels(IAZZ) = 'a1-open'
+    labels(IGTX) = 'a1-open'; labels(IGTY) = 'a1-open'; labels(IGTZ) = 'a1-open'
+    labels(IBX) = 'a1-open'; labels(IBY) = 'a1-open'; labels(IBZ) = 'a1-open'
+
+  end subroutine production_normal_first_matrix
+
+  pure integer function beta_var(c) result(v)
+    integer, intent(in) :: c
+    integer, parameter :: tab(3) = [IBETAX, IBETAY, IBETAZ]
+    v = tab(c)
+  end function beta_var
 
 end module fo_production_normal_mod
