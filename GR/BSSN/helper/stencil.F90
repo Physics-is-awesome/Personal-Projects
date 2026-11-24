@@ -8,6 +8,8 @@ module stencil_mod
 
   implicit none
 
+  integer, allocatable, save :: stencil_fallback_mask(:,:)
+
   private
   public :: stencil_t
   public :: compute_stencil
@@ -45,7 +47,7 @@ contains
   !
   ! The y derivatives are still supplied by the Cartoon method.
   !
-  ! mask(i,k) =
+  ! m(i,k) =
   !
   !     EXCISED  -> point is inside the excision region
   !     anything else -> usable exterior/ghost point
@@ -66,6 +68,7 @@ contains
     logical, intent(in), optional :: high_order_xz, high_order_y
 
     logical :: ho_xz, ho_y
+    integer, allocatable :: m(:,:)
     real(dp) :: c0(NVARS)
 
     ! Cartesian neighbors
@@ -106,6 +109,12 @@ contains
     ho_y  = .false.
     if (present(high_order_xz)) ho_xz = high_order_xz
     if (present(high_order_y))  ho_y  = high_order_y
+
+    if (size(mask,1) >= Nx .and. size(mask,2) >= Nz) then
+      allocate(m(Nx,Nz)); m = mask(1:Nx,1:Nz)
+    else
+      allocate(m(Nx,Nz)); m = stencil_fallback_mask
+    end if
 
     !-------------------------------------------------------------------
     ! Central value
@@ -569,6 +578,7 @@ contains
 
     end if
 
+    if (allocated(m)) deallocate(m)
   end subroutine compute_stencil
 
 

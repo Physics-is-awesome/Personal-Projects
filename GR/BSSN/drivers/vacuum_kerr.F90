@@ -8,7 +8,7 @@ program main
   use grid_mod, only: xg, zg, setup_grid
   use vars_mod, only: NVARS, IALPHA, IPHI, IK, IBETAX, IBETAZ, IBX, &
                       IGXX, IGXZ, IGZZ, alloc_state, ICONFMET, IATILDE
-  use initial_data_mod, only: set_kerr_schild_id, compute_conformal_connections, &
+  use initial_data_mod, only: set_kerr_schild_id, set_puncture_id, compute_conformal_connections, &
                               fill_conformal_connection_boundary
   use eq_kerr_bssn_data_mod, only: set_eq_kerr_trumpet_id, initialize_kerr_f_cache
   use constraints_mod, only: hamiltonian_constraint, momentum_constraint
@@ -161,7 +161,11 @@ program main
   print '(A,I0,A,I0)', " Grid: Nx=", Nx, "  Nz=", Nz
   print '(A,F6.3,A,F6.3,A,F6.3)', " dx=", dx, "  dy=", dy, "  dz=", dz
   print '(A,F6.3,A,F6.3)', " BH mass M=", bh_mass, "   spin a=", bh_spin
-  r_horizon = bh_mass + sqrt(max(bh_mass**2 - bh_spin**2, 0.0_dp))
+  if (initial_data_mode == 2) then
+    r_horizon = 0.5_dp*bh_mass
+  else
+    r_horizon = bh_mass + sqrt(max(bh_mass**2 - bh_spin**2, 0.0_dp))
+  end if
   hz_drift_tol = 0.01_dp*max(r_horizon, 1.0_dp)
   call get_environment_variable("GR_REFRESH_BG", buf, status=envstat)
   if (envstat == 0) then
@@ -188,6 +192,9 @@ program main
   if (initial_data_mode == 1) then
     print *, " Initial data: Dennison-Baumgarte-Montero trumpet (route C)"
     call set_eq_kerr_trumpet_id(u, bh_mass, bh_spin, bh_mass)
+  else if (initial_data_mode == 2) then
+    print *, " Initial data: Schwarzschild puncture (conformally flat)"
+    call set_puncture_id(u)
   else
     call set_kerr_schild_id(u)
   end if
@@ -224,7 +231,7 @@ program main
   shell_w = near_mask_w*max(dx,dz)
   call shell_stats(r_excise, r_ah, junk_H, junk_R, junk_M, junk_n, skip_i, skip_k)
   call shell_stats(r_ah, r_ah + shell_w, hor_H, hor_R, hor_M, hor_n, hor_i, hor_k)
-  call shell_stats(r_ah + shell_w, huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
+  call shell_stats(max(r_ah + shell_w, 1.0_dp), huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
 
   print '(A,ES12.4,A,ES12.4)', " t=0 Hamiltonian constraint (exterior): max|H| = ", Hmax, &
     "   rms|H| = ", Hrms
@@ -424,7 +431,7 @@ program main
       hor_i=0; hor_k=0; ext_i=0; ext_k=0
       call shell_stats(r_excise, r_ah, junk_H, junk_R, junk_M, junk_n, skip_i, skip_k)
       call shell_stats(r_ah, r_ah + shell_w, hor_H, hor_R, hor_M, hor_n, hor_i, hor_k)
-      call shell_stats(r_ah + shell_w, huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
+      call shell_stats(max(r_ah + shell_w, 1.0_dp), huge(1.0_dp), Hmax, Hrms, Mmax, npts, ext_i, ext_k)
 
       ! Minimum lapse over the evolved domain.  For slicing_mode = 3 this is
       ! the long-term indicator: it falls monotonically from the first cell

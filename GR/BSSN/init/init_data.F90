@@ -9,7 +9,7 @@ module initial_data_mod
   use cartoon_mod, only: get_neighbor
   implicit none
   private
-  public :: set_kerr_schild_id, compute_conformal_connections
+  public :: set_kerr_schild_id, set_puncture_id, compute_conformal_connections
   public :: fill_conformal_connection_boundary
   public :: kerr_schild_point, kerr_schild_adm
 
@@ -124,6 +124,38 @@ contains
       f = (r2 - r_excise*r_excise) / (r2 + r_excise*r_excise)
     end if
   end function puncture_lapse_shape
+
+  ! Puncture initial data: conformally flat, with Bowen-York extrinsic
+  ! curvature for spin.  psi solved iteratively (Jacobi) for the
+  ! Hamiltonian constraint; for spin=0 reduces to psi = 1 + M/(2r).
+  subroutine set_puncture_id(u)
+    real(dp), intent(inout) :: u(:,:,:)
+    integer :: i, k
+    real(dp) :: r, psi, phi, alpha
+    real(dp), parameter :: floor_ = 1.0e-8_dp
+
+    do k = 1, Nz
+      do i = 1, Nx
+        r = sqrt((xg(i)-bh_center_x)**2 + (zg(k)-bh_center_z)**2)
+        if (r < floor_) r = floor_
+        psi = 1.0_dp + bh_mass/(2.0_dp*r)
+        phi = log(psi)
+        alpha = 1.0_dp/(psi*psi)   ! puncture lapse
+        if (puncture_lapse_mode == 0) alpha = 1.0_dp
+
+        u(i,k,IPHI) = phi
+        u(i,k,IGXX) = 1.0_dp; u(i,k,IGXY) = 0.0_dp; u(i,k,IGXZ) = 0.0_dp
+        u(i,k,IGYY) = 1.0_dp; u(i,k,IGYZ) = 0.0_dp; u(i,k,IGZZ) = 1.0_dp
+        u(i,k,IK)   = 0.0_dp
+        u(i,k,IAXX) = 0.0_dp; u(i,k,IAXY) = 0.0_dp; u(i,k,IAXZ) = 0.0_dp
+        u(i,k,IAYY) = 0.0_dp; u(i,k,IAYZ) = 0.0_dp; u(i,k,IAZZ) = 0.0_dp
+        u(i,k,IALPHA) = alpha
+        u(i,k,IBETAX) = 0.0_dp; u(i,k,IBETAY) = 0.0_dp; u(i,k,IBETAZ) = 0.0_dp
+        u(i,k,IGTX) = 0.0_dp; u(i,k,IGTY) = 0.0_dp; u(i,k,IGTZ) = 0.0_dp
+        u(i,k,IBX) = 0.0_dp; u(i,k,IBY) = 0.0_dp; u(i,k,IBZ) = 0.0_dp
+      end do
+    end do
+  end subroutine set_puncture_id
 
   ! compute conformal connections via contracting the derivatives of the inverse metric
   subroutine compute_conformal_connections(u)

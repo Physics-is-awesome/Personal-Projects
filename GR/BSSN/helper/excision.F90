@@ -112,7 +112,8 @@ contains
 
     integer, intent(in) :: i,k
 
-    is_excised = (kerr_radius_squared(xg(i), zg(k)) < r_excise**2)
+    ! Moving-puncture mode: no excised region.  Every grid point is evolved.
+    is_excised = .false.
 
   end function is_excised
 
@@ -222,13 +223,7 @@ contains
 
     do k = 1,Nz
       do i = 1,Nx
-
-        if (is_excised(i,k)) then
-          status(i,k) = EXCISED
-        else
-          status(i,k) = PHYSICAL
-        end if
-
+        status(i,k) = PHYSICAL
       end do
     end do
 
@@ -301,20 +296,11 @@ contains
 
     real(dp), intent(inout) :: u(:,:,:)
 
-    if (.not. geom_built) then
-      if (allocated(excision_geom)) deallocate(excision_geom)
-      allocate(excision_geom(Nx,Nz))
-      call initialize_excision(excision_geom)
-      geom_built = .true.
-    end if
-
+    ! Moving-puncture mode: no ghost fill required.  Keep excision_status
+    ! allocated and all-PHYSICAL so stencil_mod/constraints callers that still
+    ! pass it remain valid.
     if (.not. allocated(excision_status)) allocate(excision_status(Nx,Nz))
-
-    ! Reset EVERY call -- do not carry last step's GHOST classification
-    ! forward. See the module-level comment above excision_status.
-    excision_status = excision_geom
-
-    call fill_excision_ghosts(u, excision_status)
+    excision_status = PHYSICAL
 
   end subroutine extrapolate_excised
 

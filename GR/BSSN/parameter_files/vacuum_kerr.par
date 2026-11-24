@@ -32,7 +32,7 @@ gauge_eta = 2.0      # Gamma-driver damping, ~ 2/M
 cfl       = 0.005    # back to default
 nsteps    = 42000
 out_every = 100
-hz_every = 100
+hz_every = 500
 ko_eps    = 0.2   #0.2 is what it was   # Kreiss-Oliger dissipation strength, typical 0.1-0.5
 # Optional empirical outer buffer damping. Disabled in the production baseline;
 # enable only for a controlled domain/reflection sweep.
@@ -46,8 +46,8 @@ excision_sat = false # guarded until exact BSSN characteristic data are availabl
                      # crashes at t/M=0.62 regardless of r_excise.  See
                      # baseline/EXCISION_SAT_CRASH.md.
 
-initial_data_mode = 1 # Dennison-Baumgarte-Montero route-C trumpet data
-slicing_mode = 3 # route C: tabulated Bona-Masso stationary Kerr slicing
+initial_data_mode = 2 # Schwarzschild puncture (conformally flat)
+slicing_mode = 0 # 1+log
 gamma_driver_mode = 4 # non-advective Gamma-driver (B=0 fixed point)
                     # These are the matching gauge modes for the route-C data.
                     # Do not pair them with Kerr-Schild data; that is a

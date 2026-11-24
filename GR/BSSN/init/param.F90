@@ -48,7 +48,7 @@ module params_mod
   ! The Kerr-Schild initial data is a static gauge, so evolving it with
   ! maximal slicing produces a much smaller gauge transient than 1+log.
   ! 4 = experimental spatial DBM lapse profile; requires route-C initial data.
-  integer  :: slicing_mode = 3
+  integer  :: slicing_mode = 0
   ! 0 = legacy: d_t Gbar = RHS_Gam - eta*Gbar   (Gbar is coupled to the
   !     Gtilde equations and is only damped towards ZERO -- no puncture)
   ! 1 = puncture: d_t Gbar = -eta (Gbar - puncture_sign*2M x^a/r^3)
@@ -65,13 +65,13 @@ module params_mod
   !       lapse reaches zero on the excision boundary.
   ! This is a diagnostic knob; it changes the solution and therefore injects a
   ! constraint violation.  Validated only by the horizon-drift guard.
-  integer  :: puncture_lapse_mode = 0
+  integer  :: puncture_lapse_mode = 1
   ! 0 = phi=(1/12)ln det gamma (det gamma-tilde = 1)
   ! 1 = phi=(1/4)ln(1+2H)    (standard Kerr-Schild, gamma-tilde -> delta)
   integer  :: conformal_factor_mode = 0
   ! 0 = Kerr-Schild initial data (legacy/production)
   ! 1 = Dennison-Baumgarte-Montero trumpet initial data (route C)
-  integer  :: initial_data_mode = 0
+  integer  :: initial_data_mode = 2
 
   ! --- Time evolution ---
   real(dp) :: cfl = 0.005_dp
@@ -149,13 +149,8 @@ contains
     end if
     r_horizon = bh_mass + sqrt(bh_mass**2 - bh_spin**2)
     if (r_excise >= r_horizon) error stop 'Parameter error: r_excise must lie inside the Kerr outer horizon'
-    ! Route-C DBM data exist only for the areal radius R > R0.  The driver
-    ! uses R0 = bh_mass, so the excision surface must cover the entire
-    ! non-existent trumpet interior; otherwise invalid projected data remain
-    ! in the nominally evolved region between r_excise and R0.
-    if (initial_data_mode == 1 .and. r_excise <= bh_mass) then
-      error stop 'Parameter error: route-C requires r_excise > bh_mass (the trumpet radius R0)'
-    end if
+    ! Moving-puncture mode: no excision surface.  Route-C trumpet data are
+    ! used down to the puncture; no r_excise > bh_mass requirement.
 
     dx = xmax / real(Nx - 1, dp)
     dz = 2.0_dp * zmax / real(Nz - 1, dp)
